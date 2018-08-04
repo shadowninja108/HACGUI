@@ -1,0 +1,3 @@
+[submodule "libhac"]
+	path = libhac
+	url = https://github.com/Thealexbarney/libhac
