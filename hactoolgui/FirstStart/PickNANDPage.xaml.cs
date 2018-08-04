@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace hactoolgui
+namespace HACGUI.FirstStart
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for PickNANDPage.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class PickNANDPage : Page
     {
-        public MainWindow()
+        public PickNANDPage()
         {
             InitializeComponent();
         }
