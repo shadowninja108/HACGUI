@@ -29,7 +29,7 @@ namespace HACGUI.FirstStart
             {
                 NANDService.OnNANDPluggedIn += () =>
                 {
-                    AsyncNextPage();
+                    StartDeriving();
                 };
 
                 NANDService.Start();
@@ -65,7 +65,7 @@ namespace HACGUI.FirstStart
             }
         }
 
-        private void AsyncNextPage()
+        private void StartDeriving()
         {
             Dispatcher.BeginInvoke(new Action(() => // move to UI thread
             {

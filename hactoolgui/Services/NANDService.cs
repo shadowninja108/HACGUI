@@ -144,8 +144,11 @@ namespace HACGUI.Services
             CreateWatcher.Stop();
             DeleteWatcher.Stop();
 
-            NANDSource.Close();
-            NANDSource.Dispose();
+            if (NANDSource != null)
+            {
+                NANDSource.Close();
+                NANDSource.Dispose();
+            }
 
             Started = false;
         }

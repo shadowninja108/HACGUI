@@ -147,16 +147,16 @@ namespace HACGUI.FirstStart
             if (rootBackupFolder.Exists)
             {
                 DirectoryInfo[] backupFolderListing = rootBackupFolder.GetDirectories();
-                if (backupFolderListing.Count() > 0)
+                foreach (DirectoryInfo backupFolder in backupFolderListing)
                 {
-                    DirectoryInfo backupFolder = backupFolderListing.First();
                     DirectoryInfo dumpsFolder = backupFolder.GetDirectory("dumps");
                     if(backupFolder.GetFile("BOOT0").Exists)
                         if (dumpsFolder.Exists)
                         {
                             bool fuseFileExists = dumpsFolder.GetFile("fuses.bin").Exists;
                             bool tsecFileExists = dumpsFolder.GetFile("tsec_keys.bin").Exists;
-                            return fuseFileExists && tsecFileExists;
+                            if(fuseFileExists && tsecFileExists)
+                                return true;
                         }
                 }
             }
