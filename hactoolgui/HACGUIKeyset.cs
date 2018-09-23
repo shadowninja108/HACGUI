@@ -150,7 +150,8 @@ namespace HACGUI
             "retail_specific_aes_key_source",
             "save_mac_kek_source",
             "save_mac_key",
-            "save_mac_key_source"
+            "save_mac_key_source",
+            "per_console_key_source"
         };
 
         public static string PrintCommonKeys(Keyset keyset, bool hactoolFriendly)
