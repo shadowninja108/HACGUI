@@ -18,8 +18,8 @@
     
     <Grid>
         <Button Content="Select raw NAND dump (split or not)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="500" Height="60" FontSize="30" Click="Button_Click"/>
-        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Center" Width="500" Height="50">
-            <Label Content="A switch with memloader will automatically&#xA;be detected if running as an administrator" HorizontalAlignment="Center" VerticalAlignment="Top" Width="240" Height="49"/>
+        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Center" Width="350" Height="70">
+            <Label Content="A Switch running memloader will automatically&#xA;be detected if running as an administrator&#xA;Your SD card is also no longer needed and can be removed." HorizontalAlignment="Center" VerticalAlignment="Top" Width="500" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="70"/>
         </Grid>
     </Grid>
 </views:PageExtension>

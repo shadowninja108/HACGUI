@@ -56,10 +56,7 @@ namespace HACGUI.FirstStart
                         streams.Add(new FileInfo(file).OpenRead()); // Change to Open when write support is added
                     Stream NANDSource = new CombinationStream(streams);
 
-                    if(NANDService.InsertNAND(NANDSource, false))
-                    {
-                        AsyncNextPage();
-                    } else
+                    if(!NANDService.InsertNAND(NANDSource, false))
                     {
                         MessageBox.Show("Invalid NAND dump!");
                     }
@@ -70,9 +67,9 @@ namespace HACGUI.FirstStart
 
         private void AsyncNextPage()
         {
-            NavigationWindow root = FindRoot();
             Dispatcher.BeginInvoke(new Action(() => // move to UI thread
             {
+                NavigationWindow root = FindRoot();
                 root.Navigate(new DerivingPage((page) =>
                 {
                     OnNandFound();
@@ -87,6 +84,7 @@ namespace HACGUI.FirstStart
 
                     return next;
                 }));
+                KeepAlive = false;
             })).Wait();
             
             

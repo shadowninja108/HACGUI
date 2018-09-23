@@ -5,10 +5,18 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:HACGUI.FirstStart"
-      mc:Ignorable="d" 
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
+    mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="Finish">
 
+    <Page.Resources>
+        <!-- PageExtension attributes -->
+        <system:String x:Key="Title">Key derivation complete</system:String>
+        <system:Double x:Key="MinWidth">500</system:Double>
+        <system:Double x:Key="MinHeight">300</system:Double>
+    </Page.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>

@@ -25,7 +25,7 @@ namespace HACGUI.Services
 
         private static Func<Stream, bool> DefaultValidator = 
             (stream) =>
-            { // essentially just check if the Nand constructor 
+            { // essentially just check if the Nand constructor passes
                 try
                 {
                     Nand nand = new Nand(stream, HACGUIKeyset.Keyset);
