@@ -1,35 +1,31 @@
-﻿<Page
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<views:PageExtension
+    xmlns:views="clr-namespace:HACGUI.Extensions"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="HACGUI.FirstStart.Intro"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="Intro"
-      Background="Azure">
+      d:DesignHeight="450" d:DesignWidth="800">
 
     <Page.Resources>
         <System:Double x:Key="FrameHeight">200</System:Double>
         <System:Double x:Key="FrameWidth">500</System:Double>
-        <System:Double x:Key="MinHeight">300</System:Double>
+
+        <!-- PageExtension attributes -->
+        <System:String x:Key="Title">First Start</System:String>
         <System:Double x:Key="MinWidth">600</System:Double>
+        <System:Double x:Key="MinHeight">300</System:Double>
     </Page.Resources>
     <Grid>
-        <Grid Width="{StaticResource MinWidth}" VerticalAlignment="Center" Height="{StaticResource MinHeight}" HorizontalAlignment="Center">
-            <!-- padding -->
-            <Grid Width="{StaticResource FrameWidth}" VerticalAlignment="Center" Height="{StaticResource FrameHeight}" HorizontalAlignment="Center">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Width="164" VerticalAlignment="Top" Height="70" HorizontalAlignment="Left" FontSize="40" Content="HACGUI"/>
-                <Grid VerticalAlignment="Bottom" Height="120" HorizontalAlignment="Right" Grid.Column="1">
-                    <Button Width="250" VerticalAlignment="Top" Height="46" HorizontalAlignment="Center" FontSize="20" Content="Start from console backups" Click="StartFromBackups"/>
-                    <Button Width="250" VerticalAlignment="Bottom" Height="46" HorizontalAlignment="Right" FontSize="20" Content="Start from existing install" Click="StartFromExistingInstall"/>
-                </Grid>
-            </Grid>
+        <!-- padding -->
+        <Grid Width="{StaticResource FrameWidth}" VerticalAlignment="Center" Height="{StaticResource FrameHeight}" HorizontalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Width="164" VerticalAlignment="Top" Height="70" HorizontalAlignment="Left" FontSize="40" Content="HACGUI"/>
+            <Button Width="250" VerticalAlignment="Bottom" Height="46" HorizontalAlignment="Right" FontSize="20" Content="Start" Click="StartFromBackups" Grid.Column="1" />
         </Grid>
-
     </Grid>
-</Page>
+</views:PageExtension>

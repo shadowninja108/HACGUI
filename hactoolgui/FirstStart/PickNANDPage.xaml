@@ -1,14 +1,25 @@
-﻿<Page x:Class="HACGUI.FirstStart.PickNANDPage"
+﻿<views:PageExtension
+    xmlns:views="clr-namespace:HACGUI.Extensions" x:Class="HACGUI.FirstStart.PickNANDPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:HACGUI"
+      xmlns:System="clr-namespace:System;assembly=mscorlib"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="PickNANDPage">
-
+      d:DesignHeight="450" d:DesignWidth="800">
+    <Page.Resources>
+        <!-- PageExtension Attributes -->
+        <System:String x:Key="Title">Loading NAND</System:String>
+        <System:Double x:Key="MinWidth">800</System:Double>
+        <System:Double x:Key="MinHeight">450</System:Double>
+        <System:Boolean x:Key="AllowDrop">true</System:Boolean>
+    </Page.Resources>
+    
     <Grid>
-        
+        <Button Content="Select raw NAND dump (split or not)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="500" Height="60" FontSize="30" Click="Button_Click"/>
+        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Center" Width="500" Height="50">
+            <Label Content="A switch with memloader will automatically&#xA;be detected if running as an administrator" HorizontalAlignment="Center" VerticalAlignment="Top" Width="240" Height="49"/>
+        </Grid>
     </Grid>
-</Page>
+</views:PageExtension>
