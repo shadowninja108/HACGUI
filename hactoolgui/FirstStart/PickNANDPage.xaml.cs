@@ -216,7 +216,7 @@ namespace HACGUI.FirstStart
                                 Pfs pfs = new Pfs(pfsStream);
                                 Nso nso = new Nso(pfs.OpenFile("main"));
                                 NsoSection section = nso.Sections[1];
-                                Stream data = section.OpenDecompressedStream();
+                                Stream data = new MemoryStream(section.DecompressSection());
                                 hashes.Clear();
 
                                 hashes.Add(new HashSearchEntry(NintendoKeys.EticketRsaKekSourceHash, 0x10));
