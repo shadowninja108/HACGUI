@@ -22,7 +22,7 @@
             <RowDefinition/>
             <RowDefinition Height="5*"/>
         </Grid.RowDefinitions>
-        <TextBox x:Name="TextArea" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto">
+        <TextBox x:Name="TextArea" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" IsReadOnly="True">
 
         </TextBox>
         <Label Content="Done! Your keys are saved and displayed here." HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontSize="35" HorizontalContentAlignment="Center" Grid.Row="0"/>
