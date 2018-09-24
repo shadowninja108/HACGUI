@@ -26,35 +26,30 @@ namespace HACGUI.Services
         {
             // Create an event handler to detect when a drive is added or removed
             Watcher = new ManagementEventWatcher();
-            WqlEventQuery query = new WqlEventQuery("SELECT * FROM Win32_VolumeChangeEvent WHERE EventType = 2 or EventType = 3");
+            WqlEventQuery query = new WqlEventQuery("SELECT * FROM __InstanceOperationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_LogicalDisk' AND TargetInstance.Description = \"Removable disk\"");
 
             Watcher.EventArrived += new EventArrivedEventHandler((s, e) =>
             {
-                string driveName = e.NewEvent.Properties["DriveName"].Value.ToString();
+                string driveName = ((ManagementBaseObject)e.NewEvent["TargetInstance"]).Properties["DeviceID"].Value.ToString();
                 DriveInfo actedDrive = new DriveInfo(driveName);
                 DirectoryInfo actedDriveInfo = actedDrive.RootDirectory;
+                Console.WriteLine(e.NewEvent.ClassPath.ClassName);
 
-                switch (e.NewEvent.Properties["EventType"].Value.ToString()) // cast to string because reading it as an int caused issues?
-                {
-                    case "2": // Drive plugged in
-                        if (actedDrive.IsReady) // Not ready == not mountable, so ignored
-                            if (Validator(actedDriveInfo))
-                            {
-                                CurrentDrive = actedDrive; // set current drive so the event handler *could* access it directly, but why tho
-                                OnSDPluggedIn(actedDrive);
-                            }
-                        break;
-                    case "3": // Drive removed
-                        if (CurrentDrive != null) // if a drive hasn't been found to begin with, no need to check what was removed
+                if (actedDrive.IsReady) {
+                    if (Validator(actedDriveInfo)) {
+                        CurrentDrive = actedDrive; // set current drive so the event handler *could* access it directly, but why tho
+                        OnSDPluggedIn(actedDrive);
+                    }
+                } else {
+                    if (CurrentDrive != null) // if a drive hasn't been found to begin with, no need to check what was removed
                         {
-                            DirectoryInfo currentDrive = new DirectoryInfo(CurrentDrive.Name);
-                            if (currentDrive.Name == actedDrive.Name) // was the removed drive the one we found?
-                            {
-                                OnSDRemoved(CurrentDrive); // Allow the handler read the current drive before we clear it
-                                CurrentDrive = null;
-                            }
+                        DirectoryInfo currentDrive = new DirectoryInfo(CurrentDrive.Name);
+                        if (currentDrive.Name == actedDrive.Name) // was the removed drive the one we found?
+                        {
+                            OnSDRemoved(CurrentDrive); // Allow the handler read the current drive before we clear it
+                            CurrentDrive = null;
                         }
-                        break;
+                    }
                 }
             });
             Watcher.Query = query;
