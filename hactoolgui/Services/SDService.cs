@@ -33,7 +33,6 @@ namespace HACGUI.Services
                 string driveName = ((ManagementBaseObject)e.NewEvent["TargetInstance"]).Properties["DeviceID"].Value.ToString();
                 DriveInfo actedDrive = new DriveInfo(driveName);
                 DirectoryInfo actedDriveInfo = actedDrive.RootDirectory;
-                Console.WriteLine(e.NewEvent.ClassPath.ClassName);
 
                 if (actedDrive.IsReady) {
                     if (Validator(actedDriveInfo)) {
