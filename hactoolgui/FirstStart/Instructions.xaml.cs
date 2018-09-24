@@ -31,11 +31,16 @@ namespace HACGUI.FirstStart
                 SDService.Validator = IsSDCard;
                 SDService.OnSDPluggedIn += (drive) =>
                 {
-                    CopyDump(drive);
-                    Dispatcher.BeginInvoke(new Action(() => // Update on the UI thread
-                    {
-                        btn_next.IsEnabled = true;
-                    }));
+                    foreach (DirectoryInfo info in drive.RootDirectory.GetDirectory("backup").GetDirectories())
+                        if (IsValidBackupFolder(info))
+                        {
+                            CopyDump(drive, info);
+                            Dispatcher.BeginInvoke(new Action(() => // Update on the UI thread
+                            {
+                                btn_next.IsEnabled = true;
+                            }));
+                            break;
+                        }
                 };
                 SDService.OnSDRemoved += (drive) =>
                 {
@@ -144,6 +149,20 @@ namespace HACGUI.FirstStart
             SDService.Stop();
         }
 
+        public static bool IsValidBackupFolder(DirectoryInfo info)
+        {
+            DirectoryInfo dumpsFolder = info.GetDirectory("dumps");
+            if (info.GetFile("BOOT0").Exists)
+                if (dumpsFolder.Exists)
+                {
+                    bool fuseFileExists = dumpsFolder.GetFile("fuses.bin").Exists;
+                    bool tsecFileExists = dumpsFolder.GetFile("tsec_keys.bin").Exists;
+                    if (fuseFileExists && tsecFileExists)
+                        return true;
+                }
+            return false;
+        }
+
         private static bool IsSDCard(DirectoryInfo info)
         {
             DirectoryInfo rootBackupFolder = info.GetDirectory("backup");
@@ -151,24 +170,14 @@ namespace HACGUI.FirstStart
             {
                 DirectoryInfo[] backupFolderListing = rootBackupFolder.GetDirectories();
                 foreach (DirectoryInfo backupFolder in backupFolderListing)
-                {
-                    DirectoryInfo dumpsFolder = backupFolder.GetDirectory("dumps");
-                    if(backupFolder.GetFile("BOOT0").Exists)
-                        if (dumpsFolder.Exists)
-                        {
-                            bool fuseFileExists = dumpsFolder.GetFile("fuses.bin").Exists;
-                            bool tsecFileExists = dumpsFolder.GetFile("tsec_keys.bin").Exists;
-                            if(fuseFileExists && tsecFileExists)
-                                return true;
-                        }
-                }
+                    if (IsValidBackupFolder(backupFolder))
+                        return true;
             }
             return false;
         }
 
-        private static void CopyDump(DriveInfo info)
+        private static void CopyDump(DriveInfo info, DirectoryInfo backupFolder)
         {
-            DirectoryInfo backupFolder = info.RootDirectory.GetDirectory("backup").GetDirectories().First();
             DirectoryInfo dumpsFolder = backupFolder.GetDirectory("dumps"); // only called when this is already validated, so idc
             byte[] fuses = File.ReadAllBytes(dumpsFolder.GetFile("fuses.bin").FullName);
             byte[] rawTsec = File.ReadAllBytes(dumpsFolder.GetFile("tsec_keys.bin").FullName);
