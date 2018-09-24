@@ -98,10 +98,12 @@ namespace HACGUI.Services
         public static void ResetHandlers()
         {
             // Clear event handlers
-            foreach (Delegate d in OnSDPluggedIn.GetInvocationList())
-                OnSDPluggedIn -= (SDChangedEventHandler)d;
-            foreach (Delegate d in OnSDRemoved.GetInvocationList())
-                OnSDRemoved -= (SDChangedEventHandler)d;
+            if(OnSDPluggedIn != null)
+                foreach (Delegate d in OnSDPluggedIn.GetInvocationList())
+                    OnSDPluggedIn -= (SDChangedEventHandler)d;
+            if (OnSDRemoved != null)
+                foreach (Delegate d in OnSDRemoved.GetInvocationList())
+                    OnSDRemoved -= (SDChangedEventHandler)d;
 
             // Reset validator to default
             Validator = DefaultValidator;

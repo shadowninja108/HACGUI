@@ -156,10 +156,12 @@ namespace HACGUI.Services
         public static void ResetHandlers()
         {
             // Clear event handlers
-            foreach (Delegate d in OnNANDPluggedIn.GetInvocationList())
-                OnNANDPluggedIn -= (NANDChangedEventHandler)d;
-            foreach (Delegate d in OnNANDRemoved.GetInvocationList())
-                OnNANDRemoved -= (NANDChangedEventHandler)d;
+            if(OnNANDPluggedIn != null)
+                foreach (Delegate d in OnNANDPluggedIn.GetInvocationList())
+                    OnNANDPluggedIn -= (NANDChangedEventHandler)d;
+            if (OnNANDRemoved != null)
+                foreach (Delegate d in OnNANDRemoved.GetInvocationList())
+                    OnNANDRemoved -= (NANDChangedEventHandler)d;
 
             // Reset validator to default
             Validator = DefaultValidator;

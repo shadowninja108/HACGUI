@@ -26,25 +26,28 @@ namespace HACGUI.FirstStart
         {
             InitializeComponent();
 
-            SDService.Validator = IsSDCard;
-            SDService.OnSDPluggedIn += (drive) =>
+            Loaded += (_, __) =>
             {
-                CopyDump(drive);
-                Dispatcher.BeginInvoke(new Action(() => // Update on the UI thread
+                SDService.Validator = IsSDCard;
+                SDService.OnSDPluggedIn += (drive) =>
                 {
-                    btn_next.IsEnabled = true;
-                }));
-            };
-            SDService.OnSDRemoved += (drive) =>
-            {
-                Dispatcher.BeginInvoke(new Action(() => // Update on the UI thread
+                    CopyDump(drive);
+                    Dispatcher.BeginInvoke(new Action(() => // Update on the UI thread
+                    {
+                        btn_next.IsEnabled = true;
+                    }));
+                };
+                SDService.OnSDRemoved += (drive) =>
                 {
-                    btn_next.IsEnabled = false;
-                }));
-                SBK = null;
-                TSECKeys = null;
+                    Dispatcher.BeginInvoke(new Action(() => // Update on the UI thread
+                    {
+                        btn_next.IsEnabled = false;
+                    }));
+                    SBK = null;
+                    TSECKeys = null;
+                };
+                SDService.Start();
             };
-            SDService.Start();
         }
 
         private void btn_next_Click(object sender, RoutedEventArgs e)
