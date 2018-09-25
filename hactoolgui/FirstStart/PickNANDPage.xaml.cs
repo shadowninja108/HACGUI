@@ -56,7 +56,7 @@ namespace HACGUI.FirstStart
                         streams.Add(new FileInfo(file).OpenRead()); // Change to Open when write support is added
                     Stream NANDSource = new CombinationStream(streams);
 
-                    if(!NANDService.InsertNAND(NANDSource, false))
+                    if (!NANDService.InsertNAND(NANDSource, false))
                     {
                         MessageBox.Show("Invalid NAND dump!");
                     }
@@ -86,8 +86,8 @@ namespace HACGUI.FirstStart
                 }));
                 KeepAlive = false;
             })).Wait();
-            
-            
+
+
         }
 
         private void OnNandFound()
@@ -271,7 +271,7 @@ namespace HACGUI.FirstStart
             foreach (Ticket ticket in tickets)
             {
                 HACGUIKeyset.Keyset.TitleKeys[ticket.RightsId] = new byte[0x10];
-                Array.Copy(ticket.TitleKeyBlock, HACGUIKeyset.Keyset.TitleKeys[ticket.RightsId], 0x10);
+                Array.Copy(ticket.GetTitleKey(HACGUIKeyset.Keyset), HACGUIKeyset.Keyset.TitleKeys[ticket.RightsId], 0x10);
             }
             NANDService.Stop();
 
