@@ -68,6 +68,8 @@ namespace HACGUI
 
         public static FileInfo PreferencesFileInfo => RootFolderInfo.GetFile(PreferencesFileName);
 
+        public byte[] SslRsaKek { get; } = new byte[0x10];
+
         public HACGUIKeyset()
         {
             if(IsValidInstall().Item1)
@@ -147,6 +149,7 @@ namespace HACGUI
             "bis_key_source_01",
             "bis_key_source_02",
             "eticket_rsa_kek",
+            "ssl_rsa_kek",
             "retail_specific_aes_key_source",
             "save_mac_kek_source",
             "save_mac_key",
@@ -157,6 +160,7 @@ namespace HACGUI
         public static string PrintCommonKeys(Keyset keyset, bool hactoolFriendly)
         {
             Dictionary<string, KeyValue> dict = new Dictionary<string, KeyValue>(CommonKeyDict);
+            dict.Add("ssl_rsa_kek", new KeyValue("ssl_rsa_kek", 0x10, set => ((HACGUIKeyset)set).SslRsaKek));
             List<string> keysToBeRemoved = new List<string>();
             if (hactoolFriendly)
                 foreach (KeyValuePair<string, KeyValue> kv in dict)
@@ -170,6 +174,7 @@ namespace HACGUI
         public static string PrintCommonWithoutFriendlyKeys(Keyset keyset)
         {
             Dictionary<string, KeyValue> dict = new Dictionary<string, KeyValue>(CommonKeyDict);
+            dict.Add("ssl_rsa_kek", new KeyValue("ssl_rsa_kek", 0x10, set => ((HACGUIKeyset)set).SslRsaKek));
             List<string> keysToBeRemoved = new List<string>();
             foreach (KeyValuePair<string, KeyValue> kv in dict)
                 if (!HactoolNonFriendlyKeys.Contains(kv.Key))

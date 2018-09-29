@@ -239,6 +239,38 @@ namespace HACGUI.FirstStart
                                 break;
                         }
                         break;
+                    case 0x0100000000000024: // ssl
+                        switch (nca.Header.ContentType)
+                        {
+                            case ContentType.Program:
+                                NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
+                                Stream pfsStream = nca.OpenSection(exefsSection.SectionNum, false, false);
+                                Pfs pfs = new Pfs(pfsStream);
+                                Nso nso = new Nso(pfs.OpenFile("main"));
+                                NsoSection section = nso.Sections[1];
+                                Stream data = new MemoryStream(section.DecompressSection());
+                                hashes.Clear();
+
+                                hashes.Add(new HashSearchEntry(NintendoKeys.SslAesKeyXHash, 0x10));
+                                hashes.Add(new HashSearchEntry(NintendoKeys.SslRsaKeyYHash, 0x10));
+                                keys = data.FindKeyViaHash(hashes, new SHA256Managed(), 0x10, data.Length);
+                                byte[] SslAesKeyX = new byte[0x10];
+                                byte[] SslRsaKeyY = new byte[0x10];
+                                Array.Copy(keys[NintendoKeys.SslAesKeyXHash], SslAesKeyX, 0x10);
+                                Array.Copy(keys[NintendoKeys.SslRsaKeyYHash], SslRsaKeyY, 0x10);
+
+                                byte[] RsaPrivateKekGenerationSource;
+                                XOR(NintendoKeys.KekMasks[0], NintendoKeys.KekSeeds[1], out RsaPrivateKekGenerationSource);
+
+                                byte[] key1 = new byte[0x10];
+                                Crypto.DecryptEcb(HACGUIKeyset.Keyset.MasterKeys[0], RsaPrivateKekGenerationSource, key1, 0x10);
+                                byte[] key2 = new byte[0x10];
+                                Crypto.DecryptEcb(key1, SslAesKeyX, key2, 0x10);
+                                byte[] key3 = new byte[0x10];
+                                Crypto.DecryptEcb(key2, SslRsaKeyY, HACGUIKeyset.Keyset.SslRsaKek, 0x10);
+                                break;
+                        }
+                        break;
                 }
             }
 
