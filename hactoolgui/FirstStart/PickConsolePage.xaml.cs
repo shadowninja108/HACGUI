@@ -11,11 +11,11 @@ namespace HACGUI.FirstStart
     /// <summary>
     /// Interaction logic for PickConsole.xaml
     /// </summary>
-    public partial class PickConsole : PageExtension
+    public partial class PickConsolePage : PageExtension
     {
         public static string ConsoleName;
 
-        public PickConsole()
+        public PickConsolePage()
         {
             InitializeComponent();
         }
@@ -51,7 +51,7 @@ namespace HACGUI.FirstStart
 
             // Navigate to next page
             NavigationWindow root = FindRoot();
-            root.Navigate(new Instructions());
+            root.Navigate(new PickSDPage());
         }
     }
 }

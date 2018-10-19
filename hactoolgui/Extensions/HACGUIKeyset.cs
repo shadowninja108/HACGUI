@@ -38,7 +38,8 @@ namespace HACGUI
             TempKernelFileName = "Kernel.bin",
             TempINI1FileName = "INI1.bin",
             TempINI1FolderName = "INI1",
-            TempPRODINFOFileName = "PRODINFO.bin";
+            TempPRODINFOFileName = "PRODINFO.bin",
+            ClientCertificateFileName = "nx_tls_client_cert.pfx";
 
         public static DirectoryInfo UserSwitchDirectoryInfo => new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).GetDirectory(UserSwitchFolderName);
         public static DirectoryInfo WorkingDirectoryInfo => new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
@@ -101,6 +102,11 @@ namespace HACGUI
         public static FileInfo GetConsoleKeysFileInfoByName(string name)
         {
             return GetConsoleFolderInfo(name).GetFile(ConsoleKeysFileName);
+        }
+
+        public static FileInfo GetClientCertificateByName(string name)
+        {
+            return GetConsoleFolderInfo(name).GetFile(ClientCertificateFileName);
         }
 
         public static void SetConsole(string name)

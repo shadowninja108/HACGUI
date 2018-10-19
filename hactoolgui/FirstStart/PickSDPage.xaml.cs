@@ -17,12 +17,12 @@ namespace HACGUI.FirstStart
     /// <summary>
     /// Interaction logic for Page1.xaml
     /// </summary>
-    public partial class Instructions : PageExtension
+    public partial class PickSDPage : PageExtension
     {
         public static byte[] SBK;
         public static byte[][] TSECKeys; 
 
-        public Instructions()
+        public PickSDPage()
         {
             InitializeComponent();
 
@@ -31,8 +31,8 @@ namespace HACGUI.FirstStart
                 SDService.Validator = IsSDCard;
                 SDService.OnSDPluggedIn += (drive) =>
                 {
-                    foreach (DirectoryInfo info in drive.RootDirectory.GetDirectory("backup").GetDirectories())
-                        if (IsValidBackupFolder(info))
+                    foreach (DirectoryInfo info in /*drive.RootDirectory*/new DirectoryInfo("B:/temp SD dir").GetDirectory("backup").GetDirectories())
+                        if (IsValidBackupFolder(info)) // scan for backup folder
                         {
                             CopyDump(drive, info);
                             Dispatcher.BeginInvoke(new Action(() => // Update on the UI thread
@@ -151,16 +151,11 @@ namespace HACGUI.FirstStart
 
         public static bool IsValidBackupFolder(DirectoryInfo info)
         {
-            DirectoryInfo dumpsFolder = info.GetDirectory("dumps");
-            if (info.GetFile("BOOT0").Exists)
-                if (dumpsFolder.Exists)
-                {
-                    bool fuseFileExists = dumpsFolder.GetFile("fuses.bin").Exists;
-                    bool tsecFileExists = dumpsFolder.GetFile("tsec_keys.bin").Exists;
-                    if (fuseFileExists && tsecFileExists)
-                        return true;
-                }
-            return false;
+            FileInfo[] infos = info.FindFilesRecursively(new string[] { "BOOT0", "fuses.bin", "tsec_keys.bin" });
+            foreach (FileInfo i in infos)
+                if (i == null)
+                    return false;
+            return true;
         }
 
         private static bool IsSDCard(DirectoryInfo info)
@@ -176,11 +171,12 @@ namespace HACGUI.FirstStart
             return false;
         }
 
+
         private static void CopyDump(DriveInfo info, DirectoryInfo backupFolder)
         {
             DirectoryInfo dumpsFolder = backupFolder.GetDirectory("dumps"); // only called when this is already validated, so idc
-            byte[] fuses = File.ReadAllBytes(dumpsFolder.GetFile("fuses.bin").FullName);
-            byte[] rawTsec = File.ReadAllBytes(dumpsFolder.GetFile("tsec_keys.bin").FullName);
+            byte[] fuses = File.ReadAllBytes(dumpsFolder.FindFileRecursively("fuses.bin").FullName);
+            byte[] rawTsec = File.ReadAllBytes(dumpsFolder.FindFileRecursively("tsec_keys.bin").FullName);
             SBK = fuses.Skip(0xA4).Take(0x10).ToArray();
 
             TSECKeys = new byte[][]
@@ -192,7 +188,7 @@ namespace HACGUI.FirstStart
 
             DirectoryInfo temp = HACGUIKeyset.RootTempFolderInfo;
             temp.Create();
-            FileInfo BOOT0 = backupFolder.GetFile("BOOT0");
+            FileInfo BOOT0 = backupFolder.FindFileRecursively("BOOT0");
             string exportpath = Path.Combine(temp.FullName, "BOOT0");
             File.Delete(exportpath);
             File.Copy(BOOT0.FullName, exportpath);

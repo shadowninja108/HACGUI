@@ -15,10 +15,10 @@ namespace HACGUI.Services
         private static ManagementEventWatcher Watcher;
         private static bool Started = false;
 
-        private static Func<DirectoryInfo, bool> DefaultValidator = 
+        private static readonly Func<DirectoryInfo, bool> DefaultValidator = 
             (info) =>
             {
-                // TODO: actually do it lol
+                // TODO: actually do this lol
                 return false;
             };
 
@@ -34,14 +34,15 @@ namespace HACGUI.Services
                 DriveInfo actedDrive = new DriveInfo(driveName);
                 DirectoryInfo actedDriveInfo = actedDrive.RootDirectory;
 
-                if (actedDrive.IsReady) {
-                    if (Validator(actedDriveInfo)) {
+                if (actedDrive.IsReady)
+                    if (Validator(actedDriveInfo))
+                    {
                         CurrentDrive = actedDrive; // set current drive so the event handler *could* access it directly, but why tho
                         OnSDPluggedIn(actedDrive);
                     }
-                } else {
+                else
                     if (CurrentDrive != null) // if a drive hasn't been found to begin with, no need to check what was removed
-                        {
+                    {
                         DirectoryInfo currentDrive = new DirectoryInfo(CurrentDrive.Name);
                         if (currentDrive.Name == actedDrive.Name) // was the removed drive the one we found?
                         {
@@ -49,7 +50,6 @@ namespace HACGUI.Services
                             CurrentDrive = null;
                         }
                     }
-                }
             });
             Watcher.Query = query;
         }
@@ -62,7 +62,6 @@ namespace HACGUI.Services
             // Do initial scan of drives
             DriveInfo[] drives = DriveInfo.GetDrives();
             foreach (DriveInfo drive in drives)
-            {
                 if (drive.IsReady)
                 {
                     DirectoryInfo root = drive.RootDirectory;
@@ -72,11 +71,12 @@ namespace HACGUI.Services
                         OnSDPluggedIn(drive);
                     }
                 }
-            }
 
             Watcher.Start();
 
             Started = true;
+
+            OnSDPluggedIn(null); // REMOVE BEFORE COMMIT PLEASE KTHX
         }
 
         public static void Stop()

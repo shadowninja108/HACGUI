@@ -89,7 +89,7 @@ namespace HACGUI
                 if (!String.IsNullOrEmpty(path))
                     Navigate(new MainWindow());
                 else
-                    Navigate(new Intro());
+                    Navigate(new IntroPage());
 
 
                 // Image may be needed at any time, and loading it every time would be dumb
@@ -144,7 +144,7 @@ namespace HACGUI
 
                     ((Grid)page.Content).Children.Add(moonButton);
                     */
-                    if (CanGoBack && page.GetType() != typeof(DerivingPage) && page.GetType() != typeof(Finish)) // No button needed if there's nothing to go back to
+                    if (CanGoBack && page.GetType() != typeof(DerivingPage) && page.GetType() != typeof(FinishPage)) // No button needed if there's nothing to go back to
                         page.Loaded += (a, _4) => // Content won't exist until the page has loaded, so set up the code to run when it has
                         {
                             Button backButton = new Button()

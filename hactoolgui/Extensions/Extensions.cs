@@ -37,6 +37,33 @@ namespace HACGUI.Extensions
             return new DirectoryInfo($"{obj.FullName}{Path.DirectorySeparatorChar}{foldername}");
         }
 
+
+        public static FileInfo FindFileRecursively(this DirectoryInfo root, string filename)
+        {
+            return root.FindFilesRecursively(new string[] { filename })[0];
+        }
+
+        public static FileInfo[] FindFilesRecursively(this DirectoryInfo root, string[] filenames)
+        {
+            FileInfo[] infos = new FileInfo[filenames.Length];
+            foreach (FileInfo file in root.EnumerateFiles("*", SearchOption.AllDirectories))
+            {
+                foreach (string filename in filenames)
+                {
+                    void Check()
+                    {
+                        if (file.Name == filename)
+                        {
+                            infos[Array.IndexOf(filenames, filename)] = file;
+                            return;
+                        }
+                    };
+                    Check(); // awful hack to prevent a break from exiting the entire loop
+                }
+            }
+            return infos;
+        }
+
         public static void CopyToNew(this Stream source, Stream destination, long length = long.MaxValue)
         {
             int b = 0;
@@ -79,6 +106,12 @@ namespace HACGUI.Extensions
                 source.Position -= (dataLength - 1);
             }
             return dict;
+        }
+
+        public static bool VerifyViaHash(this byte[] data, byte[] expectedHash, HashAlgorithm crypto)
+        {
+            byte[] hash = crypto.ComputeHash(data);
+            return hash.SequenceEqual(expectedHash);
         }
 
         public static void WriteString(this Stream stream, string str, Encoding encoding = null)

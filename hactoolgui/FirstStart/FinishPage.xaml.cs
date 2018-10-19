@@ -20,9 +20,9 @@ namespace HACGUI.FirstStart
     /// <summary>
     /// Interaction logic for Finish.xaml
     /// </summary>
-    public partial class Finish : PageExtension
+    public partial class FinishPage : PageExtension
     {
-        public Finish()
+        public FinishPage()
         {
             InitializeComponent();
 

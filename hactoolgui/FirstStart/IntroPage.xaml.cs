@@ -8,9 +8,9 @@ namespace HACGUI.FirstStart
     /// <summary>
     /// Interaction logic for Intro.xaml
     /// </summary>
-    public partial class Intro : PageExtension
+    public partial class IntroPage : PageExtension
     {
-        public Intro() : base()
+        public IntroPage() : base()
         {
             InitializeComponent();
         }
@@ -18,7 +18,7 @@ namespace HACGUI.FirstStart
         private void StartFromBackups(object sender, RoutedEventArgs e)
         {
             NavigationWindow root = FindRoot();
-            root.Navigate(new PickConsole());
+            root.Navigate(new PickConsolePage());
             Console.WriteLine(new HACGUIKeyset().IsValidInstall().Item2);
         }
 

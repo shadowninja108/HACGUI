@@ -64,6 +64,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -83,23 +84,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DeviceStream.cs" />
-    <Compile Include="DiskStream.cs" />
+    <Compile Include="Utilities\DeviceStream.cs" />
+    <Compile Include="Utilities\DiskStream.cs" />
     <Compile Include="FirstStart\DerivingPage.xaml.cs">
       <DependentUpon>DerivingPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="FirstStart\Finish.xaml.cs">
-      <DependentUpon>Finish.xaml</DependentUpon>
+    <Compile Include="FirstStart\FinishPage.xaml.cs">
+      <DependentUpon>FinishPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="FirstStart\PickConsole.xaml.cs">
-      <DependentUpon>PickConsole.xaml</DependentUpon>
+    <Compile Include="FirstStart\PickConsolePage.xaml.cs">
+      <DependentUpon>PickConsolePage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="HACGUIKeyset.cs" />
-    <Compile Include="FirstStart\Instructions.xaml.cs">
-      <DependentUpon>Instructions.xaml</DependentUpon>
+    <Compile Include="Extensions\HACGUIKeyset.cs" />
+    <Compile Include="FirstStart\PickSDPage.xaml.cs">
+      <DependentUpon>PickSDPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="NintendoKeys.cs" />
-    <Compile Include="PageExtension.cs" />
+    <Compile Include="Extensions\NintendoKeys.cs" />
+    <Compile Include="Extensions\PageExtension.cs" />
     <Compile Include="RootWindow.xaml.cs">
       <DependentUpon>RootWindow.xaml</DependentUpon>
     </Compile>
@@ -107,26 +108,27 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Extensions.cs" />
+    <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="Services\NANDService.cs" />
     <Compile Include="Services\SDService.cs" />
+    <Compile Include="Utilities\RSAUtils.cs" />
     <Page Include="FirstStart\DerivingPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="FirstStart\Finish.xaml">
+    <Page Include="FirstStart\FinishPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="FirstStart\Intro.xaml">
+    <Page Include="FirstStart\IntroPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="FirstStart\Instructions.xaml">
+    <Page Include="FirstStart\PickSDPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="FirstStart\PickConsole.xaml">
+    <Page Include="FirstStart\PickConsolePage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -144,8 +146,8 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FirstStart\Intro.xaml.cs">
-      <DependentUpon>Intro.xaml</DependentUpon>
+    <Compile Include="FirstStart\IntroPage.xaml.cs">
+      <DependentUpon>IntroPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Main\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
