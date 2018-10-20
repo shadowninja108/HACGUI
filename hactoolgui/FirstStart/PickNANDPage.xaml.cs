@@ -217,7 +217,7 @@ namespace HACGUI.FirstStart
                         {
                             case ContentType.Program:
                                 NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
-                                Stream pfsStream = nca.OpenSection(exefsSection.SectionNum, false, false);
+                                Stream pfsStream = nca.OpenSection(exefsSection.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid);
                                 Pfs pfs = new Pfs(pfsStream);
                                 Nso nso = new Nso(pfs.OpenFile("main"));
                                 NsoSection section = nso.Sections[1];
@@ -249,7 +249,7 @@ namespace HACGUI.FirstStart
                         {
                             case ContentType.Program:
                                 NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
-                                Stream pfsStream = nca.OpenSection(exefsSection.SectionNum, false, false);
+                                Stream pfsStream = nca.OpenSection(exefsSection.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid);
                                 Pfs pfs = new Pfs(pfsStream);
                                 Nso nso = new Nso(pfs.OpenFile("main"));
                                 NsoSection section = nso.Sections[1];
@@ -299,10 +299,10 @@ namespace HACGUI.FirstStart
             prodinfo.Read(buffer, 0, buffer.Length); // read actual cert
 
             byte[] counter = cal0.SslExtKey.Take(0x10).ToArray();
-            byte[] key = cal0.SslExtKey.Skip(0x10).ToArray();
+            byte[] key = cal0.SslExtKey.Skip(0x10).ToArray(); // bit strange structure but it works
             byte[] privateKey = new byte[0x100];
 
-            new Aes128CtrTransform(HACGUIKeyset.Keyset.SslRsaKek, counter, 0x100).TransformBlock(key, 0, 0x100, privateKey, 0);
+            new Aes128CtrTransform(HACGUIKeyset.Keyset.SslRsaKek, counter, 0x100).TransformBlock(key, 0, 0x100, privateKey, 0); // decrypt private key
 
             X509Certificate2 certificate = new X509Certificate2();
             certificate.Import(buffer);
@@ -325,10 +325,10 @@ namespace HACGUI.FirstStart
             tickets.AddRange(ReadTickets(HACGUIKeyset.Keyset, e2Stream));
 
             Stream nsAppmanStream = system.OpenFile("save\\8000000000000043", FileMode.Open, FileAccess.Read);
-            Savefile save = new Savefile(HACGUIKeyset.Keyset, nsAppmanStream, false);
+            Savefile save = new Savefile(HACGUIKeyset.Keyset, nsAppmanStream, IntegrityCheckLevel.ErrorOnInvalid);
             Stream privateStream = save.OpenFile("/private");
             byte[] sdSeed = new byte[0x10];
-            privateStream.Read(sdSeed, 0, 0x10); // Seek doesn't work so i just read twice
+            privateStream.Position += 0x10;
             privateStream.Read(sdSeed, 0, 0x10);
             HACGUIKeyset.Keyset.SetSdSeed(sdSeed);
 
@@ -365,7 +365,7 @@ namespace HACGUI.FirstStart
         private static List<Ticket> ReadTickets(Keyset keyset, Stream savefile)
         {
             var tickets = new List<Ticket>();
-            var save = new Savefile(keyset, savefile, false);
+            var save = new Savefile(keyset, savefile, IntegrityCheckLevel.ErrorOnInvalid);
             var ticketList = new BinaryReader(save.OpenFile("/ticket_list.bin"));
             var ticketFile = new BinaryReader(save.OpenFile("/ticket.bin"));
 
