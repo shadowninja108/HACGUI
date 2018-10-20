@@ -1,13 +1,14 @@
-﻿using System.Windows;
+﻿using HACGUI.Extensions;
+using System.Windows;
 
 namespace HACGUI.Main
 {
     /// <summary>
     /// Interaction logic for MainView.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainPage : PageExtension
     {
-        public MainWindow()
+        public MainPage()
         {
             InitializeComponent();
         }

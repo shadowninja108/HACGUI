@@ -86,8 +86,8 @@ namespace HACGUI
             {
                 var settings = Properties.Settings.Default;
                 String path = settings.InstallPath;
-                if (!String.IsNullOrEmpty(path))
-                    Navigate(new MainWindow());
+                if (!string.IsNullOrEmpty(path))
+                    Navigate(new MainPage());
                 else
                     Navigate(new IntroPage());
 

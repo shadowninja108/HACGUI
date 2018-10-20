@@ -75,8 +75,6 @@ namespace HACGUI.Services
             Watcher.Start();
 
             Started = true;
-
-            OnSDPluggedIn(null); // REMOVE BEFORE COMMIT PLEASE KTHX
         }
 
         public static void Stop()

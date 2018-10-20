@@ -31,7 +31,7 @@ namespace HACGUI.FirstStart
                 SDService.Validator = IsSDCard;
                 SDService.OnSDPluggedIn += (drive) =>
                 {
-                    foreach (DirectoryInfo info in /*drive.RootDirectory*/new DirectoryInfo("B:/temp SD dir").GetDirectory("backup").GetDirectories())
+                    foreach (DirectoryInfo info in drive.RootDirectory.GetDirectory("backup").GetDirectories())
                         if (IsValidBackupFolder(info)) // scan for backup folder
                         {
                             CopyDump(drive, info);

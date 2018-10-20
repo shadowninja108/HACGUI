@@ -132,7 +132,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Main\MainWindow.xaml">
+    <Page Include="Main\MainPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -149,8 +149,8 @@
     <Compile Include="FirstStart\IntroPage.xaml.cs">
       <DependentUpon>IntroPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Main\MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
+    <Compile Include="Main\MainPage.xaml.cs">
+      <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="FirstStart\PickNANDPage.xaml.cs">
       <DependentUpon>PickNANDPage.xaml</DependentUpon>
