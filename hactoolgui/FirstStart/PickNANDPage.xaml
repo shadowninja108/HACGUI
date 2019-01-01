@@ -15,11 +15,30 @@
         <System:Double x:Key="MinHeight">450</System:Double>
         <System:Boolean x:Key="AllowDrop">true</System:Boolean>
     </Page.Resources>
-    
+
     <Grid>
-        <Button Content="Select raw NAND dump (split or not)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="500" Height="60" FontSize="30" Click="Button_Click"/>
-        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Center" Width="350" Height="70">
-            <Label Content="A Switch running memloader will automatically&#xA;be detected if running as an administrator&#xA;Your SD card is also no longer needed and can be removed." HorizontalAlignment="Center" VerticalAlignment="Top" Width="500" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="70"/>
-        </Grid>
+        <DockPanel>
+            <Label Margin="0,20,0,0" DockPanel.Dock="Top" Content="Methods of accessing NAND" FontSize="30" Height="50" VerticalAlignment="Top" HorizontalAlignment="Center"/>
+            <Grid Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Column="0">
+                    <GroupBox Header="Raw NAND dump">
+                        <Button Content="Select file(s)" HorizontalAlignment="Center" VerticalAlignment="Center" Height="60" FontSize="25" Click="PickNANDButtonClick"/>
+                    </GroupBox>
+                </Grid>
+                <Grid Grid.Column="1">
+                    <GroupBox Header="Memloader">
+                        <Grid>
+                            <Label Name="MemloaderDescriptionLabel" Content="HACGUI is not running as admin&#xD;&#xA; and won't be able to detect a &#xD;&#xA;Switch running memloader." Margin="0,20,0,0" FontSize="20" HorizontalAlignment="Center" HorizontalContentAlignment="Center"/>
+                            <Button Name="RestartAsAdminButton" Content="Restart as admin" HorizontalAlignment="Center" VerticalAlignment="Center" Height="60" FontSize="25" Click="RestartAsAdminButtonClick"/>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </Grid>
+        </DockPanel>
     </Grid>
 </views:PageExtension>

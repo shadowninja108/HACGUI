@@ -1,4 +1,5 @@
 ﻿using HACGUI.Extensions;
+using HACGUI.Utilities;
 using LibHac;
 using System;
 using System.Collections.Generic;
@@ -10,18 +11,17 @@ using static LibHac.ExternalKeys;
 
 namespace HACGUI
 {
+    [Serializable]
     public class HACGUIKeyset : Keyset
     {
         public static HACGUIKeyset Keyset = new HACGUIKeyset();
 
         public const string
             RootFolderName = "HACGUI",
-            RootKeyFolderName = "keys",
             RootConsoleFolderName = "console",
             RootTempFolderName = "temp",
-            NandKeysFileName = "nand.keys",
             ProductionKeysFileName = "prod.keys",
-            DeveloperKeysFileName = "dev.keys",
+            DeveloperKeysFileName = "dev.keys", // unused, dev support is a hassle within itself
             TitleKeysFileName = "title.keys",
             ConsoleKeysFileName = "console.keys",
             ExtraKeysFileName = "extra.keys",
@@ -39,13 +39,14 @@ namespace HACGUI
             TempINI1FileName = "INI1.bin",
             TempINI1FolderName = "INI1",
             TempPRODINFOFileName = "PRODINFO.bin",
-            ClientCertificateFileName = "nx_tls_client_cert.pfx";
+            TempContinueFileName = "continue.txt",
+            ClientCertificateFileName = "nx_tls_client_cert.pfx",
+            TicketFolderName = "tickets";
 
         public static DirectoryInfo UserSwitchDirectoryInfo => new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).GetDirectory(UserSwitchFolderName);
         public static DirectoryInfo WorkingDirectoryInfo => new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
         public static DirectoryInfo RootFolderInfo => UserSwitchDirectoryInfo.GetDirectory(RootFolderName);
-        public static DirectoryInfo RootKeyFolderInfo => RootFolderInfo.GetDirectory(RootKeyFolderName);
-        public static DirectoryInfo RootConsoleFolderInfo => RootKeyFolderInfo.GetDirectory(RootConsoleFolderName);
+        public static DirectoryInfo RootConsoleFolderInfo => RootFolderInfo.GetDirectory(RootConsoleFolderName);
         public static DirectoryInfo RootTempFolderInfo => WorkingDirectoryInfo.GetDirectory(RootTempFolderName);
         public static DirectoryInfo RootTempPkg1FolderInfo => RootTempFolderInfo.GetDirectory(TempPkg1FolderName);
         public static DirectoryInfo RootTempPkg2FolderInfo => RootTempFolderInfo.GetDirectory(TempPkg2FolderName);
@@ -59,23 +60,19 @@ namespace HACGUI
         public static FileInfo ExtraKeysFileInfo => UserSwitchDirectoryInfo.GetFile(ExtraKeysFileName);
         public static FileInfo TempBOOT0FileInfo => RootTempFolderInfo.GetFile(TempBOOT0FileName);
         public static FileInfo TempPkg1FileInfo => RootTempFolderInfo.GetFile(TempPkg1FileName);
-        public static FileInfo TempNXBootloaderFileInfo = RootTempPkg1FolderInfo.GetFile(TempNXBootloaderFileName);
-        public static FileInfo TempSecureMonitorFileInfo = RootTempPkg1FolderInfo.GetFile(TempSecureMonitorFileName);
-        public static FileInfo TempWarmbootFileInfo = RootTempPkg1FolderInfo.GetFile(TempWarmbootFileName);
-        public static FileInfo TempPkg2FileInfo = RootTempFolderInfo.GetFile(TempPkg2FileName);
-        public static FileInfo TempKernelFileInfo = RootTempPkg2FolderInfo.GetFile(TempKernelFileName);
-        public static FileInfo TempINI1FileInfo = RootTempPkg2FolderInfo.GetFile(TempINI1FileName);
-        public static FileInfo TempPRODINFOFileInfo = RootTempFolderInfo.GetFile(TempPRODINFOFileName);
+        public static FileInfo TempNXBootloaderFileInfo => RootTempPkg1FolderInfo.GetFile(TempNXBootloaderFileName);
+        public static FileInfo TempSecureMonitorFileInfo => RootTempPkg1FolderInfo.GetFile(TempSecureMonitorFileName);
+        public static FileInfo TempWarmbootFileInfo => RootTempPkg1FolderInfo.GetFile(TempWarmbootFileName);
+        public static FileInfo TempPkg2FileInfo => RootTempFolderInfo.GetFile(TempPkg2FileName);
+        public static FileInfo TempKernelFileInfo => RootTempPkg2FolderInfo.GetFile(TempKernelFileName);
+        public static FileInfo TempINI1FileInfo => RootTempPkg2FolderInfo.GetFile(TempINI1FileName);
+        public static FileInfo TempPRODINFOFileInfo => RootTempFolderInfo.GetFile(TempPRODINFOFileName);
+        public static FileInfo TempContinueFileInfo => RootTempFolderInfo.GetFile(TempContinueFileName);
 
         public static FileInfo PreferencesFileInfo => RootFolderInfo.GetFile(PreferencesFileName);
 
-        public byte[] SslRsaKek { get; } = new byte[0x10];
-
         public HACGUIKeyset()
         {
-            if(IsValidInstall().Item1)
-                Refresh();
-
             // Init with static keys
             Array.Copy(NintendoKeys.DeviceKeySource, PerConsoleKeySource, 0x10);
             for(int i = 0; i < NintendoKeys.BisKeySources.Length; i++)
@@ -86,17 +83,31 @@ namespace HACGUI
             Array.Copy(NintendoKeys.RetailSpecificAesKeySource, RetailSpecificAesKeySource, 0x10);
             for(int i = 0; i < NintendoKeys.KeyblobSources.Length; i++)
                 Array.Copy(NintendoKeys.KeyblobSources[i], KeyblobKeySources[i], NintendoKeys.KeyblobSources[i].Length);
-            
+            Array.Copy(NintendoKeys.MasterKeySource, MasterKeySource, 0x10);
+            Array.Copy(NintendoKeys.KeyblobMacKeySource, KeyblobMacKeySource, 0x10);
+            for (int i = 0; i < NintendoKeys.MasterKekSources.Length; i++)
+                Array.Copy(NintendoKeys.MasterKekSources[i], MasterKekSources[i], 0x10);
+            Array.Copy(NintendoKeys.Pkg2KeySource, Package2KeySource, 0x10);
+            Array.Copy(NintendoKeys.TitleKekSource, TitlekekSource, 0x10);
+            Array.Copy(NintendoKeys.AesKekGenerationSource, AesKekGenerationSource, 0x10);
         }
 
-        public void Refresh()
+        public void Load(string consoleName)
         {
+            ReadKeyFile(Keyset, ExtraKeysFileInfo.FullName);
+            ReadKeyFile(Keyset, ProductionKeysFileInfo.FullName, TitleKeysFileInfo.FullName, GetConsoleKeysFileInfoByName(consoleName).FullName);
+        }
 
+        public void Load()
+        {
+            Load(Preferences.Current.DefaultConsoleName);
         }
 
         internal static DirectoryInfo GetConsoleFolderInfo(string name)
         {
-            return RootConsoleFolderInfo.GetDirectory(name);
+            DirectoryInfo d = RootConsoleFolderInfo.GetDirectory(name);
+            d.Create();
+            return d;
         }
 
         public static FileInfo GetConsoleKeysFileInfoByName(string name)
@@ -109,43 +120,63 @@ namespace HACGUI
             return GetConsoleFolderInfo(name).GetFile(ClientCertificateFileName);
         }
 
+        public static DirectoryInfo GetTicketsDirectory(string name)
+        {
+            return GetConsoleFolderInfo(name).GetDirectory(TicketFolderName);
+        }
+
         public static void SetConsole(string name)
         {
 
         }
 
-        public Tuple<bool, string> IsValidInstall()
+        public static Tuple<bool, string> IsValidInstall()
         {
-            DirectoryInfo root = WorkingDirectoryInfo.GetDirectory(RootFolderName);
-            if (root.Exists) // Check if HACGUI folder exists
+            if (UserSwitchDirectoryInfo.Exists) // Check if ~/.switch exists
             {
-                DirectoryInfo rootKeysDir = RootKeyFolderInfo;
-                if (rootKeysDir.Exists) // Check if root key folder exists
+                if (RootFolderInfo.Exists) // Check if ~/.switch/HACGUI exists
                 {
-                    DirectoryInfo rootConsoleDir = RootConsoleFolderInfo;
-                    if (rootConsoleDir.Exists)
-                    {
-                        if (!rootConsoleDir.GetDirectories().Any()) // Check if the consoles directory is empty
-                            return new Tuple<bool, string>(false, $"There are no consoles stored!");
+                    if (!PreferencesFileInfo.Exists) // Check if ~/.switch/HACGUI/preferences.ini exists
+                        return new Tuple<bool, string>(false, "Preferences file does not exist.");
 
-                        foreach (DirectoryInfo consoleDir in rootConsoleDir.GetDirectories())
+                    if(!ProductionKeysFileInfo.Exists)
+                        return new Tuple<bool, string>(false, "Prod keys file does not exist.");
+
+                    if(!TitleKeysFileInfo.Exists)
+                        return new Tuple<bool, string>(false, "Title keys file does not exist.");
+
+                    if(!ExtraKeysFileInfo.Exists)
+                        return new Tuple<bool, string>(false, "Extra keys file does not exist.");
+
+
+                    if (RootConsoleFolderInfo.Exists) // check if ~/.switch/HACGUI/console exists
+                    {
+                        if (!RootConsoleFolderInfo.GetDirectories().Any()) // Check if the console directory is empty
+                            return new Tuple<bool, string>(false, $"No consoles registered.");
+
+                        foreach (DirectoryInfo consoleDir in RootConsoleFolderInfo.GetDirectories())
                         {
-                            if (!consoleDir.ContainsFile(NandKeysFileName)) // Check that every console has a nand.keys associated with it
-                                return new Tuple<bool, string>(false, $"Console {consoleDir.Name} does not have a {NandKeysFileName} file!");
+                            string consoleName = consoleDir.Name;
+
+                            if (!GetClientCertificateByName(consoleName).Exists)
+                                return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a client certificate.");
+
+                            if (!GetConsoleKeysFileInfoByName(consoleName).Exists)
+                                return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a {ConsoleKeysFileName} file.");
+
+                            if(!GetTicketsDirectory(consoleName).Exists)
+                                return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a {TicketFolderName} folder.");
                         }
                     }
                     else
-                        return new Tuple<bool, string>(false, "Console directory does not exist!");
-
-                    if (!root.ContainsFile(PreferencesFileName))
-                        return new Tuple<bool, string>(false, "Preferences file does not exist!");
+                        return new Tuple<bool, string>(false, "Console directory does not exist.");
 
                     return new Tuple<bool, string>(true, "Install valid.");
                 }
                 else
-                    return new Tuple<bool, string>(false, "Keys directory does not exist!");
+                    return new Tuple<bool, string>(false, "~/.switch/HACGUI does not exist.");
             }
-            return new Tuple<bool, string>(false, "Install folder does not exist!");
+            return new Tuple<bool, string>(false, "~/.switch folder does not exist.");
         }
 
         public static string[] HactoolNonFriendlyKeys = new string[]
@@ -157,16 +188,12 @@ namespace HACGUI
             "eticket_rsa_kek",
             "ssl_rsa_kek",
             "retail_specific_aes_key_source",
-            "save_mac_kek_source",
-            "save_mac_key",
-            "save_mac_key_source",
             "per_console_key_source"
         };
 
         public static string PrintCommonKeys(Keyset keyset, bool hactoolFriendly)
         {
             Dictionary<string, KeyValue> dict = new Dictionary<string, KeyValue>(CommonKeyDict);
-            dict.Add("ssl_rsa_kek", new KeyValue("ssl_rsa_kek", 0x10, set => ((HACGUIKeyset)set).SslRsaKek));
             List<string> keysToBeRemoved = new List<string>();
             if (hactoolFriendly)
                 foreach (KeyValuePair<string, KeyValue> kv in dict)
@@ -180,7 +207,6 @@ namespace HACGUI
         public static string PrintCommonWithoutFriendlyKeys(Keyset keyset)
         {
             Dictionary<string, KeyValue> dict = new Dictionary<string, KeyValue>(CommonKeyDict);
-            dict.Add("ssl_rsa_kek", new KeyValue("ssl_rsa_kek", 0x10, set => ((HACGUIKeyset)set).SslRsaKek));
             List<string> keysToBeRemoved = new List<string>();
             foreach (KeyValuePair<string, KeyValue> kv in dict)
                 if (!HactoolNonFriendlyKeys.Contains(kv.Key))

@@ -16,15 +16,11 @@
         <system:Double x:Key="MinWidth">500</system:Double>
         <system:Double x:Key="MinHeight">300</system:Double>
     </Page.Resources>
-    
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition Height="5*"/>
-        </Grid.RowDefinitions>
-        <TextBox x:Name="TextArea" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" IsReadOnly="True">
 
-        </TextBox>
-        <Label Content="Done! Your keys are saved and displayed here." HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontSize="35" HorizontalContentAlignment="Center" Grid.Row="0"/>
+    <Grid>
+        <DockPanel>
+            <Label DockPanel.Dock="Top" Content="Done! Your keys are saved and displayed here." HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontSize="35" HorizontalContentAlignment="Center" Grid.Row="0"/>
+            <TextBox x:Name="TextArea" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" IsReadOnly="True"/>
+        </DockPanel>
     </Grid>
 </views:PageExtension>

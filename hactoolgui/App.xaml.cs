@@ -12,5 +12,12 @@ namespace HACGUI
     /// </summary>
     public partial class App : Application
     {
+        public static StartupEventArgs Args { get; private set; }
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+            Args = e;
+        }
     }
 }

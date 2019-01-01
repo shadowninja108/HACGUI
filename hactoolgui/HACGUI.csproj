@@ -26,9 +26,11 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
+    <AutorunEnabled>true</AutorunEnabled>
+    <ApplicationRevision>1</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -58,13 +60,52 @@
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>F6F91D1B87535F256F84E9C69400E7237DDFF1AF</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>HACGUI_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DokanNet, Version=1.1.2.1, Culture=neutral, PublicKeyToken=cef3dedf553bda55, processorArchitecture=MSIL">
+      <HintPath>..\packages\DokanNet.1.1.2.1\lib\net46\DokanNet.dll</HintPath>
+    </Reference>
+    <Reference Include="INIFileParser, Version=2.5.2.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c, processorArchitecture=MSIL">
+      <HintPath>..\packages\ini-parser.2.5.2\lib\net20\INIFileParser.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.ExtendedLinguisticServices, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack.1.1.0\lib\Microsoft.WindowsAPICodePack.ExtendedLinguisticServices.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Sensors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack.1.1.0\lib\Microsoft.WindowsAPICodePack.Sensors.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack.1.1.0\lib\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.ShellExtensions, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAPICodePack.1.1.0\lib\Microsoft.WindowsAPICodePack.ShellExtensions.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.0\lib\netstandard1.1\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.1\lib\netstandard1.1\System.Memory.dll</HintPath>
+    </Reference>
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -84,8 +125,49 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ExceptionWindow.xaml.cs">
+      <DependentUpon>ExceptionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Converters.cs" />
+    <Compile Include="Extensions\DropdownButton.cs" />
+    <Compile Include="Extensions\ObservableDictionary.cs" />
+    <Compile Include="Main\Tasks\ProgressTask.cs" />
+    <Compile Include="Main\ProgressView.xaml.cs">
+      <DependentUpon>ProgressView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\StatusEntry.xaml.cs">
+      <DependentUpon>StatusEntry.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\Tasks\CopyTask.cs" />
+    <Compile Include="Main\Tasks\NullTask.cs" />
+    <Compile Include="Main\TitleManager\ApplicationWindow\ApplicationWindow.xaml.cs">
+      <DependentUpon>ApplicationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\ApplicationInfoTab.xaml.cs">
+      <DependentUpon>ApplicationInfoTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\ApplicationTitleTab.xaml.cs">
+      <DependentUpon>ApplicationTitleTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\Extractors\IExtractorWindow.cs" />
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\Extractors\ExtractAsNCAs.xaml.cs">
+      <DependentUpon>ExtractAsNCAs.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\Extractors\RepackAsNSPWindow.xaml.cs">
+      <DependentUpon>RepackAsNSPWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\ExtractPickerWindow.xaml.cs">
+      <DependentUpon>ExtractPickerWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\TitleManager\MainTitleManagerPage.xaml.cs">
+      <DependentUpon>MainTitleManagerPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\TitleManager\SystemTitleNames.cs" />
+    <Compile Include="Main\TitleManager\ApplicationElement.cs" />
+    <Compile Include="Main\TitleManager\FSView.cs" />
+    <Compile Include="Services\MountService.cs" />
+    <Compile Include="Services\StatusService.cs" />
     <Compile Include="Utilities\DeviceStream.cs" />
-    <Compile Include="Utilities\DiskStream.cs" />
     <Compile Include="FirstStart\DerivingPage.xaml.cs">
       <DependentUpon>DerivingPage.xaml</DependentUpon>
     </Compile>
@@ -111,7 +193,12 @@
     <Compile Include="Extensions\Extensions.cs" />
     <Compile Include="Services\NANDService.cs" />
     <Compile Include="Services\SDService.cs" />
+    <Compile Include="Utilities\Preferences.cs" />
     <Compile Include="Utilities\RSAUtils.cs" />
+    <Page Include="ExceptionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="FirstStart\DerivingPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -137,6 +224,42 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="FirstStart\PickNANDPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\ProgressView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\StatusEntry.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\TitleManager\ApplicationWindow\ApplicationWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\TitleManager\ApplicationWindow\Tabs\ApplicationInfoTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\TitleManager\ApplicationWindow\Tabs\ApplicationTitleTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\Extractors\ExtractAsNCAs.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\Extractors\RepackAsNSPWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\ExtractPickerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\TitleManager\MainTitleManagerPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -175,6 +298,7 @@
     <None Include="app.manifest">
       <SubType>Designer</SubType>
     </None>
+    <None Include="HACGUI_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -199,16 +323,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libhac\libhac.Nand\libhac.Nand.csproj">
-      <Project>{545b2706-41da-4343-ae65-32df6939945b}</Project>
-      <Name>libhac.Nand</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\libhac\libhac\libhac.csproj">
-      <Project>{bdeae8c9-8c0d-4bb9-8a49-83d8758abefe}</Project>
-      <Name>libhac</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\ArrowBlack.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -221,6 +335,24 @@
     <Resource Include="Resources\MoonWhite.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\UnknownTitle.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\libhac\src\LibHac.Nand\LibHac.Nand.csproj">
+      <Project>{2a1596d4-71dc-4e47-a15c-5a72567c40c3}</Project>
+      <Name>LibHac.Nand</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\libhac\src\LibHac\LibHac.csproj">
+      <Project>{76F22732-E7A2-4031-8784-5BF939815D39}</Project>
+      <Name>LibHac</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -16,8 +16,12 @@
     </Page.Resources>
 
     <Grid>
-        <Label Content="Instructions" HorizontalAlignment="Center" Height="60" VerticalAlignment="Top" Width="200" FontSize="36"/>
-        <Label Content="1. Run hekate on your Switch&#xA;2. Navigate to Console info... -&gt; Print fuse info and press power to dump&#xA;3. Navigate to Console info... -&gt; Print TSEC keys and press power to dump&#xA;4. Navigate to Tools... -&gt;Backup... -&gt; Backup eMMC BOOT0/1&#xD;&#xA;5. Take out the SD card and insert it into your PC." Height="176" VerticalAlignment="Center" FontSize="22" HorizontalAlignment="Center" Width="730" Margin="35,160,35,114"  />
-        <Button x:Name="btn_next" Content="Next" Margin="0,0,90,50" Click="btn_next_Click" Height="30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="180" IsEnabled="False"/>
+        <DockPanel>
+            <StatusBar DockPanel.Dock="Bottom" Name="StatusBar" Height="20"/>
+            <Label DockPanel.Dock="Top" Content="Instructions" HorizontalAlignment="Center" Height="60" VerticalAlignment="Top" Width="200" FontSize="36" Margin="0,50,0,0"/>
+            <Button DockPanel.Dock="Bottom" Content="Next" Name="NextButton" Margin="0,0,90,50" Click="NextButtonClick" Height="30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="180" IsEnabled="False"/>
+            <Label DockPanel.Dock="Bottom" Content="1. Run hekate on your Switch&#xA;2. Navigate to Console info... -&gt; Print fuse info and press power to dump&#xA;3. Navigate to Console info... -&gt; Print TSEC keys and press power to dump&#xA;4. Navigate to Tools... -&gt;Backup... -&gt; Backup eMMC BOOT0/1&#xA;5. Take out the SD card and insert it into your PC." Height="160" VerticalAlignment="Center" FontSize="22" HorizontalAlignment="Center" Width="730"  />
+        </DockPanel>
+        <Button Content="..." Width="40" Height="40" Margin="10,0,0,35" VerticalAlignment="Bottom" HorizontalAlignment="Left" Click="ManualPickerButtonClick"/>
     </Grid>
 </views:PageExtension>

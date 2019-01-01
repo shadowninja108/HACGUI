@@ -4,33 +4,43 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HACGUI", "hactoolgui\HACGUI.csproj", "{9FF2A61A-C664-40B9-9909-45B4030D9B5E}"
-	ProjectSection(ProjectDependencies) = postProject
-		{545B2706-41DA-4343-AE65-32DF6939945B} = {545B2706-41DA-4343-AE65-32DF6939945B}
-		{BDEAE8C9-8C0D-4BB9-8A49-83D8758ABEFE} = {BDEAE8C9-8C0D-4BB9-8A49-83D8758ABEFE}
-	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libhac", "libhac\libhac\libhac.csproj", "{BDEAE8C9-8C0D-4BB9-8A49-83D8758ABEFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibHac", "libhac\src\LibHac\LibHac.csproj", "{76F22732-E7A2-4031-8784-5BF939815D39}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libhac.Nand", "libhac\libhac.Nand\libhac.Nand.csproj", "{545B2706-41DA-4343-AE65-32DF6939945B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibHac.Nand", "libhac\src\LibHac.Nand\LibHac.Nand.csproj", "{2A1596D4-71DC-4E47-A15C-5A72567C40C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{9FF2A61A-C664-40B9-9909-45B4030D9B5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9FF2A61A-C664-40B9-9909-45B4030D9B5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FF2A61A-C664-40B9-9909-45B4030D9B5E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9FF2A61A-C664-40B9-9909-45B4030D9B5E}.Debug|x86.Build.0 = Debug|Any CPU
 		{9FF2A61A-C664-40B9-9909-45B4030D9B5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9FF2A61A-C664-40B9-9909-45B4030D9B5E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BDEAE8C9-8C0D-4BB9-8A49-83D8758ABEFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDEAE8C9-8C0D-4BB9-8A49-83D8758ABEFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BDEAE8C9-8C0D-4BB9-8A49-83D8758ABEFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BDEAE8C9-8C0D-4BB9-8A49-83D8758ABEFE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{545B2706-41DA-4343-AE65-32DF6939945B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{545B2706-41DA-4343-AE65-32DF6939945B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{545B2706-41DA-4343-AE65-32DF6939945B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{545B2706-41DA-4343-AE65-32DF6939945B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FF2A61A-C664-40B9-9909-45B4030D9B5E}.Release|x86.ActiveCfg = Release|Any CPU
+		{9FF2A61A-C664-40B9-9909-45B4030D9B5E}.Release|x86.Build.0 = Release|Any CPU
+		{76F22732-E7A2-4031-8784-5BF939815D39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76F22732-E7A2-4031-8784-5BF939815D39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76F22732-E7A2-4031-8784-5BF939815D39}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{76F22732-E7A2-4031-8784-5BF939815D39}.Debug|x86.Build.0 = Debug|Any CPU
+		{76F22732-E7A2-4031-8784-5BF939815D39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76F22732-E7A2-4031-8784-5BF939815D39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76F22732-E7A2-4031-8784-5BF939815D39}.Release|x86.ActiveCfg = Release|Any CPU
+		{76F22732-E7A2-4031-8784-5BF939815D39}.Release|x86.Build.0 = Release|Any CPU
+		{2A1596D4-71DC-4E47-A15C-5A72567C40C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A1596D4-71DC-4E47-A15C-5A72567C40C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A1596D4-71DC-4E47-A15C-5A72567C40C3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2A1596D4-71DC-4E47-A15C-5A72567C40C3}.Debug|x86.Build.0 = Debug|Any CPU
+		{2A1596D4-71DC-4E47-A15C-5A72567C40C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A1596D4-71DC-4E47-A15C-5A72567C40C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A1596D4-71DC-4E47-A15C-5A72567C40C3}.Release|x86.ActiveCfg = Release|Any CPU
+		{2A1596D4-71DC-4E47-A15C-5A72567C40C3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

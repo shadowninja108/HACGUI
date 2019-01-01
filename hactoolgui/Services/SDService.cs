@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HACGUI.Extensions;
+using System;
 using System.IO;
 using System.Management;
 
@@ -18,12 +19,13 @@ namespace HACGUI.Services
         private static readonly Func<DirectoryInfo, bool> DefaultValidator = 
             (info) =>
             {
-                // TODO: actually do this lol
-                return false;
+                return info.GetDirectory("Nintendo").GetDirectory("Contents").Exists;
             };
 
         static SDService()
         {
+            Validator = DefaultValidator;
+
             // Create an event handler to detect when a drive is added or removed
             Watcher = new ManagementEventWatcher();
             WqlEventQuery query = new WqlEventQuery("SELECT * FROM __InstanceOperationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_LogicalDisk' AND TargetInstance.Description = \"Removable disk\"");
@@ -35,21 +37,25 @@ namespace HACGUI.Services
                 DirectoryInfo actedDriveInfo = actedDrive.RootDirectory;
 
                 if (actedDrive.IsReady)
+                {
+                    if(CurrentDrive != null && CurrentDrive.Name == actedDriveInfo.Name)
+                        OnSDRemoved(actedDrive);
+
                     if (Validator(actedDriveInfo))
                     {
                         CurrentDrive = actedDrive; // set current drive so the event handler *could* access it directly, but why tho
                         OnSDPluggedIn(actedDrive);
                     }
-                else
-                    if (CurrentDrive != null) // if a drive hasn't been found to begin with, no need to check what was removed
+                }
+                else if (CurrentDrive != null) // if a drive hasn't been found to begin with, no need to check what was removed
+                {
+                    DirectoryInfo currentDrive = new DirectoryInfo(CurrentDrive.Name);
+                    if (currentDrive.Name == actedDrive.Name) // was the removed drive the one we found?
                     {
-                        DirectoryInfo currentDrive = new DirectoryInfo(CurrentDrive.Name);
-                        if (currentDrive.Name == actedDrive.Name) // was the removed drive the one we found?
-                        {
-                            OnSDRemoved(CurrentDrive); // Allow the handler read the current drive before we clear it
-                            CurrentDrive = null;
-                        }
+                        OnSDRemoved(CurrentDrive); // Allow the handler read the current drive before we clear it
+                        CurrentDrive = null;
                     }
+                }
             });
             Watcher.Query = query;
         }
@@ -60,6 +66,15 @@ namespace HACGUI.Services
                 throw new Exception("SD service is already started!");
 
             // Do initial scan of drives
+            Refresh();
+
+            Watcher.Start();
+
+            Started = true;
+        }
+
+        public static void Refresh()
+        {
             DriveInfo[] drives = DriveInfo.GetDrives();
             foreach (DriveInfo drive in drives)
                 if (drive.IsReady)
@@ -69,12 +84,9 @@ namespace HACGUI.Services
                     {
                         CurrentDrive = drive;
                         OnSDPluggedIn(drive);
+                        break;
                     }
                 }
-
-            Watcher.Start();
-
-            Started = true;
         }
 
         public static void Stop()

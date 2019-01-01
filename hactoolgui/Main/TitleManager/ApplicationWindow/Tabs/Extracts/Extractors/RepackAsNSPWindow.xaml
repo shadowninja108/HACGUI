@@ -1,0 +1,23 @@
+﻿<local:IExtractorWindow 
+        x:Class="HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors.RepackAsNSPWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors"
+        mc:Ignorable="d"
+        Height="170" Width="300">
+    <Grid>
+        <StackPanel Margin="20,20,20,20">
+            <Label FontSize="8" Height="20">Location</Label>
+            <DockPanel Height="15">
+                <Button Width="70" FontSize="8" Click="BrowseClicked">Browse</Button>
+                <TextBox Text="20" FontSize="8" VerticalContentAlignment="Center" Name="Path"/>
+            </DockPanel>
+        </StackPanel>
+        <StackPanel Margin="0,0,0,20" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+            <CheckBox Name="TicketCheckbox" Width="100" Height="20">Include tickets</CheckBox>
+            <Button Click="RepackClicked"  Content="Repack" Height="40" Width="100"/>
+        </StackPanel>
+    </Grid>
+</local:IExtractorWindow>

@@ -1,0 +1,17 @@
+﻿<UserControl x:Class="HACGUI.Main.StatusEntry"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:HACGUI.Main"
+             mc:Ignorable="d" 
+             d:DesignHeight="25" d:DesignWidth="50">
+    <Grid>
+        <DockPanel>
+            <Label DockPanel.Dock="Right"></Label>
+            <Ellipse Width="10" Height="10" Name="Shape" DockPanel.Dock="Right"/>
+            <TextBlock Name="TextBox" Height="20" VerticalAlignment="Center"/>
+            <Separator Width="5" Background="Transparent"/>
+        </DockPanel>
+    </Grid>
+</UserControl>

@@ -1,6 +1,7 @@
 ﻿using HACGUI.Extensions;
 using System;
-using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace HACGUI.FirstStart
 {
@@ -18,10 +19,10 @@ namespace HACGUI.FirstStart
 
             Loaded += (_, __) =>
             {
-                Thread thread = new Thread(new ThreadStart(() =>
+                ((RootWindow)FindRoot()).Submit(new Task(() =>
                 {
                     PageExtension next = Run(this); // asyncronously run the derivation task
-                    next.Dispatcher.BeginInvoke(new Action(() => // move to UI thread
+                    Dispatcher.BeginInvoke(new Action(() => // move to UI thread
                     {
                         next.Loaded += (___, ____) => // wait until the next page has fully loaded (so that it becomes a child of NavigationWindow)
                         {
@@ -29,7 +30,6 @@ namespace HACGUI.FirstStart
                         };
                     }));
                 }));
-                thread.Start();
             };
         }
     }

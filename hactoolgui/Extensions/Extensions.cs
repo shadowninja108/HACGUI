@@ -1,10 +1,16 @@
-﻿using System;
+﻿using LibHac;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
+using System.Windows.Data;
+using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Navigation;
 
@@ -38,15 +44,15 @@ namespace HACGUI.Extensions
         }
 
 
-        public static FileInfo FindFileRecursively(this DirectoryInfo root, string filename)
+        public static FileInfo FindFile(this DirectoryInfo root, string filename, SearchOption option = SearchOption.AllDirectories)
         {
-            return root.FindFilesRecursively(new string[] { filename })[0];
+            return root.FindFiles(new string[] { filename }, option)[0];
         }
 
-        public static FileInfo[] FindFilesRecursively(this DirectoryInfo root, string[] filenames)
+        public static FileInfo[] FindFiles(this DirectoryInfo root, string[] filenames, SearchOption option = SearchOption.AllDirectories)
         {
             FileInfo[] infos = new FileInfo[filenames.Length];
-            foreach (FileInfo file in root.EnumerateFiles("*", SearchOption.AllDirectories))
+            foreach (FileInfo file in root.EnumerateFiles("*", option))
             {
                 foreach (string filename in filenames)
                 {
@@ -133,6 +139,102 @@ namespace HACGUI.Extensions
                 Hash = hash;
                 DataLength = dataLength;
             }
+        }
+
+        public static void AddRange<T, S>(this Dictionary<T, S> source, Dictionary<T, S> collection)
+        {
+            if (collection == null)
+            {
+                throw new ArgumentNullException("Collection is null");
+            }
+
+            foreach (var item in collection)
+            {
+                if (!source.ContainsKey(item.Key))
+                {
+                    source.Add(item.Key, item.Value);
+                }
+                else
+                {
+                    throw new Exception($"Duplicate key {item.Key}!");
+                }
+            }
+        }
+
+        public static ulong GetBaseTitleID(this Title title)
+        {
+            switch (title.Metadata.Type)
+            {
+                case TitleType.AddOnContent:
+                case TitleType.Patch:
+                    string TitleID = $"{title.Id:x16}";
+                    byte M = Convert.ToByte(TitleID.Substring(12, 1), 16);
+                    TitleID = $"{TitleID.ToLower().Substring(0, 12)}{M - M % 2:x}000";
+                    return Convert.ToUInt64(TitleID, 16);
+            }
+            return title.Id;
+        }
+
+        public static byte[] ToByteArray(this string hex)
+        {
+            return Enumerable.Range(0, hex.Length)
+                             .Where(x => x % 2 == 0)
+                             .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                             .ToArray();
+        }
+
+        public static byte[] Serialize(this object obj)
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            using (var ms = new MemoryStream())
+            {
+                bf.Serialize(ms, obj);
+                return ms.ToArray();
+            }
+        }
+
+        public static object Deserialize(this byte[] bytes)
+        {
+            using (var memStream = new MemoryStream())
+            {
+                var binForm = new BinaryFormatter();
+                memStream.Write(bytes, 0, bytes.Length);
+                memStream.Seek(0, SeekOrigin.Begin);
+                var obj = binForm.Deserialize(memStream);
+                return obj;
+            }
+        }
+
+        public static FileInfo RequestOpenFileFromUser(string ext, string filter, string title = null)
+        {
+            OpenFileDialog dlg = new OpenFileDialog
+            {
+                DefaultExt = ext,
+                Filter = filter
+            };
+
+            if (title != null)
+                dlg.Title = title;
+
+            if (dlg.ShowDialog() == DialogResult.OK)
+                return new FileInfo(dlg.FileName);
+            return null;
+        }
+
+        public static FileInfo RequestSaveFileFromUser(string ext, string filter, string title = null)
+        {
+            SaveFileDialog dlg = new SaveFileDialog
+            {
+                DefaultExt = ext,
+                Filter = filter
+            };
+
+            if (title != null)
+                dlg.Title = title;
+
+            if (dlg.ShowDialog() == DialogResult.OK)
+                return new FileInfo(dlg.FileName);
+            return null;
         }
     }
 }

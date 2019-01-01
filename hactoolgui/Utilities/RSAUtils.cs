@@ -63,11 +63,8 @@ namespace CertNX
             RSACryptoServiceProvider provider = new RSACryptoServiceProvider(csp);
             RSAParameters publicKeyParams = obj.GetRSAPublicKey().ExportParameters(false);
             provider.ImportParameters(publicKeyParams); // have exponent ready
-
-            byte[] publicKey = new byte[0x100];
-            Array.Copy(obj.GetPublicKey().Skip(0x9).Take(0x100).ToArray(), publicKey, 0x100); // shittily grab public key
-
-            RSAParameters privateKeyParams = RecoverRSAParameters(GetBigIntegerAndReverse(publicKey), GetBigInteger(publicKeyParams.Exponent), GetBigIntegerAndReverse(key), key.Length); // actually derive private key params
+            byte[] publicKey = publicKeyParams.Modulus;
+            RSAParameters privateKeyParams = RecoverRSAParameters(GetBigIntegerAndReverse(publicKey), GetBigInteger(publicKeyParams.Exponent), GetBigIntegerAndReverse(key.Take(0x100).ToArray()), publicKey.Length); // actually derive private key params
             provider.ImportParameters(privateKeyParams); // import params to newly created RSACryptoServiceProvider
             obj.PrivateKey = provider; // assign certificate it's new private key
         }

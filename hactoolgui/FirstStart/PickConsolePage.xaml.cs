@@ -45,13 +45,17 @@ namespace HACGUI.FirstStart
         {
             ConsoleName = ConsoleNameBox.Text;
             HACGUIKeyset.RootFolderInfo.Create();
-            HACGUIKeyset.RootKeyFolderInfo.Create();
             HACGUIKeyset.RootConsoleFolderInfo.Create();
-            HACGUIKeyset.GetConsoleFolderInfo(ConsoleName).Create();
 
             // Navigate to next page
             NavigationWindow root = FindRoot();
             root.Navigate(new PickSDPage());
+        }
+
+        private void EnterKeyPressed(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if(e.Key == System.Windows.Input.Key.Enter)
+                NextClick(sender, null);
         }
     }
 }

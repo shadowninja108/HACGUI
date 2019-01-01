@@ -20,7 +20,7 @@
     <Grid>
         <Grid HorizontalAlignment="Center"  VerticalAlignment="Center" Height="150" Width="450">
             <Label Content="Give your console a name" HorizontalAlignment="Center" VerticalAlignment="Top" Height="50" Width="350" FontSize="30"/>
-            <TextBox Name="ConsoleNameBox" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="300" Height="50" FontSize="30"  TextWrapping="Wrap" Text="Console" VerticalContentAlignment="Center" TextChanged="OnTextChanged"/>
+            <TextBox Name="ConsoleNameBox" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="300" Height="50" FontSize="30"  TextWrapping="Wrap" Text="Console" VerticalContentAlignment="Center" TextChanged="OnTextChanged" KeyDown="EnterKeyPressed"/>
             <Button Name="NextButton" Content="Next" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="50" Width="140" FontSize="30" VerticalContentAlignment="Center" ToolTipService.ShowOnDisabled="True" Click="NextClick"/>
         </Grid>
 

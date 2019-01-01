@@ -4,8 +4,11 @@ using HACGUI.Main;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +19,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace HACGUI
 {
@@ -34,14 +38,26 @@ namespace HACGUI
 
         public static event EventHandler CurrentThemeChanged;
 
-        private string[] LightThemeDictPaths = new string[] {  };
-        private string[] DarkThemeDictPaths = new string[] { };
+        private string[] LightThemeDictPaths = new string[] {   };
+        private string[] DarkThemeDictPaths = new string[] {  };
 
         private List<ResourceDictionary> LightThemeDicts, DarkThemeDicts;
+
+        public static RootWindow Current;
 
         public RootWindow()
         {
             InitializeComponent();
+
+            Current = this;
+
+            void HandleException(object sender, UnhandledExceptionEventArgs args)
+            {
+                new ExceptionWindow((Exception) args.ExceptionObject).Show();
+                Close(); // make sure everything has ended
+            }
+
+            AppDomain.CurrentDomain.UnhandledException += HandleException;
 
             LightThemeDicts = new List<ResourceDictionary>();
             DarkThemeDicts = new List<ResourceDictionary>();
@@ -84,12 +100,45 @@ namespace HACGUI
 
             Loaded += (_1, _2) =>
             {
-                var settings = Properties.Settings.Default;
-                String path = settings.InstallPath;
-                if (!string.IsNullOrEmpty(path))
+                Tuple<bool, string> result = HACGUIKeyset.IsValidInstall();
+                if (result.Item1)
+                {
+                    HACGUIKeyset.Keyset.Load();
                     Navigate(new MainPage());
+                }
                 else
-                    Navigate(new IntroPage());
+                {
+                    string[] args = App.Args.Args;
+                    if (args.Length == 1)
+                    {
+                        if (args[0] == "continue")
+                        {
+                            FileInfo continueFile = HACGUIKeyset.TempContinueFileInfo;
+                            if (continueFile.Exists) {
+                                StreamReader reader = new StreamReader(continueFile.OpenRead());
+                                Array.Copy(reader.ReadLine().ToByteArray(), HACGUIKeyset.Keyset.SecureBootKey, 0x10);
+                                Array.Copy(reader.ReadLine().ToByteArray(), HACGUIKeyset.Keyset.TsecKey, 0x10);
+                                byte[][] tsecRootKey =  (byte[][]) reader.ReadLine().ToByteArray().Deserialize();
+                                for (int i = 0; i < tsecRootKey.Length; i++)
+                                    Array.Copy(tsecRootKey[i], HACGUIKeyset.Keyset.TsecRootKey[i], 0x10);
+                                byte[][] keyblobs = (byte[][])reader.ReadLine().ToByteArray().Deserialize();
+                                for (int i = 0; i < tsecRootKey.Length; i++)
+                                    Array.Copy(keyblobs[i], HACGUIKeyset.Keyset.EncryptedKeyblobs[i], 0xB0);
+                                PickConsolePage.ConsoleName = reader.ReadLine();
+                                reader.Close();
+
+                                HACGUIKeyset.Keyset.DeriveKeys();
+
+                                Navigate(new PickNANDPage());
+                            }
+                            else Navigate(new IntroPage());
+                        }
+                        else
+                            Navigate(new IntroPage());
+                    }
+                    else 
+                        Navigate(new IntroPage());
+                }
 
 
                 // Image may be needed at any time, and loading it every time would be dumb
@@ -183,6 +232,48 @@ namespace HACGUI
                         };
                 };
             };
+        }
+
+        public Task<T> Submit<T>(Task<T> task)
+        {
+            if (!System.Diagnostics.Debugger.IsAttached)
+            {
+                task.ContinueWith((t) => 
+                {
+                    Dispatcher.Invoke(() => HandleException(t.Exception));
+                    return t.Result;
+                }, TaskContinuationOptions.OnlyOnFaulted);
+            }
+            task.Start();
+
+            return task;
+        }
+
+        public Task Submit(Task task)
+        {
+            if (!System.Diagnostics.Debugger.IsAttached)
+            {
+                task.ContinueWith((t) =>
+                {
+                    Dispatcher.Invoke(() => HandleException(t.Exception));
+                }, TaskContinuationOptions.OnlyOnFaulted);
+            }
+
+            task.Start();
+
+            return task;
+        }
+
+        public void HandleException(Exception e)
+        {
+            new ExceptionWindow(e).Show();
+            Close(); // make sure everything has ended
+        }
+
+        public void HandleDispatcherException(object sender, DispatcherUnhandledExceptionEventArgs args)
+        {
+            args.Handled = true; // program won't crash
+            HandleException(args.Exception);
         }
 
         public enum Theme

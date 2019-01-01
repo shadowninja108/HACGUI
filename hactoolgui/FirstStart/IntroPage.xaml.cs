@@ -19,7 +19,6 @@ namespace HACGUI.FirstStart
         {
             NavigationWindow root = FindRoot();
             root.Navigate(new PickConsolePage());
-            Console.WriteLine(new HACGUIKeyset().IsValidInstall().Item2);
         }
 
         private void StartFromExistingInstall(object sender, RoutedEventArgs e)

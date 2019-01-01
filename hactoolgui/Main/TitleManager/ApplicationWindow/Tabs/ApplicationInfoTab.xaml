@@ -1,0 +1,40 @@
+﻿<UserControl x:Class="HACGUI.Main.TitleManager.Application.Tabs.ApplicationInfoTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:HACGUI.Main.TitleManager.Application.Tabs"
+             mc:Ignorable="d" 
+             Width="335" Height="240"  Background="White">
+    <Grid>
+        <Grid Margin="25,25,0,0" Width="100" Height="100" VerticalAlignment="Top" HorizontalAlignment="Left">
+            <Border BorderThickness="2"
+                    BorderBrush="Gray">
+                <Image Name="Icon">
+                    <Image.ContextMenu>
+                        <ContextMenu StaysOpen="True">
+                            <MenuItem Header="Copy" Click="CopyImage"/>
+                        </ContextMenu>
+                    </Image.ContextMenu>
+                </Image>
+            </Border>
+        </Grid>
+
+        <Grid Margin="0,25,15,0"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="190" Height="25">
+            <Label Content="Name" HorizontalAlignment="Left" VerticalContentAlignment="Center" Width="50"/>
+            <TextBox Name="NameBox" IsReadOnly="True" TextWrapping="NoWrap" Width="120" HorizontalAlignment="Right" VerticalContentAlignment="Center" />
+        </Grid>
+        <Grid Margin="0,62,15,0"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="190" Height="25">
+            <Label Content="Title ID" HorizontalAlignment="Left" VerticalContentAlignment="Center" Width="50"/>
+            <TextBox Name="TitleIDBox" IsReadOnly="True" MaxLines="1" Width="120" HorizontalAlignment="Right" VerticalContentAlignment="Center"/>
+        </Grid>
+        <DockPanel Margin="0,0,0,20" Width="290" Height="65" VerticalAlignment="Bottom">
+            <Label DockPanel.Dock="Top" Content="BCAT Passphrase"/>
+            <TextBox Name="BCATPassphraseBox" IsReadOnly="True" TextWrapping="Wrap"/>
+        </DockPanel>
+        <Grid Margin="0,100,15,0"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="190" Height="25">
+            <Label Content="Version" HorizontalAlignment="Left" VerticalContentAlignment="Center" Width="50"/>
+            <TextBox x:Name="VersionBox" IsReadOnly="True" MaxLines="1" Width="120" HorizontalAlignment="Right" VerticalContentAlignment="Center"/>
+        </Grid>
+    </Grid>
+</UserControl>

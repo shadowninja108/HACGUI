@@ -2,22 +2,23 @@
 using HACGUI.Services;
 using LibHac;
 using LibHac.Nand;
-using LibHac.Savefile;
-using LibHac.Streams;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Windows;
 using System.Windows.Navigation;
 using static HACGUI.Extensions.Extensions;
 using static LibHac.Nso;
 using static CertNX.RSAUtils;
-using System.Numerics;
 using CertNX;
+using HACGUI.Utilities;
+using LibHac.IO;
+using LibHac.IO.Save;
+using System.Security.Principal;
+using System.Diagnostics;
 
 namespace HACGUI.FirstStart
 {
@@ -32,6 +33,14 @@ namespace HACGUI.FirstStart
 
             Loaded += (_, __) =>
             {
+                if (IsAdministrator)
+                {
+                    MemloaderDescriptionLabel.Content = "HACGUI is waiting for a Switch with\nmemloader setup to be plugged in.";
+                    MemloaderDescriptionLabel.VerticalAlignment = VerticalAlignment.Center;
+                    MemloaderDescriptionLabel.Margin = new Thickness();
+                    RestartAsAdminButton.Visibility = Visibility.Hidden;
+                }
+
                 NANDService.OnNANDPluggedIn += () =>
                 {
                     StartDeriving();
@@ -41,7 +50,7 @@ namespace HACGUI.FirstStart
             };
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void PickNANDButtonClick(object sender, RoutedEventArgs e)
         {
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog
             {
@@ -56,10 +65,10 @@ namespace HACGUI.FirstStart
                 string[] files = dlg.FileNames;
                 if (files != null && files.Length > 0)
                 {
-                    IList<Stream> streams = new List<Stream>();
+                    IList<IStorage> streams = new List<IStorage>();
                     foreach (string file in files)
-                        streams.Add(new FileInfo(file).OpenRead()); // Change to Open when write support is added
-                    Stream NANDSource = new CombinationStream(streams);
+                        streams.Add(new FileInfo(file).OpenRead().AsStorage()); // Change to Open when write support is added
+                    IStorage NANDSource = new ConcatenationStorage(streams, true);
 
                     if (!NANDService.InsertNAND(NANDSource, false))
                     {
@@ -98,21 +107,20 @@ namespace HACGUI.FirstStart
         private void OnNandFound()
         {
             Nand nand = NANDService.NAND;
-            Stream NANDSource = NANDService.NANDSource;
 
-            NANDSource.Seek(0x804000, SeekOrigin.Begin); // BCPKG2-1-Normal-Main offset + length of BootConfig
-            FileStream pkg2stream = HACGUIKeyset.TempPkg2FileInfo.Create();
-            NANDSource.CopyToNew(pkg2stream, 0x7FC000); // rest of BCPPKG2-Normal-Main partition
-            pkg2stream.Seek(0, SeekOrigin.Begin);
-            byte[] pkg2raw = new byte[pkg2stream.Length];
-            pkg2stream.Read(pkg2raw, 0, pkg2raw.Length);
+            FileStream pkg2file = HACGUIKeyset.TempPkg2FileInfo.Create();
+            IStorage pkg2nand = nand.OpenPackage2(0);
+            byte[] pkg2raw = new byte[0x7FC000];
+            pkg2nand.Read(pkg2raw, 0x4000);
+            MemoryStorage pkg2memory = new MemoryStorage(pkg2raw);
+            pkg2memory.CopyToStream(pkg2file);
 
-            Package2 pkg2 = new Package2(HACGUIKeyset.Keyset, new MemoryStream(pkg2raw));
+            Package2 pkg2 = new Package2(HACGUIKeyset.Keyset, pkg2memory);
             HACGUIKeyset.RootTempPkg2FolderInfo.Create();
             FileStream kernelstream = HACGUIKeyset.TempKernelFileInfo.Create();
             FileStream INI1stream = HACGUIKeyset.TempINI1FileInfo.Create();
-            pkg2.OpenKernel().CopyTo(kernelstream);
-            pkg2.OpenIni1().CopyTo(INI1stream);
+            pkg2.OpenKernel().CopyToStream(kernelstream);
+            pkg2.OpenIni1().CopyToStream(INI1stream);
             kernelstream.Close();
             INI1stream.Close();
 
@@ -195,11 +203,11 @@ namespace HACGUI.FirstStart
                 }
 
                 FileStream kipstream = HACGUIKeyset.RootTempINI1Folder.GetFile(kip.Header.Name + ".kip").Create();
-                kip.OpenRawFile().CopyTo(kipstream);
+                kip.OpenRawFile().CopyToStream(kipstream);
                 kipstream.Close();
             }
 
-            pkg2stream.Close();
+            pkg2file.Close();
             INI1stream.Close();
 
             HACGUIKeyset.Keyset.DeriveKeys();
@@ -217,8 +225,8 @@ namespace HACGUI.FirstStart
                         {
                             case ContentType.Program:
                                 NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
-                                Stream pfsStream = nca.OpenSection(exefsSection.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid);
-                                Pfs pfs = new Pfs(pfsStream);
+                                IStorage pfsStorage = nca.OpenSection(exefsSection.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, false);
+                                Pfs pfs = new Pfs(pfsStorage);
                                 Nso nso = new Nso(pfs.OpenFile("main"));
                                 NsoSection section = nso.Sections[1];
                                 Stream data = new MemoryStream(section.DecompressSection());
@@ -249,8 +257,8 @@ namespace HACGUI.FirstStart
                         {
                             case ContentType.Program:
                                 NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
-                                Stream pfsStream = nca.OpenSection(exefsSection.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid);
-                                Pfs pfs = new Pfs(pfsStream);
+                                IStorage pfsStorage = nca.OpenSection(exefsSection.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, false);
+                                Pfs pfs = new Pfs(pfsStorage);
                                 Nso nso = new Nso(pfs.OpenFile("main"));
                                 NsoSection section = nso.Sections[1];
                                 Stream data = new MemoryStream(section.DecompressSection());
@@ -300,13 +308,12 @@ namespace HACGUI.FirstStart
 
             byte[] counter = cal0.SslExtKey.Take(0x10).ToArray();
             byte[] key = cal0.SslExtKey.Skip(0x10).ToArray(); // bit strange structure but it works
-            byte[] privateKey = new byte[0x100];
 
-            new Aes128CtrTransform(HACGUIKeyset.Keyset.SslRsaKek, counter, 0x100).TransformBlock(key, 0, 0x100, privateKey, 0); // decrypt private key
+            new Aes128CtrTransform(HACGUIKeyset.Keyset.SslRsaKek, counter).TransformBlock(key); // decrypt private key
 
             X509Certificate2 certificate = new X509Certificate2();
             certificate.Import(buffer);
-            certificate.ImportPrivateKey(privateKey);
+            certificate.ImportPrivateKey(key);
 
             byte[] pfx = certificate.Export(X509ContentType.Pkcs12, "switch");
             Stream pfxStream = HACGUIKeyset.GetClientCertificateByName(PickConsolePage.ConsoleName).Create();
@@ -318,18 +325,24 @@ namespace HACGUI.FirstStart
             List<Ticket> tickets = new List<Ticket>();
             NandPartition system = nand.OpenSystemPartition();
 
-            Stream e1Stream = system.OpenFile("save\\80000000000000E1", FileMode.Open, FileAccess.Read);
-            tickets.AddRange(ReadTickets(HACGUIKeyset.Keyset, e1Stream));
+            IFile e1File = system.GetFile("save\\80000000000000E1");
+            if (e1File.Exists)
+            {
+                IStorage e1Storage = e1File.Open(FileMode.Open, FileAccess.Read);
+                tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e1Storage));
+            }
 
-            Stream e2Stream = system.OpenFile("save\\80000000000000E2", FileMode.Open, FileAccess.Read);
-            tickets.AddRange(ReadTickets(HACGUIKeyset.Keyset, e2Stream));
+            IFile e2File = system.GetFile("save\\80000000000000E2");
+            if (e2File.Exists) {
+                IStorage e2Storage = e2File.Open(FileMode.Open, FileAccess.Read);
+                tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e2Storage));
+            }
 
-            Stream nsAppmanStream = system.OpenFile("save\\8000000000000043", FileMode.Open, FileAccess.Read);
-            Savefile save = new Savefile(HACGUIKeyset.Keyset, nsAppmanStream, IntegrityCheckLevel.ErrorOnInvalid);
-            Stream privateStream = save.OpenFile("/private");
+            IStorage nsAppmanStorage = system.GetFile("save\\8000000000000043").Open(FileMode.Open, FileAccess.Read);
+            Savefile save = new Savefile(HACGUIKeyset.Keyset, nsAppmanStorage, IntegrityCheckLevel.ErrorOnInvalid, false);
+            IStorage privateStorage = save.OpenFile("/private");
             byte[] sdSeed = new byte[0x10];
-            privateStream.Position += 0x10;
-            privateStream.Read(sdSeed, 0, 0x10);
+            privateStorage.Read(sdSeed, 0x10);
             HACGUIKeyset.Keyset.SetSdSeed(sdSeed);
 
             foreach (Ticket ticket in tickets)
@@ -338,6 +351,12 @@ namespace HACGUI.FirstStart
                 Array.Copy(ticket.GetTitleKey(HACGUIKeyset.Keyset), HACGUIKeyset.Keyset.TitleKeys[ticket.RightsId], 0x10);
             }
             NANDService.Stop();
+
+            DirectoryInfo oldKeysDirectory = HACGUIKeyset.RootFolderInfo.GetDirectory("keys");
+            if (oldKeysDirectory.Exists)
+            {
+                oldKeysDirectory.Delete(true); // fix old versions after restructure of directory
+            }
 
             // write all keys to file
             Stream prodKeys = HACGUIKeyset.ProductionKeysFileInfo.Create();
@@ -355,6 +374,9 @@ namespace HACGUI.FirstStart
             consoleKeys.Close();
             specificConsoleKeys.Close();
             titleKeys.Close();
+
+            Preferences.Current.DefaultConsoleName = PickConsolePage.ConsoleName;
+            Preferences.Current.Write();
         }
 
         public override void OnBack()
@@ -362,19 +384,26 @@ namespace HACGUI.FirstStart
             NANDService.Stop();
         }
 
-        private static List<Ticket> ReadTickets(Keyset keyset, Stream savefile)
+        private static List<Ticket> DumpTickets(Keyset keyset, IStorage savefile)
         {
             var tickets = new List<Ticket>();
-            var save = new Savefile(keyset, savefile, IntegrityCheckLevel.ErrorOnInvalid);
-            var ticketList = new BinaryReader(save.OpenFile("/ticket_list.bin"));
-            var ticketFile = new BinaryReader(save.OpenFile("/ticket.bin"));
+            var save = new Savefile(keyset, savefile, IntegrityCheckLevel.ErrorOnInvalid, false);
+            var ticketList = new BinaryReader(save.OpenFile("/ticket_list.bin").AsStream());
+            var ticketFile = new BinaryReader(save.OpenFile("/ticket.bin").AsStream());
+            DirectoryInfo ticketFolder = HACGUIKeyset.GetTicketsDirectory(PickConsolePage.ConsoleName);
+            ticketFolder.Create();
 
             var titleId = ticketList.ReadUInt64();
             while (titleId != ulong.MaxValue)
             {
                 ticketList.BaseStream.Position += 0x18;
                 var start = ticketFile.BaseStream.Position;
-                tickets.Add(new Ticket(ticketFile));
+                Ticket ticket = new Ticket(ticketFile);
+                Stream ticketFileStream = ticketFolder.GetFile(BitConverter.ToString(ticket.RightsId).Replace("-", "").ToLower() + ".tik").Create();
+                byte[] data = ticket.GetBytes();
+                ticketFileStream.Write(data, 0, data.Length);
+                ticketFileStream.Close();
+                tickets.Add(ticket);
                 ticketFile.BaseStream.Position = start + 0x400;
                 titleId = ticketList.ReadUInt64();
             }
@@ -391,115 +420,34 @@ namespace HACGUI.FirstStart
                 output[i] = (byte)(buffer1[i] ^ buffer2[i]);
         }
 
-        // Next two functions are copied from https://web.archive.org/web/20171205121514/http://www.jensign.com/opensslkey/opensslkey.cs
-        public static RSACryptoServiceProvider DecodeRSAPrivateKey(byte[] privkey)
+        private void RestartAsAdminButtonClick(object sender, RoutedEventArgs e)
         {
-            byte[] MODULUS, E, D, P, Q, DP, DQ, IQ;
+            Stream continueStream = HACGUIKeyset.TempContinueFileInfo.Create();
+            StreamWriter writer = new StreamWriter(continueStream);
+            writer.WriteLine(HACGUIKeyset.Keyset.SecureBootKey.ToHexString());
+            writer.WriteLine(HACGUIKeyset.Keyset.TsecKey.ToHexString());
+            writer.WriteLine(HACGUIKeyset.Keyset.TsecRootKey.Serialize().ToHexString()); // Serialize
+            writer.WriteLine(HACGUIKeyset.Keyset.EncryptedKeyblobs.Serialize().ToHexString());
+            writer.WriteLine(PickConsolePage.ConsoleName);
+            writer.Close();
 
-            // ---------  Set up stream to decode the asn.1 encoded RSA private key  ------
-            MemoryStream mem = new MemoryStream(privkey);
-            BinaryReader binr = new BinaryReader(mem);    //wrap Memory Stream with BinaryReader for easy reading
-            byte bt = 0;
-            ushort twobytes = 0;
-            int elems = 0;
+            Process proc = new Process();
+            proc.StartInfo.FileName = AppDomain.CurrentDomain.FriendlyName;
+            proc.StartInfo.UseShellExecute = true;
+            proc.StartInfo.Verb = "runas";
+            proc.StartInfo.Arguments = $"continue";
             try
             {
-                twobytes = binr.ReadUInt16();
-                if (twobytes == 0x8130) //data read as little endian order (actual data order for Sequence is 30 81)
-                    binr.ReadByte();    //advance 1 byte
-                else if (twobytes == 0x8230)
-                    binr.ReadInt16();   //advance 2 bytes
-                else
-                    return null;
-
-                twobytes = binr.ReadUInt16();
-                if (twobytes != 0x0102) //version number
-                    return null;
-                bt = binr.ReadByte();
-                if (bt != 0x00)
-                    return null;
-
-
-                //------  all private key components are Integer sequences ----
-                elems = GetIntegerSize(binr);
-                MODULUS = binr.ReadBytes(elems);
-
-                elems = GetIntegerSize(binr);
-                E = binr.ReadBytes(elems);
-
-                elems = GetIntegerSize(binr);
-                D = binr.ReadBytes(elems);
-
-                elems = GetIntegerSize(binr);
-                P = binr.ReadBytes(elems);
-
-                elems = GetIntegerSize(binr);
-                Q = binr.ReadBytes(elems);
-
-                elems = GetIntegerSize(binr);
-                DP = binr.ReadBytes(elems);
-
-                elems = GetIntegerSize(binr);
-                DQ = binr.ReadBytes(elems);
-
-                elems = GetIntegerSize(binr);
-                IQ = binr.ReadBytes(elems);
-
-                // ------- create RSACryptoServiceProvider instance and initialize with public key -----
-                RSACryptoServiceProvider RSA = new RSACryptoServiceProvider();
-                RSAParameters RSAparams = new RSAParameters();
-                RSAparams.Modulus = MODULUS;
-                RSAparams.Exponent = E;
-                RSAparams.D = D;
-                RSAparams.P = P;
-                RSAparams.Q = Q;
-                RSAparams.DP = DP;
-                RSAparams.DQ = DQ;
-                RSAparams.InverseQ = IQ;
-                RSA.ImportParameters(RSAparams);
-                return RSA;
-            }
-            catch (Exception)
+                proc.Start();
+                System.Windows.Application.Current.Shutdown();
+            } catch(System.ComponentModel.Win32Exception)
             {
-                return null;
+                HACGUIKeyset.TempContinueFileInfo.Delete(); // prob cancelled by user, delete unused continue file
             }
-            finally { binr.Close(); }
         }
 
-        private static int GetIntegerSize(BinaryReader binr)
-        {
-            byte bt = 0;
-            byte lowbyte = 0x00;
-            byte highbyte = 0x00;
-            int count = 0;
-            bt = binr.ReadByte();
-            if (bt != 0x02)     //expect integer
-                return 0;
-            bt = binr.ReadByte();
-
-            if (bt == 0x81)
-                count = binr.ReadByte();    // data size in next byte
-            else
-            if (bt == 0x82)
-            {
-                highbyte = binr.ReadByte(); // data size in next 2 bytes
-                lowbyte = binr.ReadByte();
-                byte[] modint = { lowbyte, highbyte, 0x00, 0x00 };
-                count = BitConverter.ToInt32(modint, 0);
-            }
-            else
-            {
-                count = bt;     // we already have the data size
-            }
-
-
-
-            while (binr.ReadByte() == 0x00)
-            {   //remove high order zeros in data
-                count -= 1;
-            }
-            binr.BaseStream.Seek(-1, SeekOrigin.Current);       //last ReadByte wasn't a removed zero, so back up a byte
-            return count;
-        }
+        public static bool IsAdministrator =>
+            new WindowsPrincipal(WindowsIdentity.GetCurrent())
+            .IsInRole(WindowsBuiltInRole.Administrator);
     }
 }

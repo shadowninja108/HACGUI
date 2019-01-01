@@ -1,10 +1,10 @@
-﻿using LibHac.Nand;
-using LibHac.Streams;
+﻿using LibHac;
+using LibHac.IO;
+using LibHac.Nand;
 using NandReaderGui;
 using System;
 using System.IO;
 using System.Management;
-using static HACGUI.DiskStream;
 
 namespace HACGUI.Services
 {
@@ -12,23 +12,23 @@ namespace HACGUI.Services
     {
         public delegate void NANDChangedEventHandler();
 
-        public static Func<Stream, bool> Validator = DefaultValidator;
+        public static Func<IStorage, bool> Validator = DefaultValidator;
         public static Func<bool> RequestSwitchSource = () => { return false; };
         public static event NANDChangedEventHandler OnNANDPluggedIn, OnNANDRemoved;
         public static DiskInfo CurrentDisk;
 
-        public static Stream NANDSource;
+        public static IStorage NANDSource;
         public static Nand NAND;
 
         private static ManagementEventWatcher CreateWatcher, DeleteWatcher;
         private static bool Started = false;
 
-        private static Func<Stream, bool> DefaultValidator = 
-            (stream) =>
+        private static Func<IStorage, bool> DefaultValidator = 
+            (storage) =>
             { // essentially just check if the Nand constructor passes
                 try
                 {
-                    Nand nand = new Nand(stream, HACGUIKeyset.Keyset);
+                    Nand nand = new Nand(storage.AsStream(), HACGUIKeyset.Keyset);
                     return true;
                 } catch (Exception)
                 {
@@ -46,7 +46,7 @@ namespace HACGUI.Services
             CreateWatcher.EventArrived += new EventArrivedEventHandler((s, e) =>
             {
                 if (NAND == null) // ignore if we already found the Switch
-                    IterateDisks();
+                    Refresh();
              });
             CreateWatcher.Query = createQuery;
 
@@ -63,7 +63,7 @@ namespace HACGUI.Services
                         foreach (ManagementObject disk in disks) // search to see if we can match the DiskInfo with an existing device
                         {
                             DiskInfo info = CreateDiskInfo(disk);
-                            if (info.Equals(CurrentDisk))
+                            if (info.PhysicalName.Equals(CurrentDisk.PhysicalName))
                             {
                                 found = true;
                                 break;
@@ -77,7 +77,7 @@ namespace HACGUI.Services
             DeleteWatcher.Query = deleteQuery;
         }
 
-        private static void IterateDisks()
+        private static void Refresh()
         {
             ManagementObjectCollection disks = GetDisks();
             foreach (ManagementObject disk in disks)
@@ -88,8 +88,9 @@ namespace HACGUI.Services
                     {
                         DiskInfo info = CreateDiskInfo(disk);
                         //DiskStream diskStream = new DiskStream(DiskStream.CreateDiskInfo(disk)); impl is shit i guess
-                        Stream diskStream = new RandomAccessSectorStream(new SectorStream(new DeviceStream(info.PhysicalName, info.Length), info.SectorSize * 100));
-                        if(InsertNAND(diskStream, true))
+                        Storage diskStorage = new CachedStorage(new DeviceStream(info.PhysicalName, info.Length).AsStorage(), info.SectorSize * 100, 4, true);
+                        diskStorage.SetReadOnly();
+                        if (InsertNAND(diskStorage, true))
                             CurrentDisk = info;
                     }
                     catch (UnauthorizedAccessException)
@@ -100,20 +101,35 @@ namespace HACGUI.Services
             }
         }
 
+        private static DiskInfo CreateDiskInfo(ManagementObject disk)
+        {
+            var info = new DiskInfo
+            {
+                PhysicalName = (string)disk.GetPropertyValue("Name"),
+                Name = (string)disk.GetPropertyValue("Caption"),
+                Model = (string)disk.GetPropertyValue("Model"),
+                //todo Why is Windows returning small sizes? https://stackoverflow.com/questions/15051660
+                Length = (long)((ulong)disk.GetPropertyValue("Size")),
+                SectorSize = (int)((uint)disk.GetPropertyValue("BytesPerSector")),
+                DisplaySize = Util.GetBytesReadable((long)((ulong)disk.GetPropertyValue("Size")))
+            };
+            return info;
+        }
+
         private static ManagementObjectCollection GetDisks()
         {
             ManagementClass wmi = new ManagementClass("Win32_DiskDrive");
             return wmi.GetInstances();
         }
 
-        public static bool InsertNAND(Stream input, bool raw)
+        public static bool InsertNAND(IStorage input, bool raw)
         {
             if (Validator(input))
             {
                 if (NAND != null && !raw)
                     if (!RequestSwitchSource())
                         return false;
-                NAND = new Nand(input, HACGUIKeyset.Keyset);
+                NAND = new Nand(input.AsStream(), HACGUIKeyset.Keyset);
                 NANDSource = input;
                 OnNANDPluggedIn();
                 return true;
@@ -128,7 +144,7 @@ namespace HACGUI.Services
                 throw new Exception("NAND service is already started!");
 
             // Do initial scan of drives
-            IterateDisks();
+            Refresh();
 
             CreateWatcher.Start();
             DeleteWatcher.Start();
@@ -146,7 +162,7 @@ namespace HACGUI.Services
 
             if (NANDSource != null)
             {
-                NANDSource.Close();
+                NANDSource.AsStream().Close();
                 NANDSource.Dispose();
             }
 
@@ -168,5 +184,16 @@ namespace HACGUI.Services
         }
 
         
+    }
+
+    public class DiskInfo
+    {
+        public string PhysicalName { get; set; }
+        public string Name { get; set; }
+        public string Model { get; set; }
+        public long Length { get; set; }
+        public int SectorSize { get; set; }
+        public string DisplaySize { get; set; }
+        public string Display => $"{Name} ({DisplaySize})";
     }
 }

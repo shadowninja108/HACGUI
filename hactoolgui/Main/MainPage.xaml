@@ -4,10 +4,53 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:HACGUI"
+        xmlns:System="clr-namespace:System;assembly=mscorlib"
+        xmlns:ext="clr-namespace:System.Windows.Controls.Extensions"
         mc:Ignorable="d"
-        Title="MainPage" Height="450" Width="800">
+        Title="MainPage" d:DesignHeight="450" d:DesignWidth="800">
+
+    <Page.Resources>
+        <System:String x:Key="Title">HACGUI</System:String>
+        <System:Double x:Key="MinWidth">800</System:Double>
+        <System:Double x:Key="MinHeight">500</System:Double>
+    </Page.Resources>
+
     <Grid>
-        <ToolBar />
+        <DockPanel>
+            <ToolBarTray DockPanel.Dock="Top">
+                <ToolBar>
+                    <ext:DropdownButton Content="General">
+                        <ext:DropdownButton.DropdownMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Restart as admin" Name="AdminButton" Click="RestartAsAdminButtonClick"/>
+                            </ContextMenu>
+                        </ext:DropdownButton.DropdownMenu>
+                    </ext:DropdownButton>
+                </ToolBar>
+                <ToolBar>
+                    <ext:DropdownButton Content="NAND">
+                        <ext:DropdownButton.DropdownMenu>
+                            <ContextMenu Name="NANDContextMenu">
+                                <MenuItem Header="Pick NAND" Click="PickNANDButtonClick"/>
+                                <MenuItem Tag="0" Header="Mount PRODINFOF partition" Click="MountPartition" IsEnabled="False"/>
+                                <MenuItem Tag="1" Header="Mount SAFE partition" Click="MountPartition" IsEnabled="False"/>
+                                <MenuItem Tag="2" Header="Mount SYSTEM partition" Click="MountPartition" IsEnabled="False"/>
+                                <MenuItem Tag="3" Header="Mount USER partition" Click="MountPartition" IsEnabled="False"/>
+                            </ContextMenu>
+                        </ext:DropdownButton.DropdownMenu>
+                    </ext:DropdownButton>
+                </ToolBar>
+            </ToolBarTray>
+            <StatusBar DockPanel.Dock="Bottom" Name="StatusBar" Height="20"/>
+            <TabControl>
+                <TabItem Header="Title Manager">
+                    <Frame Name="TitleManagerFrame"/>
+                </TabItem>
+                <TabItem Header="Utilities">
+                    <Frame Name="UtilitiesFrame"/>
+                </TabItem>
+            </TabControl>
+            
+        </DockPanel>
     </Grid>
 </views:PageExtension>

@@ -1,0 +1,22 @@
+﻿<Window
+    x:Class="HACGUI.Main.TitleManager.Application.ApplicationWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d" 
+    xmlns:Tabs="clr-namespace:HACGUI.Main.TitleManager.Application.Tabs"
+      Width="350" Height="300" ResizeMode="NoResize"
+      Title="ApplicationWindow">
+
+    <Grid>
+        <TabControl>
+            <TabItem Header="Info">
+                <Tabs:ApplicationInfoTab/>
+            </TabItem>
+            <TabItem Header="Titles">
+                <Tabs:ApplicationTitleTab/>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
