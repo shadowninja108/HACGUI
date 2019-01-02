@@ -28,7 +28,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
     /// </summary>
     public partial class ExtractAsNCAs : IExtractorWindow
     {
-        public ExtractAsNCAs(List<Title> selected) : base(selected)
+        public ExtractAsNCAs(List<Nca> selected) : base(selected)
         {
             InitializeComponent();
         }
@@ -55,33 +55,31 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             {
                 DirectoryInfo ticketDir = HACGUIKeyset.GetTicketsDirectory(Preferences.Current.DefaultConsoleName); // TODO: load console name from continuous location
                 List<string> foundTickets = new List<string>();
-                foreach (Title title in SelectedTitles)
-                    foreach (Nca nca in title.Ncas)
+                foreach (Nca nca in SelectedNcas)
+                {
+                    if (nca.HasRightsId)
                     {
-                        if (nca.HasRightsId)
+                        string rightsId = BitConverter.ToString(nca.Header.RightsId).Replace("-", "").ToLower();
+                        FileInfo ticketFile = ticketDir.GetFile(rightsId + ".tik");
+                        if (ticketFile.Exists && !foundTickets.Contains(rightsId))
                         {
-                            string rightsId = BitConverter.ToString(nca.Header.RightsId).Replace("-", "").ToLower();
-                            FileInfo ticketFile = ticketDir.GetFile(rightsId + ".tik");
-                            if (ticketFile.Exists && !foundTickets.Contains(rightsId))
-                            {
-                                foundTickets.Add(rightsId);
-                                FileStream destination = info.GetFile(ticketFile.Name).Create();
-                                Stream source = ticketFile.OpenRead();
-                                destination.SetLength(source.Length);
-                                tasks.Add(new CopyTask(source, destination, $"Copying {ticketFile.Name}..."));
-                            }
+                            foundTickets.Add(rightsId);
+                            FileStream destination = info.GetFile(ticketFile.Name).Create();
+                            Stream source = ticketFile.OpenRead();
+                            destination.SetLength(source.Length);
+                            tasks.Add(new CopyTask(source, destination, $"Copying {ticketFile.Name}..."));
                         }
                     }
+                }
             }
 
-            foreach (Title title in SelectedTitles)
-                foreach (Nca nca in title.Ncas)
-                {
-                    FileStream destination = info.GetFile(nca.Filename).Create();
-                    IStorage source = nca.GetStorage();
-                    destination.SetLength(source.Length);
-                    tasks.Add(new CopyTask(source.AsStream(), destination, $"Copying {nca.Filename}..."));
-                }
+            foreach (Nca nca in SelectedNcas)
+            {
+                FileStream destination = info.GetFile(nca.Filename).Create();
+                IStorage source = nca.GetStorage();
+                destination.SetLength(source.Length);
+                tasks.Add(new CopyTask(source.AsStream(), destination, $"Copying {nca.Filename}..."));
+            }
             ProgressView view = new ProgressView(tasks);
             NavigationWindow window = new NavigationWindow
             {

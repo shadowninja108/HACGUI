@@ -11,12 +11,12 @@
         <DockPanel Margin="20,20,20,20" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
             <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,20" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                 <CheckBox Name="TicketCheckbox" Width="100" Height="20">Include tickets</CheckBox>
-                <Button Click="ExtractClicked"  Content="Repack" Height="30" Width="50"/>
+                <Button Click="ExtractClicked"  Content="Extract" Height="30" Width="50"/>
             </StackPanel>
             <DockPanel Height="60">
                 <Label DockPanel.Dock="Top" FontSize="15" Height="30">Location</Label>
                 <Button Width="50" Click="BrowseClicked">Browse</Button>
-                <TextBox Text="20" FontSize="10" VerticalContentAlignment="Center" Name="Path"/>
+                <TextBox FontSize="10" VerticalContentAlignment="Center" Name="Path"/>
             </DockPanel>
         </DockPanel>
     </Grid>

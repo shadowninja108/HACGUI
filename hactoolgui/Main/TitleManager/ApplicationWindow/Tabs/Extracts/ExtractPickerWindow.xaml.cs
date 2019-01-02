@@ -24,9 +24,9 @@ namespace HACGUI.Main.TitleManager.Application.Tabs.Extracts.Extractors
         public Dictionary<string, IExtractorWindow> Extractors { get; set; }
         public string Selected { get; set; }
 
-        protected List<Title> SelectedTitles;
+        protected List<Nca> SelectedTitles;
 
-        public ExtractPickerWindow(List<Title> selected)
+        public ExtractPickerWindow(List<Nca> selected)
         {
             InitializeComponent();
             Extractors = new Dictionary<string, IExtractorWindow>

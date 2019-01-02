@@ -17,7 +17,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
     /// </summary>
     public partial class RepackAsNSPWindow : IExtractorWindow
     {
-        public RepackAsNSPWindow(List<Title> selected) : base(selected)
+        public RepackAsNSPWindow(List<Nca> selected) : base(selected)
         {
             InitializeComponent();
         }
@@ -40,25 +40,23 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             {
                 DirectoryInfo ticketDir = HACGUIKeyset.GetTicketsDirectory(Preferences.Current.DefaultConsoleName); // TODO: load console name from continuous location
                 List<string> foundTickets = new List<string>();
-                foreach (Title title in SelectedTitles)
-                    foreach (Nca nca in title.Ncas)
+                foreach (Nca nca in SelectedNcas)
+                {
+                    if (nca.HasRightsId)
                     {
-                        if (nca.HasRightsId)
+                        string rightsId = BitConverter.ToString(nca.Header.RightsId).Replace("-", "").ToLower();
+                        FileInfo ticketFile = ticketDir.GetFile(rightsId + ".tik");
+                        if (ticketFile.Exists && !foundTickets.Contains(rightsId))
                         {
-                            string rightsId = BitConverter.ToString(nca.Header.RightsId).Replace("-", "").ToLower();
-                            FileInfo ticketFile = ticketDir.GetFile(rightsId + ".tik");
-                            if (ticketFile.Exists && !foundTickets.Contains(rightsId))
-                            {
-                                foundTickets.Add(rightsId);
-                                builder.AddFile(ticketFile.Name, ticketFile.OpenRead().AsStorage());
-                            }
+                            foundTickets.Add(rightsId);
+                            builder.AddFile(ticketFile.Name, ticketFile.OpenRead().AsStorage());
                         }
                     }
+                }
             }
 
-            foreach (Title title in SelectedTitles)
-                foreach (Nca nca in title.Ncas)
-                    builder.AddFile(nca.Filename, nca.GetStorage());
+            foreach (Nca nca in SelectedNcas)
+                builder.AddFile(nca.Filename, nca.GetStorage());
 
             NavigationWindow window = new NavigationWindow
             {

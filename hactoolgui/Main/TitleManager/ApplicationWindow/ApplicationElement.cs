@@ -1,4 +1,5 @@
 ﻿using HACGUI.Extensions;
+using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
 using LibHac.IO;
 using System;
@@ -17,6 +18,16 @@ namespace HACGUI.Main.TitleManager
         static readonly List<TitleType> Priority = new List<TitleType>() { TitleType.Application, TitleType.Patch, TitleType.AddOnContent };
 
         public List<Title> Titles { get; set; } = new List<Title>();
+        public List<TitleElement> TitleElements
+        {
+            get
+            {
+                List<TitleElement> titles = new List<TitleElement>();
+                foreach (Title title in Titles)
+                    titles.Add(new TitleElement() { Title = title });
+                return titles;
+            }
+        }
 
         public ImageSource Icon { get; set; } = UnknownIcon;
 
