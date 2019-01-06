@@ -279,7 +279,6 @@ namespace HACGUI.FirstStart
                                 Crypto.DecryptEcb(HACGUIKeyset.Keyset.MasterKeys[0], RsaPrivateKekGenerationSource, key1, 0x10);
                                 byte[] key2 = new byte[0x10];
                                 Crypto.DecryptEcb(key1, SslAesKeyX, key2, 0x10);
-                                byte[] key3 = new byte[0x10];
                                 Crypto.DecryptEcb(key2, SslRsaKeyY, HACGUIKeyset.Keyset.SslRsaKek, 0x10);
                                 break;
                         }
