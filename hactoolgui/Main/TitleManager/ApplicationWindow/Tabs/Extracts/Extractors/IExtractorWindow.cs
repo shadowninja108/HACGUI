@@ -11,11 +11,11 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 {
     public abstract partial class IExtractorWindow : UserControl
     {
-        protected List<Title> SelectedTitles;
+        protected List<Nca> SelectedNcas;
 
-        public IExtractorWindow(List<Title> selected)
+        public IExtractorWindow(List<Nca> selected)
         {
-            SelectedTitles = selected;
+            SelectedNcas = selected;
         }
     }
 }

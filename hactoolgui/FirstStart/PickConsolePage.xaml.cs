@@ -52,7 +52,7 @@ namespace HACGUI.FirstStart
             root.Navigate(new PickSDPage());
         }
 
-        private void EnterKeyPressed(object sender, System.Windows.Input.KeyEventArgs e)
+        private void KeyPressed(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if(e.Key == System.Windows.Input.Key.Enter)
                 NextClick(sender, null);

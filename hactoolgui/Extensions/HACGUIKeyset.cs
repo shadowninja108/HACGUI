@@ -11,7 +11,6 @@ using static LibHac.ExternalKeys;
 
 namespace HACGUI
 {
-    [Serializable]
     public class HACGUIKeyset : Keyset
     {
         public static HACGUIKeyset Keyset = new HACGUIKeyset();

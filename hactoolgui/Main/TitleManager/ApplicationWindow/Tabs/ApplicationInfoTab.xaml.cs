@@ -27,7 +27,6 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
         {
             InitializeComponent();
 
-            //Title = Element.Name;
             Icon.Source = Element.Icon;
             NameBox.Text = Element.Name;
             TitleIDBox.Text = string.Format("{0:x16}", Element.TitleId);

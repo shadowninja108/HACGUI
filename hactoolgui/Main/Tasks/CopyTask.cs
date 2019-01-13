@@ -10,10 +10,10 @@ namespace HACGUI.Main.Tasks
 {
     public class CopyTask : ProgressTask
     {
-        private readonly Stream Source, Destination;
+        private readonly IStorage Source, Destination;
         private readonly string Message;
 
-        public CopyTask(Stream source, Stream destination, string message = "") : base()
+        public CopyTask(IStorage source, IStorage destination, string message = "") : base()
         {
             Source = source;
             Destination = destination;
@@ -25,9 +25,9 @@ namespace HACGUI.Main.Tasks
             return new Task(() => 
             {
                 LogMessage(Message);
-                Source.AsStorage().CopyToStream(Destination, Source.Length, this);
-                Source.Close();
-                Destination.Close();
+                Source.CopyToStream(Destination.AsStream(), Source.Length, this);
+                Source.Dispose();
+                Destination.Dispose();
             });
         }
     }

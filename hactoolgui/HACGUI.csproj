@@ -159,11 +159,16 @@
     <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\ExtractPickerWindow.xaml.cs">
       <DependentUpon>ExtractPickerWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\NcaElement.cs" />
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\TitleElement.cs" />
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\TitleInfoWindow.xaml.cs">
+      <DependentUpon>TitleInfoWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Main\TitleManager\MainTitleManagerPage.xaml.cs">
       <DependentUpon>MainTitleManagerPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Main\TitleManager\SystemTitleNames.cs" />
-    <Compile Include="Main\TitleManager\ApplicationElement.cs" />
+    <Compile Include="Main\TitleManager\ApplicationWindow\ApplicationElement.cs" />
     <Compile Include="Main\TitleManager\FSView.cs" />
     <Compile Include="Services\MountService.cs" />
     <Compile Include="Services\StatusService.cs" />
@@ -256,6 +261,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\ExtractPickerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\TitleManager\ApplicationWindow\Tabs\TitleInfoWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

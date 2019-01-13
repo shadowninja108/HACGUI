@@ -139,5 +139,10 @@ namespace HACGUI.Main
             } else
                 MessageBox.Show("Dokan driver not installed.\nInstall it to use this feature.");
         }
+
+        private void OpenUserSwitchClick(object sender, RoutedEventArgs e)
+        {
+            Process.Start($"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}{Path.DirectorySeparatorChar}.switch");
+        }
     }
 }

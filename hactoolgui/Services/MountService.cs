@@ -213,9 +213,10 @@ namespace HACGUI.Services
                 IStorage storage = OpenFile(file);
                 if (storage != null)
                 {
-                    storage.Read(buffer, (long)Math.Min((ulong)offset, (ulong)storage.Length - (ulong)buffer.Length), (int)Math.Min(buffer.Length, file.Length), 0);
+                    long distanceToEof = storage.Length - buffer.Length;
+
+                    storage.Read(buffer, Math.Min(offset, distanceToEof), (int)Math.Min(buffer.Length, file.Length), 0);
                     bytesRead = buffer.Length; // TODO accuracy
-                    OpenedFiles[file] = storage;
                     return NtStatus.Success;
                 } else
                 {
@@ -300,16 +301,16 @@ namespace HACGUI.Services
         public IFile GetFile(string name)
         {
             name = name.Replace($"{Path.DirectorySeparatorChar}", Fs.PathSeperator);
-            if (name.Length > 0 && name[0] == Path.DirectorySeparatorChar)
-                name = name.Substring(1);
+            if (name.StartsWith(Fs.PathSeperator))
+                name = name.Substring(Fs.PathSeperator.Length);
             return Fs.GetFile(name);
         }
 
         public IDirectory GetDirectory(string name)
         {
             name = name.Replace($"{Path.DirectorySeparatorChar}", Fs.PathSeperator);
-            if (name.Length > 0 && name[0] == Path.DirectorySeparatorChar)
-                name = name.Substring(1);
+            if (name.StartsWith(Fs.PathSeperator))
+                name = name.Substring(Fs.PathSeperator.Length);
             return Fs.GetDirectory(name);
         }
 
@@ -317,16 +318,17 @@ namespace HACGUI.Services
         {
             string str = file.Path;
             if(str.Length > 0)
-                if (str[0] == (Path.DirectorySeparatorChar))
+                if (str[0] == Path.DirectorySeparatorChar)
                     str = str.Substring(1);
             return str;
         }
 
         public IStorage OpenFile(IFile file)
         {
-            foreach (IFile openedfile in OpenedFiles.Keys)
-                if (file.Equals(openedfile))
-                    return OpenedFiles[openedfile];
+            IFile key = OpenedFiles.Keys.FirstOrDefault(f => f.Equals(file));
+            if (key != null)
+                return OpenedFiles[key];
+
             try
             {
                 IStorage storage = file.Open(FileMode.Open);

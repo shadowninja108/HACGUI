@@ -1,4 +1,5 @@
 ﻿using HACGUI.Main.TitleManager.Application.Tabs.Extracts.Extractors;
+using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
 using System.Collections.Generic;
 using System.IO;
@@ -18,22 +19,13 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
         private ApplicationElement Element => ApplicationWindow.Current.Element;
         private Dictionary<ulong, LibHac.Application> Titles => ApplicationWindow.Current.Applications;
 
-        public class TitleInfo
-        {
-            public Title Title;
-            public TitleType Type => Title.Metadata.Type;
-            public ulong TitleId => Title.Id;
-            public long Size => Title.GetSize();
-            public bool Selected { get; set; }
-        }
-
         public ApplicationTitleTab()
         {
             InitializeComponent();
 
             foreach(Title title in Element.OrderTitlesByBest())
             {
-                TitleInfo info = new TitleInfo
+                TitleElement info = new TitleElement
                 {
                     Title = title
                 };
@@ -43,10 +35,11 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
 
         private void ExtractClicked(object sender, System.Windows.RoutedEventArgs e)
         {
-            List<Title> selected = new List<Title>();
-            foreach(TitleInfo info in ListView.Items)
+            List<Nca> selected = new List<Nca>();
+            foreach (TitleElement info in ListView.Items)
                 if (info.Selected)
-                    selected.Add(info.Title);
+                    foreach (NcaElement nca in info.Ncas)
+                        selected.Add(nca.Nca);
 
             Window window = new ExtractPickerWindow(selected);
             window.ShowDialog();
@@ -83,6 +76,14 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
 
             }
             ;*/
+        }
+
+        private void TitleDoubleClicked(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (ListView.SelectedItem is TitleElement title)
+            {
+                new TitleInfoWindow(title).ShowDialog();
+            }
         }
     }
 }
