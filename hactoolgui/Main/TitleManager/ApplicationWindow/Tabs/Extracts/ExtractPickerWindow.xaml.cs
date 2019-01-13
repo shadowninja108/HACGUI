@@ -31,8 +31,8 @@ namespace HACGUI.Main.TitleManager.Application.Tabs.Extracts.Extractors
             InitializeComponent();
             Extractors = new Dictionary<string, IExtractorWindow>
             {
-                {"Extract as NCAs" , new ExtractAsNCAs(selected)},
-                {"Repack as NSP" , new RepackAsNSPWindow(selected)}
+                { "Extract as NCAs" , new ExtractAsNCAs(selected)},
+                { "Repack as NSP" , new RepackAsNSPWindow(selected)}
             };
 
             SelectedTitles = selected;

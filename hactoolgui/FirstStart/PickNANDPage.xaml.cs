@@ -248,7 +248,6 @@ namespace HACGUI.FirstStart
                                     Crypto.DecryptEcb(HACGUIKeyset.Keyset.MasterKeys[0], RsaOaepKekGenerationSource, key1, 0x10);
                                     byte[] key2 = new byte[0x10];
                                     Crypto.DecryptEcb(key1, EticketRsaKekekSource, key2, 0x10);
-                                    byte[] key3 = new byte[0x10];
                                     Crypto.DecryptEcb(key2, EticketRsaKekSource, HACGUIKeyset.Keyset.EticketRsaKek, 0x10);
                                     break;
                             }
@@ -351,6 +350,7 @@ namespace HACGUI.FirstStart
                 HACGUIKeyset.Keyset.TitleKeys[ticket.RightsId] = new byte[0x10];
                 Array.Copy(ticket.GetTitleKey(HACGUIKeyset.Keyset), HACGUIKeyset.Keyset.TitleKeys[ticket.RightsId], 0x10);
             }
+
             NANDService.Stop();
 
             DirectoryInfo oldKeysDirectory = HACGUIKeyset.RootFolderInfo.GetDirectory("keys");

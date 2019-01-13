@@ -101,14 +101,16 @@ namespace HACGUI
             Loaded += (_1, _2) =>
             {
                 Tuple<bool, string> result = HACGUIKeyset.IsValidInstall();
+                Page nextPage;
                 if (result.Item1)
                 {
                     HACGUIKeyset.Keyset.Load();
-                    Navigate(new MainPage());
+                    nextPage = new MainPage();
                 }
                 else
                 {
                     string[] args = App.Args.Args;
+                    nextPage = new IntroPage();
                     if (args.Length == 1)
                     {
                         if (args[0] == "continue")
@@ -129,17 +131,12 @@ namespace HACGUI
 
                                 HACGUIKeyset.Keyset.DeriveKeys();
 
-                                Navigate(new PickNANDPage());
+                                nextPage = new PickNANDPage();
                             }
-                            else Navigate(new IntroPage());
                         }
-                        else
-                            Navigate(new IntroPage());
                     }
-                    else 
-                        Navigate(new IntroPage());
                 }
-
+                Navigate(nextPage);
 
                 // Image may be needed at any time, and loading it every time would be dumb
                 Image arrowBlack = new Image() { Source = new BitmapImage(new Uri("/Resources/ArrowBlack.png", UriKind.Relative)) };
@@ -236,7 +233,7 @@ namespace HACGUI
 
         public Task<T> Submit<T>(Task<T> task)
         {
-            if (!System.Diagnostics.Debugger.IsAttached)
+            if (!Debugger.IsAttached)
             {
                 task.ContinueWith((t) => 
                 {
@@ -251,7 +248,7 @@ namespace HACGUI
 
         public Task Submit(Task task)
         {
-            if (!System.Diagnostics.Debugger.IsAttached)
+            if (!Debugger.IsAttached)
             {
                 task.ContinueWith((t) =>
                 {

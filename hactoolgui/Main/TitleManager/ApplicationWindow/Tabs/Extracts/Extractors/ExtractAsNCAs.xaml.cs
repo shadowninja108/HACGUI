@@ -67,7 +67,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                             FileStream destination = info.GetFile(ticketFile.Name).Create();
                             Stream source = ticketFile.OpenRead();
                             destination.SetLength(source.Length);
-                            tasks.Add(new CopyTask(source, destination, $"Copying {ticketFile.Name}..."));
+                            tasks.Add(new CopyTask(source.AsStorage(), destination.AsStorage(), $"Copying {ticketFile.Name}..."));
                         }
                     }
                 }
@@ -78,7 +78,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                 FileStream destination = info.GetFile(nca.Filename).Create();
                 IStorage source = nca.GetStorage();
                 destination.SetLength(source.Length);
-                tasks.Add(new CopyTask(source.AsStream(), destination, $"Copying {nca.Filename}..."));
+                tasks.Add(new CopyTask(source, destination.AsStorage(), $"Copying {nca.Filename}..."));
             }
             ProgressView view = new ProgressView(tasks);
             NavigationWindow window = new NavigationWindow
