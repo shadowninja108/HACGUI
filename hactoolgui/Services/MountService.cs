@@ -285,7 +285,7 @@ namespace HACGUI.Services
                 return new FileInformation();
         }
 
-        private static FileInformation CreateInfo(IFileSytemEntry entry)
+        private static FileInformation CreateInfo(I entry)
         {
             if ((entry as IFile) != null)
                 return CreateInfo((IFile)entry);

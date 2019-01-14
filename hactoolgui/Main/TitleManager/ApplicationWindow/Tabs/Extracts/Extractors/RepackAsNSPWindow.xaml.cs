@@ -49,21 +49,21 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                         if (ticketFile.Exists && !foundTickets.Contains(rightsId))
                         {
                             foundTickets.Add(rightsId);
-                            builder.AddFile(ticketFile.Name, ticketFile.OpenRead().AsStorage());
+                            builder.AddFile(ticketFile.Name, ticketFile.OpenRead());
                         }
                     }
                 }
             }
 
             foreach (Nca nca in SelectedNcas)
-                builder.AddFile(nca.Filename, nca.GetStorage());
+                builder.AddFile(nca.Filename);
 
             NavigationWindow window = new NavigationWindow
             {
                 ShowsNavigationUI = false // get rid of the t r a s h
             };
             window.Navigate(view);
-            RootWindow.Current.Submit(new Task(() => builder.Build(info.Create(), logger, false)));
+            RootWindow.Current.Submit(new Task(() => builder.Build(info.Create(), logger)));
             window.ShowDialog();
         }
     }

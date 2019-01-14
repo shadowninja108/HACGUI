@@ -1,6 +1,7 @@
 ﻿using HACGUI.Extensions;
 using HACGUI.Services;
 using LibHac;
+using LibHac.IO;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
