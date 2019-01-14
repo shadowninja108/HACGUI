@@ -1,3 +1,4 @@
-[submodule "libhac"]
-	path = libhac
-	url = https://github.com/shadowninja108/LibHac
+[submodule "LibHac"]
+	path = LibHac
+	url = https://github.com/Thealexbarney/LibHac
+	branch = ifilesystem
