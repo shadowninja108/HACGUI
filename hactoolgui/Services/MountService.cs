@@ -221,9 +221,9 @@ namespace HACGUI.Services
                 FileStorage storage = OpenFile(file);
                 if (storage != null)
                 {
-                    long distanceToEof = storage.Length - buffer.Length;
+                    long distanceToEof = storage.Length - (buffer.Length + offset);
 
-                    storage.Read(buffer, Math.Min(offset, distanceToEof), (int)Math.Min(buffer.Length, storage.Length), 0);
+                    storage.Read(buffer, offset, (int) Math.Min(buffer.Length, distanceToEof), 0);
                     bytesRead = buffer.Length; // TODO accuracy
                     return NtStatus.Success;
                 } else
