@@ -16,6 +16,8 @@ namespace HACGUI.Services
     {
         private static char[] DriveLetters = "CDEFGHIJKLMNOPQRSTUVWXYZ".ToArray();
 
+        public static readonly string PathSeperator = "/";
+        
         private static Dictionary<MountableFileSystem, Tuple<Thread, char>> Mounted = new Dictionary<MountableFileSystem, Tuple<Thread, char>>();
 
         static MountService()
@@ -85,7 +87,7 @@ namespace HACGUI.Services
         private readonly IFileSystem Fs;
         private readonly Dictionary<IFile, IStorage> OpenedFiles;
 
-        public MountableFileSystem(IFileSystem fs, string name)
+        public MountableFileSystem(IAttributeFileSystem fs, string name)
         {
             Fs = fs;
             Name = name;
@@ -272,6 +274,16 @@ namespace HACGUI.Services
             return NtStatus.NotImplemented;
         }
 
+        private static FileInformation CreateInfo(IFileSytemEntry entry)
+        {
+            if (entry as IFile != null)
+                return CreateInfo(entry as IFile);
+            if (entry as IDirectory != null)
+                return CreateInfo(entry as IDirectory);
+
+            return new FileInformation();
+        }
+
         private static FileInformation CreateInfo(IFile file)
         {
             if (file.Exists)
@@ -285,33 +297,32 @@ namespace HACGUI.Services
                 return new FileInformation();
         }
 
-        private static FileInformation CreateInfo(I entry)
+        private static FileInformation CreateInfo(IDirectory directory)
         {
-            if ((entry as IFile) != null)
-                return CreateInfo((IFile)entry);
-
-            FileInformation info = new FileInformation
-            {
-                FileName = entry.Name,
-                Attributes = (entry as IDirectory) == null ? FileAttributes.Normal : FileAttributes.Directory,
-            };
-            return info;
+            if (directory.ParentFileSystem)
+                return new FileInformation
+                {
+                    FileName = directory.Name,
+                    Attributes = FileAttributes.Directory
+                };
+            else
+                return new FileInformation();
         }
 
-        public IFile GetFile(string name)
+        public IFile GetFile(string name, OpenMode mode)
         {
-            name = name.Replace($"{Path.DirectorySeparatorChar}", Fs.PathSeperator);
-            if (name.StartsWith(Fs.PathSeperator))
-                name = name.Substring(Fs.PathSeperator.Length);
-            return Fs.GetFile(name);
+            name = name.Replace($"{Path.DirectorySeparatorChar}", MountService.PathSeperator);
+            if (name.StartsWith(MountService.PathSeperator))
+                name = name.Substring(MountService.PathSeperator.Length);
+            return Fs.OpenFile(name, mode);
         }
 
-        public IDirectory GetDirectory(string name)
+        public IDirectory GetDirectory(string name, OpenDirectoryMode mode)
         {
-            name = name.Replace($"{Path.DirectorySeparatorChar}", Fs.PathSeperator);
-            if (name.StartsWith(Fs.PathSeperator))
-                name = name.Substring(Fs.PathSeperator.Length);
-            return Fs.GetDirectory(name);
+            name = name.Replace($"{Path.DirectorySeparatorChar}", MountService.PathSeperator);
+            if (name.StartsWith(MountService.PathSeperator))
+                name = name.Substring(MountService.PathSeperator.Length);
+            return Fs.OpenDirectory(name, mode);
         }
 
         public static string GetPath(IFileSytemEntry file)
@@ -331,7 +342,7 @@ namespace HACGUI.Services
 
             try
             {
-                IStorage storage = file.Open(FileMode.Open);
+                IStorage storage = new FileStorage(file);
                 OpenedFiles[file] = storage;
                 return storage;
             }
