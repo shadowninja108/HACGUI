@@ -52,7 +52,7 @@ namespace HACGUI.Main.TitleManager
                         RefreshListView();
                     }));
                 };
-                RootWindow.Current.Submit(new Task(() => SDTitleView.LoadFileSystem(() => new SwitchFs(HACGUIKeyset.Keyset, new LocalFileSystem(drive.RootDirectory.FullName)))));
+                RootWindow.Current.Submit(new Task(() => SDTitleView.LoadFileSystem(() => SwitchFs.OpenSdCard(HACGUIKeyset.Keyset, new LocalFileSystem(drive.RootDirectory.FullName)))));
 
 
                 Dispatcher.BeginInvoke(new Action(() =>
@@ -101,8 +101,8 @@ namespace HACGUI.Main.TitleManager
 
                 RootWindow.Current.Submit(new Task(() => 
                 {
-                    NANDSystemTitleView.LoadFileSystem(() => new SwitchFs(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()));
-                    NANDUserTitleView.LoadFileSystem(() => new SwitchFs(HACGUIKeyset.Keyset, NANDService.NAND.OpenUserPartition()));
+                    NANDSystemTitleView.LoadFileSystem(() => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()));
+                    NANDUserTitleView.LoadFileSystem(() => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenUserPartition()));
                 }));
 
                 //Task.Run(() => NANDSystemTitleView.LoadFileSystem(() => new SwitchFs(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition())));

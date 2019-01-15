@@ -212,7 +212,7 @@ namespace HACGUI.FirstStart
 
             HACGUIKeyset.Keyset.DeriveKeys();
 
-            SwitchFs fs = new SwitchFs(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition());
+            SwitchFs fs = SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition());
 
             foreach (KeyValuePair<string, Nca> kv in fs.Ncas)
             {
@@ -227,8 +227,8 @@ namespace HACGUI.FirstStart
                                 case ContentType.Program:
                                     NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
                                     IStorage pfsStorage = nca.OpenSection(exefsSection.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, false);
-                                    Pfs pfs = new Pfs(pfsStorage);
-                                    Nso nso = new Nso(pfs.OpenFile("main"));
+                                    PartitionFileSystem pfs = new PartitionFileSystem(pfsStorage);
+                                    Nso nso = new Nso(new FileStorage(pfs.OpenFile("main", OpenMode.Read)));
                                     NsoSection section = nso.Sections[1];
                                     Stream data = new MemoryStream(section.DecompressSection());
                                     hashes.Clear();
@@ -258,8 +258,8 @@ namespace HACGUI.FirstStart
                                 case ContentType.Program:
                                     NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
                                     IStorage pfsStorage = nca.OpenSection(exefsSection.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, false);
-                                    Pfs pfs = new Pfs(pfsStorage);
-                                    Nso nso = new Nso(pfs.OpenFile("main"));
+                                    PartitionFileSystem pfs = new PartitionFileSystem(pfsStorage);
+                                    Nso nso = new Nso(new FileStorage(pfs.OpenFile("main", OpenMode.Read)));
                                     NsoSection section = nso.Sections[1];
                                     Stream data = new MemoryStream(section.DecompressSection());
                                     hashes.Clear();
@@ -279,7 +279,6 @@ namespace HACGUI.FirstStart
                                     Crypto.DecryptEcb(HACGUIKeyset.Keyset.MasterKeys[0], RsaPrivateKekGenerationSource, key1, 0x10);
                                     byte[] key2 = new byte[0x10];
                                     Crypto.DecryptEcb(key1, SslAesKeyX, key2, 0x10);
-                                    byte[] key3 = new byte[0x10];
                                     Crypto.DecryptEcb(key2, SslRsaKeyY, HACGUIKeyset.Keyset.SslRsaKek, 0x10);
                                     break;
                             }
@@ -323,24 +322,27 @@ namespace HACGUI.FirstStart
 
             // get tickets
             List<Ticket> tickets = new List<Ticket>();
-            NandPartition system = nand.OpenSystemPartition();
+            FatFileSystemProvider system = nand.OpenSystemPartition();
+            const string e1FileName = "save\\80000000000000E1";
+            const string e2FileName = "save\\80000000000000E2";
 
-            IFile e1File = system.GetFile("save\\80000000000000E1");
-            if (e1File.Exists)
+            if (system.FileExists(e1FileName))
             {
-                IStorage e1Storage = e1File.Open(FileMode.Open, FileAccess.Read);
+                IFile e1File = system.OpenFile(e1FileName, OpenMode.Read);
+                IStorage e1Storage = new FileStorage(e1File);
                 tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e1Storage));
             }
 
-            IFile e2File = system.GetFile("save\\80000000000000E2");
-            if (e2File.Exists) {
-                IStorage e2Storage = e2File.Open(FileMode.Open, FileAccess.Read);
+            if (system.FileExists(e2FileName))
+            {
+                IFile e2File = system.OpenFile(e2FileName, OpenMode.Read);
+                IStorage e2Storage = new FileStorage(e2File);
                 tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e2Storage));
             }
 
-            IStorage nsAppmanStorage = system.GetFile("save\\8000000000000043").Open(FileMode.Open, FileAccess.Read);
-            Savefile save = new Savefile(HACGUIKeyset.Keyset, nsAppmanStorage, IntegrityCheckLevel.ErrorOnInvalid, false);
-            IStorage privateStorage = save.OpenFile("/private");
+            IStorage nsAppmanStorage = new FileStorage(system.OpenFile("save\\8000000000000043", OpenMode.Read));
+            SaveDataFileSystem save = new SaveDataFileSystem(HACGUIKeyset.Keyset, nsAppmanStorage, IntegrityCheckLevel.ErrorOnInvalid, false);
+            IStorage privateStorage = new FileStorage(save.OpenFile("/private", OpenMode.Read));
             byte[] sdSeed = new byte[0x10];
             privateStorage.Read(sdSeed, 0x10);
             HACGUIKeyset.Keyset.SetSdSeed(sdSeed);
@@ -388,9 +390,9 @@ namespace HACGUI.FirstStart
         private static List<Ticket> DumpTickets(Keyset keyset, IStorage savefile)
         {
             var tickets = new List<Ticket>();
-            var save = new Savefile(keyset, savefile, IntegrityCheckLevel.ErrorOnInvalid, false);
-            var ticketList = new BinaryReader(save.OpenFile("/ticket_list.bin").AsStream());
-            var ticketFile = new BinaryReader(save.OpenFile("/ticket.bin").AsStream());
+            var save = new SaveDataFileSystem(keyset, savefile, IntegrityCheckLevel.ErrorOnInvalid, false);
+            var ticketList = new BinaryReader(save.OpenFile("/ticket_list.bin", OpenMode.Read).AsStream());
+            var ticketFile = new BinaryReader(save.OpenFile("/ticket.bin", OpenMode.Read).AsStream());
             DirectoryInfo ticketFolder = HACGUIKeyset.GetTicketsDirectory(PickConsolePage.ConsoleName);
             ticketFolder.Create();
 

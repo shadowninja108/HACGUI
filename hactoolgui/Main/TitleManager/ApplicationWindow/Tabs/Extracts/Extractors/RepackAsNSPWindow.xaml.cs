@@ -56,7 +56,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             }
 
             foreach (Nca nca in SelectedNcas)
-                builder.AddFile(nca.Filename);
+                builder.AddFile(nca.Filename, nca.OpenDecryptedNca().AsStream());
 
             NavigationWindow window = new NavigationWindow
             {

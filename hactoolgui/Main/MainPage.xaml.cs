@@ -111,7 +111,7 @@ namespace HACGUI.Main
             if (MountService.CanMount()) { 
                 MenuItem button = sender as MenuItem;
                 int partitionIndex = int.Parse((string)button.Tag);
-                NandPartition partition = null;
+                FatFileSystemProvider partition = null;
                 string partitionName = "";
                 switch (partitionIndex)
                 {

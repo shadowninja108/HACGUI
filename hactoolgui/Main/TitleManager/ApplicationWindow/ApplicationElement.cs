@@ -172,7 +172,7 @@ namespace HACGUI.Main.TitleManager
             if (title.ControlNca != null)
             {
                 NcaSection meta = title.ControlNca.Sections.FirstOrDefault(x => x?.Type == SectionType.Romfs);
-                Romfs controlFS = new Romfs(title.ControlNca.OpenSection(meta.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, false));
+                RomFsFileSystem controlFS = new RomFsFileSystem(title.ControlNca.OpenSection(meta.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, false));
                 string iconFile = null;
                 foreach (KeyValuePair<string, RomfsFile> filekv in controlFS.FileDict)
                 {
@@ -189,7 +189,7 @@ namespace HACGUI.Main.TitleManager
                     {
                         try
                         {
-                            JpegBitmapDecoder decoder = new JpegBitmapDecoder(controlFS.OpenFile(iconFile).AsStream(), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+                            JpegBitmapDecoder decoder = new JpegBitmapDecoder(controlFS.OpenFile(iconFile, OpenMode.Read).AsStream(), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
                             decoder.Frames[0].Freeze();
                             return decoder.Frames[0];
                         } catch(Exception)

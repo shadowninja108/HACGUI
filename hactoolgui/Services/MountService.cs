@@ -85,22 +85,28 @@ namespace HACGUI.Services
     {
         public readonly string Name;
         private readonly IFileSystem Fs;
-        private readonly Dictionary<IFile, IStorage> OpenedFiles;
+        private readonly Dictionary<IFile, FileStorage> OpenedFiles;
 
         public MountableFileSystem(IAttributeFileSystem fs, string name)
         {
             Fs = fs;
             Name = name;
-            OpenedFiles = new Dictionary<IFile, IStorage>();
+            OpenedFiles = new Dictionary<IFile, FileStorage>();
         }
 
         public void Cleanup(string fileName, DokanFileInfo info)
         {
+            foreach (IFile file in OpenedFiles.Keys)
+                CloseFile(file);
         }
 
         public void CloseFile(string fileName, DokanFileInfo info)
         {
-            IFile file = GetFile(fileName);
+            CloseFile(Fs.OpenFile(fileName, OpenMode.Read));
+        }
+
+        public void CloseFile(IFile file)
+        {
             if (OpenedFiles.ContainsKey(file))
             {
                 OpenedFiles[file].Dispose();
@@ -130,14 +136,14 @@ namespace HACGUI.Services
 
         public NtStatus FindFilesWithPattern(string fileName, string searchPattern, out IList<FileInformation> files, DokanFileInfo info)
         {
-            IDirectory directory = GetDirectory(fileName);
+            IDirectory directory = GetDirectory(fileName, OpenDirectoryMode.All);
             files = null;
-            if (directory.Exists)
+            if (directory != null)
             {
                 files = new List<FileInformation>();
                 if (searchPattern.EndsWith("\"*")) // thanks windows
                     searchPattern = searchPattern.Replace("\"*", "*");
-                foreach (IFileSytemEntry entry in directory.GetFileSystemEntries(searchPattern))
+                foreach (DirectoryEntry entry in directory.EnumerateEntries(searchPattern, SearchOptions.Default))
                     files.Add(CreateInfo(entry));
                 return NtStatus.Success;
             }
@@ -165,10 +171,10 @@ namespace HACGUI.Services
 
         public NtStatus GetFileInformation(string fileName, out FileInformation fileInfo, DokanFileInfo info)
         {
-            if (GetDirectory(fileName).Exists)
-                fileInfo = CreateInfo(GetDirectory(fileName));
-            else if (GetFile(fileName).Exists)
-                fileInfo = CreateInfo(GetFile(fileName));
+            if (GetDirectory(fileName, OpenDirectoryMode.All) != null)
+                fileInfo = CreateInfo(GetDirectory(fileName, OpenDirectoryMode.All));
+            else if (GetFile(fileName, OpenMode.Read) != null)
+                fileInfo = CreateInfo(GetFile(fileName, OpenMode.Read), fileName);
             else
             {
                 fileInfo = new FileInformation();
@@ -209,15 +215,15 @@ namespace HACGUI.Services
 
         public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, DokanFileInfo info)
         {
-            IFile file = GetFile(fileName);
-            if (file.Exists)
+            IFile file = GetFile(fileName, OpenMode.Read);
+            if (file != null)
             {
-                IStorage storage = OpenFile(file);
+                FileStorage storage = OpenFile(file);
                 if (storage != null)
                 {
                     long distanceToEof = storage.Length - buffer.Length;
 
-                    storage.Read(buffer, Math.Min(offset, distanceToEof), (int)Math.Min(buffer.Length, file.Length), 0);
+                    storage.Read(buffer, Math.Min(offset, distanceToEof), (int)Math.Min(buffer.Length, storage.Length), 0);
                     bytesRead = buffer.Length; // TODO accuracy
                     return NtStatus.Success;
                 } else
@@ -274,35 +280,39 @@ namespace HACGUI.Services
             return NtStatus.NotImplemented;
         }
 
-        private static FileInformation CreateInfo(IFileSytemEntry entry)
+        private FileInformation CreateInfo(DirectoryEntry entry)
         {
-            if (entry as IFile != null)
-                return CreateInfo(entry as IFile);
-            if (entry as IDirectory != null)
-                return CreateInfo(entry as IDirectory);
-
+            switch (entry.Type)
+            {
+                case DirectoryEntryType.File:
+                    return CreateInfo(Fs.OpenFile(entry.FullPath, OpenMode.Read), entry.FullPath);
+                case DirectoryEntryType.Directory:
+                    return CreateInfo(Fs.OpenDirectory(entry.FullPath, OpenDirectoryMode.All));
+            }
             return new FileInformation();
         }
 
-        private static FileInformation CreateInfo(IFile file)
+        private FileInformation CreateInfo(IFile file, string path)
         {
-            if (file.Exists)
+            if (file != null) {
+                FileStorage storage = OpenFile(file);
                 return new FileInformation
                 {
-                    FileName = file.FileName,
-                    Length = file.Length,
+                    FileName = path,
+                    Length = storage.Length,
                     Attributes = FileAttributes.ReadOnly
                 };
+            }
             else
                 return new FileInformation();
         }
 
         private static FileInformation CreateInfo(IDirectory directory)
         {
-            if (directory.ParentFileSystem)
+            if (directory != null)
                 return new FileInformation
                 {
-                    FileName = directory.Name,
+                    FileName = directory.FullPath,
                     Attributes = FileAttributes.Directory
                 };
             else
@@ -314,7 +324,9 @@ namespace HACGUI.Services
             name = name.Replace($"{Path.DirectorySeparatorChar}", MountService.PathSeperator);
             if (name.StartsWith(MountService.PathSeperator))
                 name = name.Substring(MountService.PathSeperator.Length);
-            return Fs.OpenFile(name, mode);
+            if(Fs.FileExists(name))
+                return Fs.OpenFile(name, mode);
+            return null;
         }
 
         public IDirectory GetDirectory(string name, OpenDirectoryMode mode)
@@ -322,19 +334,12 @@ namespace HACGUI.Services
             name = name.Replace($"{Path.DirectorySeparatorChar}", MountService.PathSeperator);
             if (name.StartsWith(MountService.PathSeperator))
                 name = name.Substring(MountService.PathSeperator.Length);
-            return Fs.OpenDirectory(name, mode);
+            if(Fs.DirectoryExists(name))
+                return Fs.OpenDirectory(name, mode);
+            return null;
         }
 
-        public static string GetPath(IFileSytemEntry file)
-        {
-            string str = file.Path;
-            if(str.Length > 0)
-                if (str[0] == Path.DirectorySeparatorChar)
-                    str = str.Substring(1);
-            return str;
-        }
-
-        public IStorage OpenFile(IFile file)
+        public FileStorage OpenFile(IFile file)
         {
             IFile key = OpenedFiles.Keys.FirstOrDefault(f => f.Equals(file));
             if (key != null)
@@ -342,7 +347,7 @@ namespace HACGUI.Services
 
             try
             {
-                IStorage storage = new FileStorage(file);
+                FileStorage storage = new FileStorage(file);
                 OpenedFiles[file] = storage;
                 return storage;
             }
