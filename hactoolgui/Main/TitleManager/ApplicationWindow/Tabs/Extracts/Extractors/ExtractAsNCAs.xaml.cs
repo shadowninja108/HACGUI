@@ -48,8 +48,8 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 
         private void ExtractClicked(object sender, RoutedEventArgs e)
         {
-            DirectoryInfo info = new DirectoryInfo(Path.Text);
-            info.Create(); // ensure that the folder exists
+            DirectoryInfo root = new DirectoryInfo(Path.Text);
+            root.Create(); // ensure that the folder exists
             List<ProgressTask> tasks = new List<ProgressTask>();
             if (TicketCheckbox.IsChecked == true)
             {
@@ -60,14 +60,18 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                     if (nca.HasRightsId)
                     {
                         string rightsId = BitConverter.ToString(nca.Header.RightsId).Replace("-", "").ToLower();
-                        FileInfo ticketFile = ticketDir.GetFile(rightsId + ".tik");
-                        if (ticketFile.Exists && !foundTickets.Contains(rightsId))
+                        string ticketFileName = rightsId + ".tik";
+                        if (File.Exists(ticketFileName))
                         {
-                            foundTickets.Add(rightsId);
-                            FileStream destination = info.GetFile(ticketFile.Name).Create();
-                            Stream source = ticketFile.OpenRead();
-                            destination.SetLength(source.Length);
-                            tasks.Add(new CopyTask(source.AsStorage(), destination.AsStorage(), $"Copying {ticketFile.Name}..."));
+                            LocalFile sourceTikFile = new LocalFile(root.GetFile(ticketFileName).FullName, OpenMode.Read);
+                            if (!foundTickets.Contains(rightsId))
+                            {
+                                FileInfo destinationFileInfo = root.GetFile(ticketFileName);
+                                foundTickets.Add(rightsId);
+                                destinationFileInfo.Create().Close();
+                                LocalFile destinationTikFile = new LocalFile(destinationFileInfo.FullName, OpenMode.Append & OpenMode.Write);
+                                tasks.Add(new CopyTask(new FileStorage(sourceTikFile), new FileStorage(destinationTikFile), $"Copying {ticketFileName}..."));
+                            }
                         }
                     }
                 }
@@ -75,10 +79,11 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 
             foreach (Nca nca in SelectedNcas)
             {
-                FileStream destination = info.GetFile(nca.Filename).Create();
+                FileInfo destinationNcaFileInfo = root.GetFile(nca.Filename);
+                destinationNcaFileInfo.Create().Close();
+                LocalFile destinationNcaFile = new LocalFile(destinationNcaFileInfo.FullName, OpenMode.Append & OpenMode.Write);
                 IStorage source = nca.GetStorage();
-                destination.SetLength(source.Length);
-                tasks.Add(new CopyTask(source, destination.AsStorage(), $"Copying {nca.Filename}..."));
+                tasks.Add(new CopyTask(source, new FileStorage(destinationNcaFile), $"Copying {nca.Filename}..."));
             }
             ProgressView view = new ProgressView(tasks);
             NavigationWindow window = new NavigationWindow

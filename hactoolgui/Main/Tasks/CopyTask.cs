@@ -25,7 +25,7 @@ namespace HACGUI.Main.Tasks
             return new Task(() => 
             {
                 LogMessage(Message);
-                Source.CopyToStream(Destination.AsStream(), Source.Length, this);
+                Source.CopyTo(Destination, this);
                 Source.Dispose();
                 Destination.Dispose();
             });
