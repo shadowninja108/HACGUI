@@ -236,5 +236,11 @@ namespace HACGUI.Extensions
                 return new FileInfo(dlg.FileName);
             return null;
         }
+
+        public static void CreateAndClose(this FileInfo info)
+        {
+            File.WriteAllBytes(info.FullName, new byte[] { });
+        }
+
     }
 }

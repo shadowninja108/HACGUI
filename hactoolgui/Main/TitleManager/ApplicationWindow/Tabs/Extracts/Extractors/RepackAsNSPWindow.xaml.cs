@@ -45,18 +45,21 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                     if (nca.HasRightsId)
                     {
                         string rightsId = BitConverter.ToString(nca.Header.RightsId).Replace("-", "").ToLower();
-                        FileInfo ticketFile = ticketDir.GetFile(rightsId + ".tik");
-                        if (ticketFile.Exists && !foundTickets.Contains(rightsId))
+                        string ticketFileName = rightsId + ".tik";
+                        FileInfo sourceTikFileInfo = ticketDir.GetFile(ticketFileName);
+                        if (sourceTikFileInfo.Exists && !foundTickets.Contains(rightsId))
                         {
                             foundTickets.Add(rightsId);
-                            builder.AddFile(ticketFile.Name, ticketFile.OpenRead());
+                            LocalFile tikFile = new LocalFile(sourceTikFileInfo.FullName, OpenMode.Read);
+                            builder.AddFile(ticketFileName, new FileStorage(tikFile).AsStream());
                         }
                     }
                 }
             }
 
             foreach (Nca nca in SelectedNcas)
-                builder.AddFile(nca.Filename, nca.OpenDecryptedNca().AsStream());
+                builder.AddFile(nca.Filename, nca.GetStorage().AsStream());
+            
 
             NavigationWindow window = new NavigationWindow
             {

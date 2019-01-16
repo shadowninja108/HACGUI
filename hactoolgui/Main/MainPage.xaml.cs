@@ -1,4 +1,5 @@
 ﻿using HACGUI.Extensions;
+using HACGUI.Main.SaveManager;
 using HACGUI.Main.TitleManager;
 using HACGUI.Services;
 using LibHac;
@@ -20,6 +21,7 @@ namespace HACGUI.Main
     public partial class MainPage : PageExtension
     {
         private static MainTitleManagerPage TitleManagerView;
+        private static SaveManagerPage SaveManagerView;
 
         public MainPage()
         {
@@ -48,7 +50,10 @@ namespace HACGUI.Main
 
                 TitleManagerView = new MainTitleManagerPage();
                 TitleManagerFrame.Content = TitleManagerView;
+                SaveManagerView = new SaveManagerPage();
+                SaveManagerFrame.Content = SaveManagerView;
                 StatusService.Bar = StatusBar;
+                DeviceService.Start();
                 StatusService.Start();
 
                 if (IsAdministrator)

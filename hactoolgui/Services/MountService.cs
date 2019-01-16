@@ -16,7 +16,7 @@ namespace HACGUI.Services
     {
         private static char[] DriveLetters = "CDEFGHIJKLMNOPQRSTUVWXYZ".ToArray();
 
-        public static readonly string PathSeperator = "/";
+        public static readonly string PathSeperator = "\\";
         
         private static Dictionary<MountableFileSystem, Tuple<Thread, char>> Mounted = new Dictionary<MountableFileSystem, Tuple<Thread, char>>();
 
@@ -86,8 +86,9 @@ namespace HACGUI.Services
         public readonly string Name;
         private readonly IFileSystem Fs;
         private readonly Dictionary<IFile, FileStorage> OpenedFiles;
+        private readonly object OpenedFileLock = new object();
 
-        public MountableFileSystem(IAttributeFileSystem fs, string name)
+        public MountableFileSystem(IFileSystem fs, string name)
         {
             Fs = fs;
             Name = name;
@@ -96,21 +97,29 @@ namespace HACGUI.Services
 
         public void Cleanup(string fileName, DokanFileInfo info)
         {
-            foreach (IFile file in OpenedFiles.Keys)
-                CloseFile(file);
+            lock (OpenedFileLock)
+            {
+                foreach (IFile file in new List<IFile>(OpenedFiles.Keys))
+                    CloseFile(file);
+            }
         }
 
         public void CloseFile(string fileName, DokanFileInfo info)
         {
-            CloseFile(Fs.OpenFile(fileName, OpenMode.Read));
+            IFile file = GetFile(fileName, OpenMode.Read);
+            if (file != null)
+                CloseFile(file);
         }
 
         public void CloseFile(IFile file)
         {
-            if (OpenedFiles.ContainsKey(file))
+            lock (OpenedFileLock)
             {
-                OpenedFiles[file].Dispose();
-                OpenedFiles.Remove(file);
+                if (OpenedFiles.ContainsKey(file))
+                {
+                    OpenedFiles[file].Dispose();
+                    OpenedFiles.Remove(file);
+                }
             }
         }
 
@@ -143,9 +152,15 @@ namespace HACGUI.Services
                 files = new List<FileInformation>();
                 if (searchPattern.EndsWith("\"*")) // thanks windows
                     searchPattern = searchPattern.Replace("\"*", "*");
-                foreach (DirectoryEntry entry in directory.EnumerateEntries(searchPattern, SearchOptions.Default))
-                    files.Add(CreateInfo(entry));
-                return NtStatus.Success;
+                try
+                {
+                    foreach (DirectoryEntry entry in directory.EnumerateEntries(searchPattern, SearchOptions.Default))
+                        files.Add(CreateInfo(entry));
+                } catch(Exception e)
+                {
+                    Console.WriteLine("Exception raised when iterating through directory:\n" + e.Message + "\n" + e.StackTrace);
+                }
+                    return NtStatus.Success;
             }
             return NtStatus.NotADirectory;
         }
@@ -221,9 +236,15 @@ namespace HACGUI.Services
                 FileStorage storage = OpenFile(file);
                 if (storage != null)
                 {
-                    long distanceToEof = storage.Length - (buffer.Length + offset);
+                    long size = storage.Length - offset;
+                    if (size < 0)
+                    {
+                        bytesRead = 0;
+                        return NtStatus.Unsuccessful;
+                    }
+                    size = Math.Min(size, buffer.Length);
 
-                    storage.Read(buffer, offset, (int) Math.Min(buffer.Length, distanceToEof), 0);
+                    storage.Read(buffer, Math.Min(offset, storage.Length - size), (int) size, 0);
                     bytesRead = buffer.Length; // TODO accuracy
                     return NtStatus.Success;
                 } else
@@ -268,8 +289,11 @@ namespace HACGUI.Services
 
         public NtStatus Unmounted(DokanFileInfo info)
         {
-            foreach (IStorage storage in OpenedFiles.Values)
-                storage.Dispose();
+            lock (OpenedFileLock)
+            {
+                foreach (IStorage storage in OpenedFiles.Values)
+                    storage.Dispose();
+            }
             OpenedFiles.Clear();
             return NtStatus.Success;
         }
@@ -292,13 +316,26 @@ namespace HACGUI.Services
             return new FileInformation();
         }
 
+        private static string FilterPath(string path)
+        {
+            if (path.StartsWith(MountService.PathSeperator))
+                path = path.Substring(MountService.PathSeperator.Length);
+            return path;
+        }
+
+        private static string GetFileName(string path)
+        {
+            path = path.Replace("/", "\\");
+            return Path.GetFileName(FilterPath(path));
+        }
+
         private FileInformation CreateInfo(IFile file, string path)
         {
             if (file != null) {
                 FileStorage storage = OpenFile(file);
                 return new FileInformation
                 {
-                    FileName = path,
+                    FileName = GetFileName(path),
                     Length = storage.Length,
                     Attributes = FileAttributes.ReadOnly
                 };
@@ -312,7 +349,7 @@ namespace HACGUI.Services
             if (directory != null)
                 return new FileInformation
                 {
-                    FileName = directory.FullPath,
+                    FileName = GetFileName(directory.FullPath),
                     Attributes = FileAttributes.Directory
                 };
             else
@@ -321,9 +358,7 @@ namespace HACGUI.Services
 
         public IFile GetFile(string name, OpenMode mode)
         {
-            name = name.Replace($"{Path.DirectorySeparatorChar}", MountService.PathSeperator);
-            if (name.StartsWith(MountService.PathSeperator))
-                name = name.Substring(MountService.PathSeperator.Length);
+            name = FilterPath(name);
             if(Fs.FileExists(name))
                 return Fs.OpenFile(name, mode);
             return null;
@@ -331,17 +366,19 @@ namespace HACGUI.Services
 
         public IDirectory GetDirectory(string name, OpenDirectoryMode mode)
         {
-            name = name.Replace($"{Path.DirectorySeparatorChar}", MountService.PathSeperator);
-            if (name.StartsWith(MountService.PathSeperator))
-                name = name.Substring(MountService.PathSeperator.Length);
-            if(Fs.DirectoryExists(name))
+            name = FilterPath(name);
+            if (Fs.DirectoryExists(name))
                 return Fs.OpenDirectory(name, mode);
             return null;
         }
 
         public FileStorage OpenFile(IFile file)
         {
-            IFile key = OpenedFiles.Keys.FirstOrDefault(f => f.Equals(file));
+            IFile key;
+            lock (OpenedFileLock)
+            {
+                key = OpenedFiles.Keys.FirstOrDefault(f => f.Equals(file));
+            }
             if (key != null)
                 return OpenedFiles[key];
 

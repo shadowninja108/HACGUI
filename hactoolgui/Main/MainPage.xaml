@@ -47,6 +47,9 @@
                 <TabItem Header="Title Manager">
                     <Frame Name="TitleManagerFrame"/>
                 </TabItem>
+                <TabItem Header="Saves">
+                    <Frame Name="SaveManagerFrame"/>
+                </TabItem>
                 <TabItem Header="Utilities">
                     <Frame Name="UtilitiesFrame"/>
                 </TabItem>

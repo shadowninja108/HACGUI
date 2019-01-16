@@ -61,15 +61,17 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                     {
                         string rightsId = BitConverter.ToString(nca.Header.RightsId).Replace("-", "").ToLower();
                         string ticketFileName = rightsId + ".tik";
-                        if (File.Exists(ticketFileName))
+                        FileInfo sourceTikFileInfo = ticketDir.GetFile(ticketFileName);
+                        if (sourceTikFileInfo.Exists)
                         {
-                            LocalFile sourceTikFile = new LocalFile(root.GetFile(ticketFileName).FullName, OpenMode.Read);
+                            FileInfo destinationTikFileInfo = root.GetFile(ticketFileName);
                             if (!foundTickets.Contains(rightsId))
                             {
-                                FileInfo destinationFileInfo = root.GetFile(ticketFileName);
                                 foundTickets.Add(rightsId);
-                                destinationFileInfo.Create().Close();
-                                LocalFile destinationTikFile = new LocalFile(destinationFileInfo.FullName, OpenMode.Append & OpenMode.Write);
+                                destinationTikFileInfo.CreateAndClose();
+                                LocalFile sourceTikFile = new LocalFile(sourceTikFileInfo.FullName, OpenMode.Read);
+                                LocalFile destinationTikFile = new LocalFile(destinationTikFileInfo.FullName, OpenMode.Write);
+                                destinationTikFile.SetSize(sourceTikFile.GetSize());
                                 tasks.Add(new CopyTask(new FileStorage(sourceTikFile), new FileStorage(destinationTikFile), $"Copying {ticketFileName}..."));
                             }
                         }
@@ -80,9 +82,10 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             foreach (Nca nca in SelectedNcas)
             {
                 FileInfo destinationNcaFileInfo = root.GetFile(nca.Filename);
-                destinationNcaFileInfo.Create().Close();
-                LocalFile destinationNcaFile = new LocalFile(destinationNcaFileInfo.FullName, OpenMode.Append & OpenMode.Write);
+                destinationNcaFileInfo.CreateAndClose();
+                LocalFile destinationNcaFile = new LocalFile(destinationNcaFileInfo.FullName, OpenMode.Write);
                 IStorage source = nca.GetStorage();
+                destinationNcaFile.SetSize(source.Length);
                 tasks.Add(new CopyTask(source, new FileStorage(destinationNcaFile), $"Copying {nca.Filename}..."));
             }
             ProgressView view = new ProgressView(tasks);

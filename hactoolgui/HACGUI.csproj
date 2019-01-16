@@ -131,6 +131,9 @@
     <Compile Include="Extensions\Converters.cs" />
     <Compile Include="Extensions\DropdownButton.cs" />
     <Compile Include="Extensions\ObservableDictionary.cs" />
+    <Compile Include="Main\SaveManager\SaveManagerPage.xaml.cs">
+      <DependentUpon>SaveManagerPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Main\Tasks\ProgressTask.cs" />
     <Compile Include="Main\ProgressView.xaml.cs">
       <DependentUpon>ProgressView.xaml</DependentUpon>
@@ -146,6 +149,9 @@
     <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\ApplicationInfoTab.xaml.cs">
       <DependentUpon>ApplicationInfoTab.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\ApplicationSaveTab.xaml.cs">
+      <DependentUpon>ApplicationSaveTab.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\ApplicationTitleTab.xaml.cs">
       <DependentUpon>ApplicationTitleTab.xaml</DependentUpon>
     </Compile>
@@ -160,6 +166,7 @@
       <DependentUpon>ExtractPickerWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\NcaElement.cs" />
+    <Compile Include="Main\SaveManager\SaveElement.cs" />
     <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\TitleElement.cs" />
     <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\TitleInfoWindow.xaml.cs">
       <DependentUpon>TitleInfoWindow.xaml</DependentUpon>
@@ -170,6 +177,7 @@
     <Compile Include="Main\TitleManager\SystemTitleNames.cs" />
     <Compile Include="Main\TitleManager\ApplicationWindow\ApplicationElement.cs" />
     <Compile Include="Main\TitleManager\FSView.cs" />
+    <Compile Include="Services\DeviceService.cs" />
     <Compile Include="Services\MountService.cs" />
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Utilities\DeviceStream.cs" />
@@ -236,6 +244,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Main\SaveManager\SaveManagerPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Main\StatusEntry.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -245,6 +257,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Main\TitleManager\ApplicationWindow\Tabs\ApplicationInfoTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\TitleManager\ApplicationWindow\Tabs\ApplicationSaveTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

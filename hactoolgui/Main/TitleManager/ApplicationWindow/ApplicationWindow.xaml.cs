@@ -28,11 +28,10 @@ namespace HACGUI.Main.TitleManager.Application
         public ApplicationElement Element;
         public Dictionary<ulong, LibHac.Application> Applications;
 
-        public ApplicationWindow(ApplicationElement element, Dictionary<ulong, LibHac.Application> applications)
+        public ApplicationWindow(ApplicationElement element)
         {
             Current = this;
             Element = element;
-            Applications = applications;
 
             InitializeComponent();
         }
