@@ -97,11 +97,10 @@ namespace HACGUI.Services
 
         public void Cleanup(string fileName, DokanFileInfo info)
         {
-            lock (OpenedFileLock)
-            {
-                foreach (IFile file in new List<IFile>(OpenedFiles.Keys))
-                    CloseFile(file);
-            }
+           // lock (OpenedFileLock)
+           // {
+                CloseFile(fileName, info);
+           // }
         }
 
         public void CloseFile(string fileName, DokanFileInfo info)
@@ -189,7 +188,7 @@ namespace HACGUI.Services
             if (GetDirectory(fileName, OpenDirectoryMode.All) != null)
                 fileInfo = CreateInfo(GetDirectory(fileName, OpenDirectoryMode.All));
             else if (GetFile(fileName, OpenMode.Read) != null)
-                fileInfo = CreateInfo(GetFile(fileName, OpenMode.Read), fileName);
+                fileInfo = CreateInfo(fileName);
             else
             {
                 fileInfo = new FileInformation();
@@ -230,31 +229,26 @@ namespace HACGUI.Services
 
         public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, DokanFileInfo info)
         {
-            IFile file = GetFile(fileName, OpenMode.Read);
-            if (file != null)
+            FileStorage storage = OpenFile(fileName);
+            if (storage != null)
             {
-                FileStorage storage = OpenFile(file);
-                if (storage != null)
-                {
-                    long size = storage.Length - offset;
-                    if (size < 0)
-                    {
-                        bytesRead = 0;
-                        return NtStatus.Unsuccessful;
-                    }
-                    size = Math.Min(size, buffer.Length);
-
-                    storage.Read(buffer, Math.Min(offset, storage.Length - size), (int) size, 0);
-                    bytesRead = buffer.Length; // TODO accuracy
-                    return NtStatus.Success;
-                } else
+                long size = storage.Length - offset;
+                if (size < 0)
                 {
                     bytesRead = 0;
                     return NtStatus.Unsuccessful;
                 }
+                size = Math.Min(size, buffer.Length);
+
+                storage.Read(buffer, Math.Max(offset, storage.Length - size), (int) size, 0);
+                bytesRead = buffer.Length; // TODO accuracy
+                return NtStatus.Success;
             }
-            bytesRead = 0;
-            return NtStatus.NoSuchFile;
+            else
+            {
+                bytesRead = 0;
+                return NtStatus.NoSuchFile;
+            }
         }
 
         public NtStatus SetAllocationSize(string fileName, long length, DokanFileInfo info)
@@ -309,7 +303,7 @@ namespace HACGUI.Services
             switch (entry.Type)
             {
                 case DirectoryEntryType.File:
-                    return CreateInfo(Fs.OpenFile(entry.FullPath, OpenMode.Read), entry.FullPath);
+                    return CreateInfo(entry.FullPath);
                 case DirectoryEntryType.Directory:
                     return CreateInfo(Fs.OpenDirectory(entry.FullPath, OpenDirectoryMode.All));
             }
@@ -318,21 +312,22 @@ namespace HACGUI.Services
 
         private static string FilterPath(string path)
         {
-            if (path.StartsWith(MountService.PathSeperator))
-                path = path.Substring(MountService.PathSeperator.Length);
+            path = PathTools.Normalize(path);
+            path =  path.Replace("\\", "");
+           // if (path.StartsWith("\\"))
+             //   path = path.Substring(1);
             return path;
         }
 
         private static string GetFileName(string path)
         {
-            path = path.Replace("/", "\\");
             return Path.GetFileName(FilterPath(path));
         }
 
-        private FileInformation CreateInfo(IFile file, string path)
+        private FileInformation CreateInfo(string path)
         {
-            if (file != null) {
-                FileStorage storage = OpenFile(file);
+            FileStorage storage = OpenFile(path);
+            if (storage != null) {
                 return new FileInformation
                 {
                     FileName = GetFileName(path),
@@ -372,20 +367,20 @@ namespace HACGUI.Services
             return null;
         }
 
-        public FileStorage OpenFile(IFile file)
+        public FileStorage OpenFile(string path)
         {
-            IFile key;
-            lock (OpenedFileLock)
-            {
-                key = OpenedFiles.Keys.FirstOrDefault(f => f.Equals(file));
-            }
-            if (key != null)
+            IFile key = GetFile(path, OpenMode.Read);
+
+            if (key == null)
+                return null;
+
+            if (OpenedFiles.ContainsKey(key))
                 return OpenedFiles[key];
 
             try
             {
-                FileStorage storage = new FileStorage(file);
-                OpenedFiles[file] = storage;
+                FileStorage storage = new FileStorage(key);
+                OpenedFiles[key] = storage;
                 return storage;
             }
             catch (UnauthorizedAccessException)
