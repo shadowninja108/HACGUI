@@ -1,5 +1,8 @@
-﻿using System;
+﻿using LibHac;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +27,36 @@ namespace HACGUI
             InitializeComponent();
 
             TextBox.Text = e.ToString();
+
+            try
+            {
+                using (FileStream zipOut = HACGUIKeyset.GetCrashZip().Create())
+                {
+                    using (ZipArchive archive = new ZipArchive(zipOut, ZipArchiveMode.Update))
+                    {
+                        ZipArchiveEntry prodEntry = archive.CreateEntry("prod.keys");
+                        using (StreamWriter writer = new StreamWriter(prodEntry.Open()))
+                            writer.Write(HACGUIKeyset.PrintCommonKeys(HACGUIKeyset.Keyset, true));
+                        ZipArchiveEntry extraEntry = archive.CreateEntry("extra.keys");
+                        using (StreamWriter writer = new StreamWriter(extraEntry.Open()))
+                            writer.Write(HACGUIKeyset.PrintCommonWithoutFriendlyKeys(HACGUIKeyset.Keyset));
+                        ZipArchiveEntry consoleEntry = archive.CreateEntry("console.keys");
+                        using (StreamWriter writer = new StreamWriter(consoleEntry.Open()))
+                            writer.Write(ExternalKeys.PrintUniqueKeys(HACGUIKeyset.Keyset));
+                        ZipArchiveEntry titleEntry = archive.CreateEntry("title.keys");
+                        using (StreamWriter writer = new StreamWriter(titleEntry.Open()))
+                            writer.Write(ExternalKeys.PrintTitleKeys(HACGUIKeyset.Keyset));
+                        ZipArchiveEntry exceptionEntry = archive.CreateEntry("exception.txt");
+                        using (StreamWriter writer = new StreamWriter(titleEntry.Open()))
+                            writer.Write(e.ToString());
+                    }
+                }
+
+            }
+            catch (Exception e2)
+            {
+
+            }
         }
     }
 }

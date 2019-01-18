@@ -40,9 +40,19 @@ namespace HACGUI
             TempPRODINFOFileName = "PRODINFO.bin",
             TempContinueFileName = "continue.txt",
             ClientCertificateFileName = "nx_tls_client_cert.pfx",
-            TicketFolderName = "tickets";
+            TicketFolderName = "tickets",
+            CrashZipFileName = "crash.zip";
 
-        public static DirectoryInfo UserSwitchDirectoryInfo => new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).GetDirectory(UserSwitchFolderName);
+        public static DirectoryInfo RootUserDirectory
+        {
+            get
+            {
+                if (WorkingDirectoryInfo.GetFile("portable.txt").Exists)
+                    return WorkingDirectoryInfo;
+                return new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+            }
+        }
+        public static DirectoryInfo UserSwitchDirectoryInfo => RootUserDirectory.GetDirectory(UserSwitchFolderName);
         public static DirectoryInfo WorkingDirectoryInfo => new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
         public static DirectoryInfo RootFolderInfo => UserSwitchDirectoryInfo.GetDirectory(RootFolderName);
         public static DirectoryInfo RootConsoleFolderInfo => RootFolderInfo.GetDirectory(RootConsoleFolderName);
@@ -122,6 +132,12 @@ namespace HACGUI
         public static DirectoryInfo GetTicketsDirectory(string name)
         {
             return GetConsoleFolderInfo(name).GetDirectory(TicketFolderName);
+        }
+
+        public static FileInfo GetCrashZip()
+        {
+            RootTempFolderInfo.Create();
+            return RootTempFolderInfo.GetFile(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + CrashZipFileName);
         }
 
         public static void SetConsole(string name)
