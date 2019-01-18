@@ -47,7 +47,7 @@ namespace HACGUI
                         using (StreamWriter writer = new StreamWriter(titleEntry.Open()))
                             writer.Write(ExternalKeys.PrintTitleKeys(HACGUIKeyset.Keyset));
                         ZipArchiveEntry exceptionEntry = archive.CreateEntry("exception.txt");
-                        using (StreamWriter writer = new StreamWriter(titleEntry.Open()))
+                        using (StreamWriter writer = new StreamWriter(exceptionEntry.Open()))
                             writer.Write(e.ToString());
                     }
                 }
