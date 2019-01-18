@@ -83,8 +83,11 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
         {
             if (ListView.SelectedItem is TitleElement title)
             {
-                Window window = new TitleInfoWindow(title);
-                window.Owner = Window.GetWindow(this);
+                Window window = new TitleInfoWindow(title)
+                {
+                    Owner = Window.GetWindow(this),
+                    Title = $"Titles for {Element.Name}"
+                };
                 window.ShowDialog();
             }
         }

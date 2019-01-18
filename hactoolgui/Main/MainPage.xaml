@@ -50,9 +50,11 @@
                 <TabItem Header="Saves">
                     <Frame Name="SaveManagerFrame"/>
                 </TabItem>
+                <!--
                 <TabItem Header="Utilities">
                     <Frame Name="UtilitiesFrame"/>
                 </TabItem>
+                -->
             </TabControl>
             
         </DockPanel>

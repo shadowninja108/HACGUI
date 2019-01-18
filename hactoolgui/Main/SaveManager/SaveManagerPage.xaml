@@ -5,9 +5,13 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:HACGUI.Main.SaveManager"
-      mc:Ignorable="d" 
-        Title="SaveManagerPage" d:DesignHeight="450" d:DesignWidth="800">
+    xmlns:System="clr-namespace:System;assembly=mscorlib"
+    mc:Ignorable="d" 
+        Title="HACGUI: Saves" d:DesignHeight="450" d:DesignWidth="800">
     <views:PageExtension.Resources>
+        <System:String x:Key="Title">HACGUI: Saves</System:String>
+        <System:Double x:Key="MinWidth">800</System:Double>
+        <System:Double x:Key="MinHeight">500</System:Double>
         <views:FileSizeConverter x:Key="fileSizeConverter" />
     </views:PageExtension.Resources>
     <Grid>

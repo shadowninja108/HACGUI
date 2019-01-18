@@ -6,8 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d" 
     xmlns:Tabs="clr-namespace:HACGUI.Main.TitleManager.Application.Tabs"
-      Width="350" Height="300" ResizeMode="NoResize"
-      Title="ApplicationWindow">
+      Width="350" Height="300" ResizeMode="NoResize">
 
     <Grid>
         <TabControl>

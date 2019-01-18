@@ -32,6 +32,7 @@ namespace HACGUI.Main.TitleManager.Application
         {
             Current = this;
             Element = element;
+            Title = element.Name;
 
             InitializeComponent();
         }

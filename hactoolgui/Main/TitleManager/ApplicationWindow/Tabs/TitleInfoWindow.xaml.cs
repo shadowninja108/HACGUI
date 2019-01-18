@@ -24,6 +24,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
         public TitleInfoWindow(TitleElement title)
         {
             InitializeComponent();
+
             foreach(NcaElement nca in title.Ncas)
                 ListView.Items.Add(nca);
         }
