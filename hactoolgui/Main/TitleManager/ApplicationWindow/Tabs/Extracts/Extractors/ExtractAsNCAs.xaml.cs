@@ -105,6 +105,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                     task.RunSynchronously();
             }));
 
+            window.Owner = Window.GetWindow(this);
             window.ShowDialog();
         }
     }

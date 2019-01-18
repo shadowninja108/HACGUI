@@ -67,6 +67,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             };
             window.Navigate(view);
             RootWindow.Current.Submit(new Task(() => builder.Build(info.Create(), logger)));
+            window.Owner = Window.GetWindow(this);
             window.ShowDialog();
         }
     }

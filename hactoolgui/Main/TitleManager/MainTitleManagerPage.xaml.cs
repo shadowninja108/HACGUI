@@ -60,6 +60,7 @@ namespace HACGUI.Main.TitleManager
             if (element != null)
             {
                 Application.ApplicationWindow window = new Application.ApplicationWindow(element);
+                window.Owner = Window.GetWindow(this);
                 window.ShowDialog();
             }
         }

@@ -36,6 +36,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
                     selected.Add(info.Nca);
 
             Window window = new ExtractPickerWindow(selected);
+            window.Owner = Window.GetWindow(this);
             window.ShowDialog();
         }
     }

@@ -42,6 +42,7 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
                         selected.Add(nca.Nca);
 
             Window window = new ExtractPickerWindow(selected);
+            window.Owner = Window.GetWindow(this);
             window.ShowDialog();
 
             /*List<Nca> updates = new List<Nca>();
@@ -82,7 +83,9 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
         {
             if (ListView.SelectedItem is TitleElement title)
             {
-                new TitleInfoWindow(title).ShowDialog();
+                Window window = new TitleInfoWindow(title);
+                window.Owner = Window.GetWindow(this);
+                window.ShowDialog();
             }
         }
     }
