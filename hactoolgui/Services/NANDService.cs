@@ -28,7 +28,7 @@ namespace HACGUI.Services
             { // essentially just check if the Nand constructor passes
                 try
                 {
-                    Nand nand = new Nand(storage.AsStream(), HACGUIKeyset.Keyset);
+                    Nand nand = new Nand(storage.AsStream(FileAccess.Read), HACGUIKeyset.Keyset);
                     return true;
                 } catch (Exception)
                 {
@@ -88,8 +88,7 @@ namespace HACGUI.Services
                     {
                         DiskInfo info = CreateDiskInfo(disk);
                         //DiskStream diskStream = new DiskStream(DiskStream.CreateDiskInfo(disk)); impl is shit i guess
-                        Storage diskStorage = new CachedStorage(new DeviceStream(info.PhysicalName, info.Length).AsStorage(), info.SectorSize * 100, 4, true);
-                        diskStorage.SetReadOnly();
+                        IStorage diskStorage = new CachedStorage(new DeviceStream(info.PhysicalName, info.Length).AsStorage().AsReadOnly(), info.SectorSize * 100, 4, true);
                         if (InsertNAND(diskStorage, true))
                             CurrentDisk = info;
                     }
@@ -129,7 +128,7 @@ namespace HACGUI.Services
                 if (NAND != null && !raw)
                     if (!RequestSwitchSource())
                         return false;
-                NAND = new Nand(input.AsStream(), HACGUIKeyset.Keyset);
+                NAND = new Nand(input.AsStream(FileAccess.Read), HACGUIKeyset.Keyset);
                 NANDSource = input;
                 OnNANDPluggedIn();
                 return true;

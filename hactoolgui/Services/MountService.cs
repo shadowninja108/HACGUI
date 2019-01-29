@@ -240,8 +240,8 @@ namespace HACGUI.Services
                 }
                 size = Math.Min(size, buffer.Length);
 
-                storage.Read(buffer, Math.Max(offset, storage.Length - size), (int) size, 0);
-                bytesRead = buffer.Length; // TODO accuracy
+                storage.Read(buffer, Math.Min(offset, storage.Length - size), (int) size, 0);
+                bytesRead = (int)size; // TODO accuracy
                 return NtStatus.Success;
             }
             else
@@ -313,7 +313,9 @@ namespace HACGUI.Services
         private static string FilterPath(string path)
         {
             path = PathTools.Normalize(path);
-            path =  path.Replace("\\", "");
+            if (path.StartsWith("/\\"))
+                path = path.Replace("/\\", "/");
+            path =  path.Replace("\\", "/");
            // if (path.StartsWith("\\"))
              //   path = path.Substring(1);
             return path;
