@@ -140,7 +140,7 @@ namespace HACGUI.Main
                         return;
                 }
 
-                MountService.Mount(new MountableFileSystem(partition, $"NAND ({partitionName})"));
+                MountService.Mount(new MountableFileSystem(partition, $"NAND ({partitionName})", OpenMode.Read));
             } else
                 MessageBox.Show("Dokan driver not installed.\nInstall it to use this feature.");
         }

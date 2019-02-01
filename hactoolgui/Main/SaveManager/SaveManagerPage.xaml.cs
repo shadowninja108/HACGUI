@@ -38,7 +38,7 @@ namespace HACGUI.Main.SaveManager
             ulong view = element.SaveId;
             if (view == 0)
                 view = element.TitleId;
-            MountService.Mount(new MountableFileSystem(element.Save, view.ToString("x16")));
+            MountService.Mount(new MountableFileSystem(element.Save, view.ToString("x16"), LibHac.IO.OpenMode.Read));
         }
 
         private void RefreshSavesView(Dictionary<ulong, LibHac.Application> apps, Dictionary<ulong, LibHac.Title> titles, Dictionary<string, LibHac.IO.Save.SaveDataFileSystem> saves)

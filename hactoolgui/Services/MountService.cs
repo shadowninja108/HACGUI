@@ -87,12 +87,14 @@ namespace HACGUI.Services
         private readonly IFileSystem Fs;
         private readonly Dictionary<IFile, FileStorage> OpenedFiles;
         private readonly object OpenedFileLock = new object();
+        private readonly OpenMode Mode;
 
-        public MountableFileSystem(IFileSystem fs, string name)
+        public MountableFileSystem(IFileSystem fs, string name, OpenMode mode)
         {
             Fs = fs;
             Name = name;
             OpenedFiles = new Dictionary<IFile, FileStorage>();
+            Mode = mode;
         }
 
         public void Cleanup(string fileName, DokanFileInfo info)
@@ -105,7 +107,7 @@ namespace HACGUI.Services
 
         public void CloseFile(string fileName, DokanFileInfo info)
         {
-            IFile file = GetFile(fileName, OpenMode.Read);
+            IFile file = GetFile(fileName);
             if (file != null)
                 CloseFile(file);
         }
@@ -122,19 +124,52 @@ namespace HACGUI.Services
             }
         }
 
+        public void CloseAllFiles()
+        {
+            foreach (IFile file in new List<IFile>(OpenedFiles.Keys))
+                CloseFile(file);
+        }
+
         public NtStatus CreateFile(string fileName, DokanNet.FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, DokanFileInfo info)
         {
-            return NtStatus.Success;
+            try
+            {
+                if (info.IsDirectory)
+                    Fs.CreateDirectory(fileName);
+                else
+                    Fs.CreateFile(fileName, 0, CreateFileOptions.None);
+                return NtStatus.Success;
+            }
+            catch (NotImplementedException)
+            {
+                return NtStatus.NotImplemented;
+            }
         }
 
         public NtStatus DeleteDirectory(string fileName, DokanFileInfo info)
         {
-            return NtStatus.NotImplemented;
+            try
+            {
+                Fs.DeleteDirectory(fileName);
+                return NtStatus.Success;
+            }
+            catch (NotImplementedException)
+            {
+                return NtStatus.NotImplemented;
+            }
         }
 
         public NtStatus DeleteFile(string fileName, DokanFileInfo info)
         {
-            return NtStatus.NotImplemented;
+            try
+            {
+                Fs.DeleteFile(fileName);
+                return NtStatus.Success;
+            }
+            catch (NotImplementedException)
+            {
+                return NtStatus.NotImplemented;
+            }
         }
 
         public NtStatus FindFiles(string fileName, out IList<FileInformation> files, DokanFileInfo info)
@@ -167,12 +202,13 @@ namespace HACGUI.Services
         public NtStatus FindStreams(string fileName, out IList<FileInformation> streams, DokanFileInfo info)
         {
             streams = null;
-            return NtStatus.NotImplemented;
+            return NtStatus.NotImplemented; // not needed
         }
 
         public NtStatus FlushFileBuffers(string fileName, DokanFileInfo info)
         {
-            return NtStatus.NotImplemented;
+            CloseAllFiles();
+            return NtStatus.Success;
         }
 
         public NtStatus GetDiskFreeSpace(out long freeBytesAvailable, out long totalNumberOfBytes, out long totalNumberOfFreeBytes, DokanFileInfo info)
@@ -187,7 +223,7 @@ namespace HACGUI.Services
         {
             if (GetDirectory(fileName, OpenDirectoryMode.All) != null)
                 fileInfo = CreateInfo(GetDirectory(fileName, OpenDirectoryMode.All));
-            else if (GetFile(fileName, OpenMode.Read) != null)
+            else if (GetFile(fileName) != null)
                 fileInfo = CreateInfo(fileName);
             else
             {
@@ -224,7 +260,17 @@ namespace HACGUI.Services
 
         public NtStatus MoveFile(string oldName, string newName, bool replace, DokanFileInfo info)
         {
-            return NtStatus.NotImplemented;
+            try
+            {
+                if (replace && Fs.FileExists(newName))
+                    Fs.DeleteFile(newName);
+                Fs.RenameFile(oldName, newName);
+                return NtStatus.Success;
+            }
+            catch (NotImplementedException)
+            {
+                return NtStatus.NotImplemented;
+            }
         }
 
         public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, DokanFileInfo info)
@@ -353,11 +399,11 @@ namespace HACGUI.Services
                 return new FileInformation();
         }
 
-        public IFile GetFile(string name, OpenMode mode)
+        public IFile GetFile(string name)
         {
             name = FilterPath(name);
             if(Fs.FileExists(name))
-                return Fs.OpenFile(name, mode);
+                return Fs.OpenFile(name, Mode);
             return null;
         }
 
@@ -371,7 +417,7 @@ namespace HACGUI.Services
 
         public FileStorage OpenFile(string path)
         {
-            IFile key = GetFile(path, OpenMode.Read);
+            IFile key = GetFile(path);
 
             if (key == null)
                 return null;
