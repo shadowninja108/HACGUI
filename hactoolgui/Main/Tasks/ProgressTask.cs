@@ -11,10 +11,16 @@ namespace HACGUI.Main.Tasks
         public event LongValueChangedEvent ProgressChanged;
         public event LongValueChangedEvent TotalChanged;
 
+        public string Title { get; internal set; }
         public long Progress { get; internal set; }
         public long Total { get; internal set; }
 
         public abstract Task StartAsync();
+
+        public ProgressTask(string title)
+        {
+            Title = title;
+        }
 
         public void LogMessage(string message)
         {

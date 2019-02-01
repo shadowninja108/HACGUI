@@ -2,6 +2,7 @@
 using LibHac;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,6 +37,11 @@ namespace HACGUI.FirstStart
                 TextArea.Text += "--------------------------------------------------------------\n";
                 TextArea.Text += ExternalKeys.PrintTitleKeys(HACGUIKeyset.Keyset);
             };
+        }
+
+        private void OpenKeysClicked(object sender, RoutedEventArgs e)
+        {
+            Process.Start(HACGUIKeyset.UserSwitchDirectoryInfo.FullName);
         }
     }
 }

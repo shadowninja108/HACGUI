@@ -15,15 +15,10 @@ namespace HACGUI.FirstStart
             InitializeComponent();
         }
 
-        private void StartFromBackups(object sender, RoutedEventArgs e)
+        private void StartButtonPressed(object sender, RoutedEventArgs e)
         {
             NavigationWindow root = FindRoot();
             root.Navigate(new PickConsolePage());
-        }
-
-        private void StartFromExistingInstall(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }

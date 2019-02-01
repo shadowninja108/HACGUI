@@ -8,6 +8,11 @@ namespace HACGUI.Main.Tasks
 {
     public class NullTask : ProgressTask
     {
+        public NullTask() : base("Nothing")
+        {
+
+        }
+
         public override Task StartAsync()
         {
             return Task.CompletedTask;

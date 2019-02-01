@@ -20,6 +20,7 @@
     <Grid>
         <DockPanel>
             <Label DockPanel.Dock="Top" Content="Done! Your keys are saved and displayed here." HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontSize="35" HorizontalContentAlignment="Center" Grid.Row="0"/>
+            <Button DockPanel.Dock="Bottom" Content="Open keys foler" Width="100" Height="30" HorizontalAlignment="Right" Click="OpenKeysClicked"/>
             <TextBox x:Name="TextArea" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" IsReadOnly="True"/>
         </DockPanel>
     </Grid>

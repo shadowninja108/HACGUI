@@ -25,7 +25,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Label Width="164" VerticalAlignment="Top" Height="70" HorizontalAlignment="Left" FontSize="40" Content="HACGUI"/>
-            <Button Width="250" VerticalAlignment="Bottom" Height="46" HorizontalAlignment="Right" FontSize="20" Content="Start" Click="StartFromBackups" Grid.Column="1" />
+            <Button Width="250" VerticalAlignment="Bottom" Height="46" HorizontalAlignment="Right" FontSize="20" Content="Start" Click="StartButtonPressed" Grid.Column="1" />
         </Grid>
     </Grid>
 </views:PageExtension>

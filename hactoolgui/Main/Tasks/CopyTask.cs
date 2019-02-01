@@ -13,7 +13,7 @@ namespace HACGUI.Main.Tasks
         private readonly IStorage Source, Destination;
         private readonly string Message;
 
-        public CopyTask(IStorage source, IStorage destination, string message = "") : base()
+        public CopyTask(IStorage source, IStorage destination, string message = "") : base(message)
         {
             Source = source;
             Destination = destination;

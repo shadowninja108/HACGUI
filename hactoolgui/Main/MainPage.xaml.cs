@@ -147,7 +147,7 @@ namespace HACGUI.Main
 
         private void OpenUserSwitchClick(object sender, RoutedEventArgs e)
         {
-            Process.Start($"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}{Path.DirectorySeparatorChar}.switch");
+            Process.Start(HACGUIKeyset.UserSwitchDirectoryInfo.FullName);
         }
     }
 }

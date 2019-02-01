@@ -27,6 +27,7 @@ namespace HACGUI.Main.TitleManager
         {
             FS = fs();
             Ready(this, null);
+            
             return FS;
         }
 
