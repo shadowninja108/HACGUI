@@ -83,16 +83,18 @@ namespace HACGUI.Services
 
     public class MountableFileSystem : IDokanOperations
     {
-        public readonly string Name;
+        public readonly string Name, FileSystemType;
+
         private readonly IFileSystem Fs;
         private readonly Dictionary<IFile, FileStorage> OpenedFiles;
         private readonly object OpenedFileLock = new object();
         private readonly OpenMode Mode;
 
-        public MountableFileSystem(IFileSystem fs, string name, OpenMode mode)
+        public MountableFileSystem(IFileSystem fs, string name, string fileSystemType, OpenMode mode)
         {
             Fs = fs;
             Name = name;
+            FileSystemType = fileSystemType;
             OpenedFiles = new Dictionary<IFile, FileStorage>();
             Mode = mode;
         }
@@ -135,9 +137,20 @@ namespace HACGUI.Services
             try
             {
                 if (info.IsDirectory)
-                    Fs.CreateDirectory(fileName);
+                {
+                    if (Fs.FileExists(fileName))
+                        return NtStatus.NotADirectory;
+                }
                 else
-                    Fs.CreateFile(fileName, 0, CreateFileOptions.None);
+                {
+                    bool exists = false;
+                    if (mode == FileMode.OpenOrCreate)
+                        exists = Fs.FileExists(fileName);
+                    if (!exists)
+                        Fs.CreateFile(fileName, 0, CreateFileOptions.None);
+                    else
+                        return DokanResult.AlreadyExists;
+                }
                 return NtStatus.Success;
             }
             catch (NotImplementedException)
@@ -148,28 +161,24 @@ namespace HACGUI.Services
 
         public NtStatus DeleteDirectory(string fileName, DokanFileInfo info)
         {
-            try
-            {
-                Fs.DeleteDirectory(fileName);
+            if (Fs.DirectoryExists(fileName))
                 return NtStatus.Success;
-            }
-            catch (NotImplementedException)
+            else
             {
-                return NtStatus.NotImplemented;
+                int index = fileName.LastIndexOf('\\');
+                if (Fs.DirectoryExists(fileName.Substring(0, index)))
+                    return NtStatus.ObjectNameNotFound;
+                else
+                    return NtStatus.ObjectPathNotFound;
             }
         }
 
         public NtStatus DeleteFile(string fileName, DokanFileInfo info)
         {
-            try
-            {
-                Fs.DeleteFile(fileName);
+            if (Fs.FileExists(fileName))
                 return NtStatus.Success;
-            }
-            catch (NotImplementedException)
-            {
-                return NtStatus.NotImplemented;
-            }
+            else
+                return NtStatus.ObjectNameNotFound;
         }
 
         public NtStatus FindFiles(string fileName, out IList<FileInformation> files, DokanFileInfo info)
@@ -208,6 +217,7 @@ namespace HACGUI.Services
         public NtStatus FlushFileBuffers(string fileName, DokanFileInfo info)
         {
             CloseAllFiles();
+            Fs.Commit();
             return NtStatus.Success;
         }
 
@@ -243,7 +253,7 @@ namespace HACGUI.Services
         {
             volumeLabel = Name;
             features = FileSystemFeatures.ReadOnlyVolume; // TODO sort out write support
-            fileSystemName = Name;
+            fileSystemName = FileSystemType;
             maximumComponentLength = int.MaxValue; // idk lol
             return NtStatus.Success;
         }
@@ -276,25 +286,17 @@ namespace HACGUI.Services
         public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, DokanFileInfo info)
         {
             FileStorage storage = OpenFile(fileName);
-            if (storage != null)
-            {
-                long size = storage.Length - offset;
-                if (size < 0)
-                {
-                    bytesRead = 0;
-                    return NtStatus.Unsuccessful;
-                }
-                size = Math.Min(size, buffer.Length);
-
-                storage.Read(buffer, Math.Min(offset, storage.Length - size), (int) size, 0);
-                bytesRead = (int)size; // TODO accuracy
-                return NtStatus.Success;
-            }
-            else
+            long size = storage.Length - offset;
+            if (size < 0)
             {
                 bytesRead = 0;
-                return NtStatus.NoSuchFile;
+                return NtStatus.Unsuccessful;
             }
+            size = Math.Min(size, buffer.Length);
+
+            storage.Read(buffer, Math.Min(offset, storage.Length - size), (int) size, 0);
+            bytesRead = (int)size; // TODO accuracy
+            return NtStatus.Success;
         }
 
         public NtStatus SetAllocationSize(string fileName, long length, DokanFileInfo info)
@@ -304,7 +306,8 @@ namespace HACGUI.Services
 
         public NtStatus SetEndOfFile(string fileName, long length, DokanFileInfo info)
         {
-            return NtStatus.NotImplemented;
+            Fs.OpenFile(fileName, Mode).SetSize(length);
+            return NtStatus.Success;
         }
 
         public NtStatus SetFileAttributes(string fileName, FileAttributes attributes, DokanFileInfo info)
@@ -340,8 +343,18 @@ namespace HACGUI.Services
 
         public NtStatus WriteFile(string fileName, byte[] buffer, out int bytesWritten, long offset, DokanFileInfo info)
         {
-            bytesWritten = 0;
-            return NtStatus.NotImplemented;
+            FileStorage storage = OpenFile(fileName);
+            long size = storage.Length - offset;
+            if (size < 0)
+            {
+                bytesWritten = 0;
+                return NtStatus.Unsuccessful;
+            }
+            size = Math.Min(size, buffer.Length);
+
+            storage.Write(buffer, Math.Min(offset, storage.Length - size), (int)size, 0);
+            bytesWritten = (int)size; // TODO accuracy
+            return NtStatus.Success;
         }
 
         private FileInformation CreateInfo(DirectoryEntry entry)
