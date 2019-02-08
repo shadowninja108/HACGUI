@@ -101,10 +101,12 @@ namespace HACGUI.Services
 
         public void Cleanup(string fileName, DokanFileInfo info)
         {
-           // lock (OpenedFileLock)
-           // {
-                CloseFile(fileName, info);
-           // }
+            CloseFile(fileName, info);
+            if (info.DeleteOnClose)
+                if (info.IsDirectory)
+                    Fs.DeleteDirectory(fileName);
+                else
+                    Fs.DeleteFile(fileName);
         }
 
         public void CloseFile(string fileName, DokanFileInfo info)
@@ -189,23 +191,19 @@ namespace HACGUI.Services
         public NtStatus FindFilesWithPattern(string fileName, string searchPattern, out IList<FileInformation> files, DokanFileInfo info)
         {
             IDirectory directory = GetDirectory(fileName, OpenDirectoryMode.All);
-            files = null;
-            if (directory != null)
+
+            files = new List<FileInformation>();
+            if (searchPattern.EndsWith("\"*")) // thanks windows
+                searchPattern = searchPattern.Replace("\"*", "*");
+            try
             {
-                files = new List<FileInformation>();
-                if (searchPattern.EndsWith("\"*")) // thanks windows
-                    searchPattern = searchPattern.Replace("\"*", "*");
-                try
-                {
-                    foreach (DirectoryEntry entry in directory.EnumerateEntries(searchPattern, SearchOptions.Default))
-                        files.Add(CreateInfo(entry));
-                } catch(Exception e)
-                {
-                    Console.WriteLine("Exception raised when iterating through directory:\n" + e.Message + "\n" + e.StackTrace);
-                }
-                    return NtStatus.Success;
+                foreach (DirectoryEntry entry in directory.EnumerateEntries(searchPattern, SearchOptions.Default))
+                    files.Add(CreateInfo(entry));
+            } catch(Exception e)
+            {
+                Console.WriteLine("Exception raised when iterating through directory:\n" + e.Message + "\n" + e.StackTrace);
             }
-            return NtStatus.NotADirectory;
+                return NtStatus.Success;
         }
 
         public NtStatus FindStreams(string fileName, out IList<FileInformation> streams, DokanFileInfo info)
