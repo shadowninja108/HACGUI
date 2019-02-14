@@ -15,6 +15,8 @@ namespace HACGUI.Main.TaskManager.Tasks
         public long Progress { get; internal set; }
         public long Total { get; internal set; }
 
+        public bool Indeterminate { get; internal set; } = false;
+
         public abstract Task StartAsync();
 
         public ProgressTask(string title)

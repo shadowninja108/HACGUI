@@ -48,8 +48,7 @@ namespace HACGUI.Services
                         StatusService.SDStatus = StatusService.Status.OK;
                         Update();
                     };
-                    RootWindow.Current.Submit(new Task(() => SDTitleView.LoadFileSystem(() => SwitchFs.OpenSdCard(HACGUIKeyset.Keyset, new LocalFileSystem(drive.RootDirectory.FullName)))));
-
+                    SDTitleView.LoadFileSystemAsync("Opening SD filesystem...", () => SwitchFs.OpenSdCard(HACGUIKeyset.Keyset, new LocalFileSystem(drive.RootDirectory.FullName)));
 
                     StatusService.SDStatus = StatusService.Status.Progress;
                 };
@@ -85,8 +84,8 @@ namespace HACGUI.Services
 
                     RootWindow.Current.Submit(new Task(() =>
                     {
-                        NANDSystemTitleView.LoadFileSystem(() => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()));
-                        NANDUserTitleView.LoadFileSystem(() => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenUserPartition()));
+                        NANDSystemTitleView.LoadFileSystemAsync("Opening SD user filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenUserPartition()));
+                        NANDSystemTitleView.LoadFileSystemAsync("Opening SD user filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()));
                     }));
 
                     StatusService.NANDStatus = StatusService.Status.Progress;

@@ -1,4 +1,6 @@
-﻿using LibHac;
+﻿using HACGUI.Main.TaskManager;
+using HACGUI.Main.TaskManager.Tasks;
+using LibHac;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +20,11 @@ namespace HACGUI.Main.TitleManager
             Source = source;
         }
 
-        public async Task<SwitchFs> LoadFileSystemAsync(Func<SwitchFs> fs)
+        public Task<SwitchFs> LoadFileSystemAsync(string title, Func<SwitchFs> fs)
         {
-            return await RootWindow.Current.Submit(new Task<SwitchFs>(() => LoadFileSystem(fs)));
+            Task<SwitchFs> task = new Task<SwitchFs>(() => LoadFileSystem(fs));
+            TaskManagerPage.Current.Queue.Submit(new RunTaskTask(title, task));
+            return task;
         }
 
         public SwitchFs LoadFileSystem(Func<SwitchFs> fs)
