@@ -16,6 +16,7 @@ namespace HACGUI.Main.TaskManager.Tasks
         public long Total { get; internal set; }
 
         public bool Indeterminate { get; internal set; } = false;
+        public bool Blocking { get; internal set; } = true;
 
         public abstract Task StartAsync();
 

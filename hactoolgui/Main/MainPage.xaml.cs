@@ -64,7 +64,11 @@ namespace HACGUI.Main
                 if (IsAdministrator)
                     AdminButton.IsEnabled = false;
 
-                TaskManagerView.Queue.Submit(new WaitTask(1000, 10));
+                ProgressTask t = new WaitTask(1000, 10)
+                {
+                    Blocking = false
+                };
+                TaskManagerView.Queue.Submit(t);
                 TaskManagerView.Queue.Submit(new WaitTask(1000, 10));
                 TaskManagerView.Queue.Submit(new WaitTask(1000, 10));
 

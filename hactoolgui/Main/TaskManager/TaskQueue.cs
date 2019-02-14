@@ -52,8 +52,16 @@ namespace HACGUI.Main.TaskManager
                 if (Queue.TryDequeue(out ProgressTask task))
                 {
                     TaskStarted(task);
-                    task.StartAsync().RunSynchronously();
-                    TaskCompleted(task);
+                    if (task.Blocking) {
+                        task.StartAsync().RunSynchronously();
+                        TaskCompleted(task);
+                    }
+                    else
+                    {
+                        Task stask = task.StartAsync();
+                        stask.ContinueWith((t) => TaskCompleted(task));
+                        stask.Start();
+                    }
                 }
                 else
                     Thread.Sleep(200);

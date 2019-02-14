@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace HACGUI.Main.TaskManager.Tasks
 {
     // On god?
-    public class RunTaskTask : ProgressTask
+    public class RunTask : ProgressTask
     {
         private Task Task;
 
-        public RunTaskTask(string title, Task task) : base(title)
+        public RunTask(string title, Task task) : base(title)
         {
             Indeterminate = true;
             Task = task;

@@ -23,7 +23,11 @@ namespace HACGUI.Main.TitleManager
         public Task<SwitchFs> LoadFileSystemAsync(string title, Func<SwitchFs> fs)
         {
             Task<SwitchFs> task = new Task<SwitchFs>(() => LoadFileSystem(fs));
-            TaskManagerPage.Current.Queue.Submit(new RunTaskTask(title, task));
+            ProgressTask ptask = new RunTask(title, task)
+            {
+                Blocking = false
+            };
+            TaskManagerPage.Current.Queue.Submit(ptask);
             return task;
         }
 
