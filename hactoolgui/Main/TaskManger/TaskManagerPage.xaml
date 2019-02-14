@@ -1,0 +1,40 @@
+﻿<views:PageExtension
+    xmlns:views="clr-namespace:HACGUI.Extensions" x:Class="HACGUI.Main.TaskManger.TaskManagerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:HACGUI.Main.TaskManger"
+    xmlns:System="clr-namespace:System;assembly=mscorlib"
+    mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="TaskManager">
+    <views:PageExtension.Resources>
+        <System:String x:Key="Title">HACGUI: Tasks</System:String>
+        <System:Double x:Key="MinWidth">800</System:Double>
+        <System:Double x:Key="MinHeight">500</System:Double>
+        <views:FileSizeConverter x:Key="fileSizeConverter" />
+        <Style TargetType="ListViewItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        </Style>
+    </views:PageExtension.Resources>
+    <Grid>
+        <ListView Name="List">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Label" DisplayMemberBinding="{Binding Label}" Width="300"/>
+                    <GridViewColumn Header="Status">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <ProgressBar Value="{Binding Progress}" Maximum="1"/>
+                                </Grid>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</views:PageExtension>

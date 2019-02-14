@@ -1,5 +1,6 @@
 ﻿using HACGUI.Extensions;
 using HACGUI.Main.SaveManager;
+using HACGUI.Main.TaskManger;
 using HACGUI.Main.TitleManager;
 using HACGUI.Services;
 using LibHac;
@@ -22,6 +23,7 @@ namespace HACGUI.Main
     {
         private static MainTitleManagerPage TitleManagerView;
         private static SaveManagerPage SaveManagerView;
+        private static TaskManagerPage TaskManagerView;
 
         public MainPage()
         {
@@ -52,6 +54,8 @@ namespace HACGUI.Main
                 TitleManagerFrame.Content = TitleManagerView;
                 SaveManagerView = new SaveManagerPage();
                 SaveManagerFrame.Content = SaveManagerView;
+                TaskManagerView = new TaskManagerPage();
+                TaskManagerFrame.Content = TaskManagerView;
                 StatusService.Bar = StatusBar;
                 DeviceService.Start();
                 StatusService.Start();

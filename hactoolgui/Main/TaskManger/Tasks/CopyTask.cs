@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HACGUI.Main.Tasks
+namespace HACGUI.Main.TaskManger.Tasks
 {
     public class CopyTask : ProgressTask
     {

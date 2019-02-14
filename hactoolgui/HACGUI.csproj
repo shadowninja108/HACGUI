@@ -138,15 +138,20 @@
     <Compile Include="Main\SaveManager\SaveManagerPage.xaml.cs">
       <DependentUpon>SaveManagerPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Main\Tasks\ProgressTask.cs" />
+    <Compile Include="Main\TaskManger\TaskElement.cs" />
+    <Compile Include="Main\TaskManger\TaskManagerPage.xaml.cs">
+      <DependentUpon>TaskManagerPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\TaskManger\TaskQueue.cs" />
+    <Compile Include="Main\TaskManger\Tasks\ProgressTask.cs" />
     <Compile Include="Main\ProgressView.xaml.cs">
       <DependentUpon>ProgressView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Main\StatusEntry.xaml.cs">
       <DependentUpon>StatusEntry.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Main\Tasks\CopyTask.cs" />
-    <Compile Include="Main\Tasks\NullTask.cs" />
+    <Compile Include="Main\TaskManger\Tasks\CopyTask.cs" />
+    <Compile Include="Main\TaskManger\Tasks\NullTask.cs" />
     <Compile Include="Main\TitleManager\ApplicationWindow\ApplicationWindow.xaml.cs">
       <DependentUpon>ApplicationWindow.xaml</DependentUpon>
     </Compile>
@@ -253,6 +258,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Main\StatusEntry.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\TaskManger\TaskManagerPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -383,8 +392,6 @@
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Main\TaskManger\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

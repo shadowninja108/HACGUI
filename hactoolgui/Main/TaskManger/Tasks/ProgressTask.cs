@@ -1,7 +1,7 @@
 ﻿using LibHac;
 using System.Threading.Tasks;
 
-namespace HACGUI.Main.Tasks
+namespace HACGUI.Main.TaskManger.Tasks
 {
     public abstract class ProgressTask : IProgressReport
     {

@@ -19,7 +19,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using LibHac.IO;
-using HACGUI.Main.Tasks;
+using HACGUI.Main.TaskManger.Tasks;
+using HACGUI.Main.TaskManger;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 {
@@ -95,15 +96,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             };
             window.Navigate(view);
 
-            Task[] final = new Task[tasks.Count];
-            for (int i = 0; i < final.Length; i++)
-                final[i] = tasks[i].StartAsync();            
-
-            RootWindow.Current.Submit(new Task(() =>
-            {
-                foreach (Task task in final)
-                    task.RunSynchronously();
-            }));
+            TaskManagerPage.Current.Queue.Submit(tasks);
 
             window.Owner = Window.GetWindow(this);
             window.ShowDialog();

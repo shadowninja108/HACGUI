@@ -1,4 +1,4 @@
-﻿using HACGUI.Main.Tasks;
+﻿using HACGUI.Main.TaskManger.Tasks;
 using LibHac;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static HACGUI.Main.Tasks.ProgressTask;
 
 namespace HACGUI.Main
 {

@@ -1,5 +1,5 @@
 ﻿using HACGUI.Extensions;
-using HACGUI.Main.Tasks;
+using HACGUI.Main.TaskManger.Tasks;
 using HACGUI.Utilities;
 using LibHac;
 using LibHac.IO;
