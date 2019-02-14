@@ -1,12 +1,8 @@
 ﻿using LibHac.IO;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace HACGUI.Main.TaskManger.Tasks
+namespace HACGUI.Main.TaskManager.Tasks
 {
     public class CopyTask : ProgressTask
     {

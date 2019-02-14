@@ -23,7 +23,7 @@ namespace HACGUI.Services
         private static ManagementEventWatcher CreateWatcher, DeleteWatcher;
         private static bool Started = false;
 
-        private static Func<IStorage, bool> DefaultValidator = 
+        private static readonly Func<IStorage, bool> DefaultValidator = 
             (storage) =>
             { // essentially just check if the Nand constructor passes
                 try
@@ -87,7 +87,6 @@ namespace HACGUI.Services
                     try
                     {
                         DiskInfo info = CreateDiskInfo(disk);
-                        //DiskStream diskStream = new DiskStream(DiskStream.CreateDiskInfo(disk)); impl is shit i guess
                         IStorage diskStorage = new CachedStorage(new DeviceStream(info.PhysicalName, info.Length).AsStorage().AsReadOnly(), info.SectorSize * 100, 4, true);
                         if (InsertNAND(diskStorage, true))
                             CurrentDisk = info;

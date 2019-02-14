@@ -56,7 +56,7 @@ namespace HACGUI.Services
         {
             Dokan.Unmount(Mounted[fs].Item2);
             string mountPoint = $"{Mounted[fs].Item2}:";
-            Mounted[fs].Item1.Join();
+            Mounted[fs].Item1.Join(); // wait for thread to actually stop
             Dokan.RemoveMountPoint(mountPoint);
         }
 
@@ -103,10 +103,12 @@ namespace HACGUI.Services
         {
             CloseFile(fileName, info);
             if (info.DeleteOnClose)
+            {
                 if (info.IsDirectory)
                     Fs.DeleteDirectory(fileName);
                 else
                     Fs.DeleteFile(fileName);
+            }
         }
 
         public void CloseFile(string fileName, DokanFileInfo info)
@@ -369,12 +371,8 @@ namespace HACGUI.Services
 
         private static string FilterPath(string path)
         {
-            path = PathTools.Normalize(path);
-            if (path.StartsWith("/\\"))
-                path = path.Replace("/\\", "/");
             path =  path.Replace("\\", "/");
-           // if (path.StartsWith("\\"))
-             //   path = path.Substring(1);
+            path = PathTools.Normalize(path);
             return path;
         }
 

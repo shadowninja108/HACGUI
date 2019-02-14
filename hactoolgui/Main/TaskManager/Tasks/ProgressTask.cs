@@ -1,7 +1,7 @@
 ﻿using LibHac;
 using System.Threading.Tasks;
 
-namespace HACGUI.Main.TaskManger.Tasks
+namespace HACGUI.Main.TaskManager.Tasks
 {
     public abstract class ProgressTask : IProgressReport
     {
@@ -30,19 +30,19 @@ namespace HACGUI.Main.TaskManger.Tasks
         public void Report(long value)
         {
             Progress = value;
-            ProgressChanged(Progress);
+            ProgressChanged?.Invoke(Progress);
         }
 
         public void ReportAdd(long value)
         {
             Progress += value;
-            ProgressChanged(Progress);
+            ProgressChanged?.Invoke(Progress);
         }
 
         public void SetTotal(long value)
         {
             Total = value;
-            TotalChanged(value);
+            TotalChanged?.Invoke(value);
         }
     }
 }

@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HACGUI.Main.TaskManger.Tasks
+namespace HACGUI.Main.TaskManager.Tasks
 {
     public class NullTask : ProgressTask
     {
-        public NullTask() : base("Nothing")
+        public NullTask(string title = "Nothing") : base(title)
         {
 
         }

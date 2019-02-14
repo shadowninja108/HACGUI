@@ -1,5 +1,5 @@
 ﻿using HACGUI.Extensions;
-using HACGUI.Main.TaskManger.Tasks;
+using HACGUI.Main.TaskManager.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace HACGUI.Main.TaskManger
+namespace HACGUI.Main.TaskManager
 {
     /// <summary>
     /// Interaction logic for TaskManager.xaml
@@ -36,30 +36,17 @@ namespace HACGUI.Main.TaskManger
             Queue.TaskQueued += (task) =>
             {
                 List.Items.Add(new TaskElement(task));
-                
             };
 
             Queue.TaskStarted += (task) =>
             {
-                /*TaskElement element = GetTaskElement(task);
-                Dispatcher.BeginInvoke(new Action(() => 
+                task.ProgressChanged += (v) =>
                 {
-                    ProgressBar bar = new ProgressBar
+                    Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        Minimum = 0,
-                        Maximum = 1
-                    };
-
-                    void handler(long v)
-                    {
-                        bar.Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            bar.Value = (double)task.Progress / task.Total;
-                        }));
-                    }
-                    task.ProgressChanged += handler;
-                    task.TotalChanged += handler;
-                }));*/
+                        GetTaskElement(task).Binding?.UpdateTarget();
+                    }));
+                };
             };
 
             Queue.TaskCompleted += (task) =>
@@ -77,6 +64,12 @@ namespace HACGUI.Main.TaskManger
                 if (element.Task == task)
                     return element;
             return null;
+        }
+
+        private void GetProgressBarBinding(object sender, RoutedEventArgs e)
+        {
+            ProgressBar bar = sender as ProgressBar;
+            (bar?.Tag as TaskElement).Binding = bar?.GetBindingExpression(ProgressBar.ValueProperty);
         }
     }
 }

@@ -104,7 +104,7 @@ namespace HACGUI
                 Page nextPage;
                 if (result.Item1)
                 {
-                    HACGUIKeyset.Keyset.Load();
+                    Submit(new Task(() => HACGUIKeyset.Keyset.Load()));
                     nextPage = new MainPage();
                 }
                 else

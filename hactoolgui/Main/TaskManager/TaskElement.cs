@@ -1,4 +1,4 @@
-﻿using HACGUI.Main.TaskManger.Tasks;
+﻿using HACGUI.Main.TaskManager.Tasks;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,8 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Data;
 
-namespace HACGUI.Main.TaskManger
+namespace HACGUI.Main.TaskManager
 {
     public class TaskElement
     {
@@ -15,24 +16,24 @@ namespace HACGUI.Main.TaskManger
 
         public string Label => Task.Title;
 
-        public ProgressBar Bar { get; set; }
+        public BindingExpression Binding;
 
-        public double Progress { get; set; }
-
-        public TaskElement(ProgressTask task)
+        public double Progress
         {
-            Task = task;
-
-            task.ProgressChanged += (v) =>
+            get
             {
                 double val = Task.Progress / (double)Task.Total;
                 if (double.IsInfinity(val))
                     val = 1;
                 if (double.IsNaN(val))
                     val = 0;
-                Progress = val;
-                
-            };
+                return val;
+            } 
+        }
+
+        public TaskElement(ProgressTask task)
+        {
+            Task = task;
         }
     }
 }

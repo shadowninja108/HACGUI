@@ -19,8 +19,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using LibHac.IO;
-using HACGUI.Main.TaskManger.Tasks;
-using HACGUI.Main.TaskManger;
+using HACGUI.Main.TaskManager.Tasks;
+using HACGUI.Main.TaskManager;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 {

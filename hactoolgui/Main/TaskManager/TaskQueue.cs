@@ -1,12 +1,13 @@
-﻿using HACGUI.Main.TaskManger.Tasks;
+﻿using HACGUI.Main.TaskManager.Tasks;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace HACGUI.Main.TaskManger
+namespace HACGUI.Main.TaskManager
 {
     public class TaskQueue
     {
@@ -54,6 +55,8 @@ namespace HACGUI.Main.TaskManger
                     task.StartAsync().RunSynchronously();
                     TaskCompleted(task);
                 }
+                else
+                    Thread.Sleep(200);
             }
         }
     }

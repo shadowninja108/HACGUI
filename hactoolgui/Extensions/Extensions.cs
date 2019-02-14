@@ -205,7 +205,7 @@ namespace HACGUI.Extensions
             }
         }
 
-        public static FileInfo RequestOpenFileFromUser(string ext, string filter, string title = null)
+        public static FileInfo RequestOpenFileFromUser(string ext, string filter, string title = null, string fileName = null)
         {
             OpenFileDialog dlg = new OpenFileDialog
             {
@@ -215,9 +215,33 @@ namespace HACGUI.Extensions
 
             if (title != null)
                 dlg.Title = title;
+            dlg.FileName = fileName ?? "";
 
             if (dlg.ShowDialog() == DialogResult.OK)
                 return new FileInfo(dlg.FileName);
+            return null;
+        }
+
+        public static FileInfo[] RequestOpenFilesFromUser(string ext, string filter, string title = null, string fileName = null)
+        {
+            OpenFileDialog dlg = new OpenFileDialog
+            {
+                DefaultExt = ext,
+                Filter = filter,
+                Multiselect = true
+            };
+
+            if (title != null)
+                dlg.Title = title;
+            dlg.FileName = fileName ?? "";
+
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                FileInfo[] infos = new FileInfo[dlg.FileNames.Length];
+                for (int i = 0; i < infos.Length; i++)
+                    infos[i] = new FileInfo(dlg.FileNames[i]);
+                return infos;
+            }
             return null;
         }
 

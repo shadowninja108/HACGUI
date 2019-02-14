@@ -1,6 +1,7 @@
 ﻿using HACGUI.Extensions;
 using HACGUI.Main.SaveManager;
-using HACGUI.Main.TaskManger;
+using HACGUI.Main.TaskManager;
+using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager;
 using HACGUI.Services;
 using LibHac;
@@ -62,34 +63,28 @@ namespace HACGUI.Main
 
                 if (IsAdministrator)
                     AdminButton.IsEnabled = false;
+
+                TaskManagerView.Queue.Submit(new WaitTask(1000, 10));
+                TaskManagerView.Queue.Submit(new WaitTask(1000, 10));
+                TaskManagerView.Queue.Submit(new WaitTask(1000, 10));
+
             };
         }
 
         private void PickNANDButtonClick(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog
+            FileInfo[] files = Extensions.Extensions.RequestOpenFilesFromUser(".bin", "Raw NAND dump (.bin or .bin.*)|*.bin*", "Select raw NAND dump", "rawnand.bin");
+
+            if (files != null)
             {
-                FileName = "rawnand.bin",
-                DefaultExt = ".bin",
-                Filter = "Raw NAND dump (.bin or .bin.*)|*.bin*",
-                Multiselect = true
-            };
+                IList<IStorage> streams = new List<IStorage>();
+                foreach (FileInfo file in files)
+                    streams.Add(file.OpenRead().AsStorage()); // Change to Open when write support is added
+                IStorage NANDSource = new ConcatenationStorage(streams, true);
 
-            if (dlg.ShowDialog() == true)
-            { // it's nullable so i HAVE to compare it to true
-                string[] files = dlg.FileNames;
-                if (files != null && files.Length > 0)
+                if (!NANDService.InsertNAND(NANDSource, false))
                 {
-                    IList<IStorage> streams = new List<IStorage>();
-                    foreach (string file in files)
-                        streams.Add(new FileInfo(file).OpenRead().AsStorage()); // Change to Open when write support is added
-                    IStorage NANDSource = new ConcatenationStorage(streams, true);
-
-                    if (!NANDService.InsertNAND(NANDSource, false))
-                    {
-                        MessageBox.Show("Invalid NAND dump!");
-                    }
-
+                    MessageBox.Show("Invalid NAND dump!");
                 }
             }
         }

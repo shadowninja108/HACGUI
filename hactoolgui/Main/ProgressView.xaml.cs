@@ -1,4 +1,4 @@
-﻿using HACGUI.Main.TaskManger.Tasks;
+﻿using HACGUI.Main.TaskManager.Tasks;
 using LibHac;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,6 @@
 ﻿using HACGUI.Extensions;
-using HACGUI.Main.TaskManger.Tasks;
+using HACGUI.Main.TaskManager;
+using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Utilities;
 using LibHac;
 using LibHac.IO;
@@ -34,7 +35,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             FileInfo info = new FileInfo(Path.Text);
             info.Directory.Create(); // ensure that the folder exists
             Pfs0Builder builder = new Pfs0Builder();
-            ProgressTask logger = new NullTask();
+            NspPackTask logger = new NspPackTask(builder, info);
             ProgressView view = new ProgressView(new List<ProgressTask> { logger });
             if (TicketCheckbox.IsChecked == true)
             {
@@ -66,7 +67,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                 ShowsNavigationUI = false // get rid of the t r a s h
             };
             window.Navigate(view);
-            RootWindow.Current.Submit(new Task(() => builder.Build(info.Create(), logger)));
+            TaskManagerPage.Current.Queue.Submit(logger);
             window.Owner = Window.GetWindow(this);
             window.ShowDialog();
         }

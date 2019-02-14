@@ -138,20 +138,22 @@
     <Compile Include="Main\SaveManager\SaveManagerPage.xaml.cs">
       <DependentUpon>SaveManagerPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Main\TaskManger\TaskElement.cs" />
-    <Compile Include="Main\TaskManger\TaskManagerPage.xaml.cs">
+    <Compile Include="Main\TaskManager\TaskElement.cs" />
+    <Compile Include="Main\TaskManager\TaskManagerPage.xaml.cs">
       <DependentUpon>TaskManagerPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Main\TaskManger\TaskQueue.cs" />
-    <Compile Include="Main\TaskManger\Tasks\ProgressTask.cs" />
+    <Compile Include="Main\TaskManager\TaskQueue.cs" />
+    <Compile Include="Main\TaskManager\Tasks\NspPackTask.cs" />
+    <Compile Include="Main\TaskManager\Tasks\ProgressTask.cs" />
     <Compile Include="Main\ProgressView.xaml.cs">
       <DependentUpon>ProgressView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Main\StatusEntry.xaml.cs">
       <DependentUpon>StatusEntry.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Main\TaskManger\Tasks\CopyTask.cs" />
-    <Compile Include="Main\TaskManger\Tasks\NullTask.cs" />
+    <Compile Include="Main\TaskManager\Tasks\CopyTask.cs" />
+    <Compile Include="Main\TaskManager\Tasks\NullTask.cs" />
+    <Compile Include="Main\TaskManager\Tasks\WaitTask.cs" />
     <Compile Include="Main\TitleManager\ApplicationWindow\ApplicationWindow.xaml.cs">
       <DependentUpon>ApplicationWindow.xaml</DependentUpon>
     </Compile>
@@ -261,7 +263,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Main\TaskManger\TaskManagerPage.xaml">
+    <Page Include="Main\TaskManager\TaskManagerPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
