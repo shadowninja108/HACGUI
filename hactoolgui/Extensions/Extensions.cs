@@ -1,4 +1,8 @@
-﻿using LibHac;
+﻿using HACGUI.Utilities;
+using LibHac;
+using LibHac.IO;
+using LibHac.IO.Save;
+using LibHac.Nand;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -264,6 +268,33 @@ namespace HACGUI.Extensions
         public static void CreateAndClose(this FileInfo info)
         {
             File.WriteAllBytes(info.FullName, new byte[] { });
+        }
+
+        public static List<Ticket> DumpTickets(Keyset keyset, IStorage savefile, string consoleName)
+        {
+            var tickets = new List<Ticket>();
+            var save = new SaveDataFileSystem(keyset, savefile, IntegrityCheckLevel.ErrorOnInvalid, false);
+            var ticketList = new BinaryReader(save.OpenFile("/ticket_list.bin", OpenMode.Read).AsStream());
+            var ticketFile = new BinaryReader(save.OpenFile("/ticket.bin", OpenMode.Read).AsStream());
+            DirectoryInfo ticketFolder = HACGUIKeyset.GetTicketsDirectory(consoleName);
+            ticketFolder.Create();
+
+            var titleId = ticketList.ReadUInt64();
+            while (titleId != ulong.MaxValue)
+            {
+                ticketList.BaseStream.Position += 0x18;
+                var start = ticketFile.BaseStream.Position;
+                Ticket ticket = new Ticket(ticketFile);
+                Stream ticketFileStream = ticketFolder.GetFile(BitConverter.ToString(ticket.RightsId).Replace("-", "").ToLower() + ".tik").Create();
+                byte[] data = ticket.GetBytes();
+                ticketFileStream.Write(data, 0, data.Length);
+                ticketFileStream.Close();
+                tickets.Add(ticket);
+                ticketFile.BaseStream.Position = start + 0x400;
+                titleId = ticketList.ReadUInt64();
+            }
+
+            return tickets;
         }
 
     }

@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -51,27 +52,24 @@ namespace HACGUI.Main
                     }
                 };
 
+                // init this first as other pages may request tasks on init
+                TaskManagerView = new TaskManagerPage();
+                TaskManagerFrame.Content = TaskManagerView;
+
+                TaskManagerView.Queue.Submit(new RunTask("Deriving keys...", new Task(() => HACGUIKeyset.Keyset.Load())));
+
                 TitleManagerView = new MainTitleManagerPage();
                 TitleManagerFrame.Content = TitleManagerView;
                 SaveManagerView = new SaveManagerPage();
                 SaveManagerFrame.Content = SaveManagerView;
-                TaskManagerView = new TaskManagerPage();
-                TaskManagerFrame.Content = TaskManagerView;
+
                 StatusService.Bar = StatusBar;
                 DeviceService.Start();
                 StatusService.Start();
 
+
                 if (IsAdministrator)
                     AdminButton.IsEnabled = false;
-
-                ProgressTask t = new WaitTask(1000, 10)
-                {
-                    Blocking = false
-                };
-                TaskManagerView.Queue.Submit(t);
-                TaskManagerView.Queue.Submit(new WaitTask(1000, 10));
-                TaskManagerView.Queue.Submit(new WaitTask(1000, 10));
-
             };
         }
 

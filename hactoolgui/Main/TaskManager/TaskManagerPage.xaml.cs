@@ -35,7 +35,10 @@ namespace HACGUI.Main.TaskManager
 
             Queue.TaskQueued += (task) =>
             {
-                List.Items.Add(new TaskElement(task));
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    List.Items.Add(new TaskElement(task));
+                }));
             };
 
             Queue.TaskStarted += (task) =>

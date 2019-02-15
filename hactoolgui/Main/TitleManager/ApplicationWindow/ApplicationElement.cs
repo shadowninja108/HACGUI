@@ -1,4 +1,6 @@
 ﻿using HACGUI.Extensions;
+using HACGUI.Main.TaskManager;
+using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
 using LibHac.IO;
@@ -125,7 +127,9 @@ namespace HACGUI.Main.TitleManager
 
         public void Load()
         {
-            GetIconAync().ContinueWith((source) => Icon = source.Result);
+            Task<ImageSource> task = GetIconAync();
+            task.ContinueWith((source) => Icon = source.Result);
+            TaskManagerPage.Current.Queue.Submit(new RunTask($"Decoding icon for {Name}...", task));
         }
 
         public Title FindBestTitle()
@@ -153,7 +157,7 @@ namespace HACGUI.Main.TitleManager
             return list;
         }
 
-        public async Task<ImageSource> GetIconAync()
+        public Task<ImageSource> GetIconAync()
         {
             List<Title> list = OrderTitlesByBest();
             list.Reverse();
@@ -161,10 +165,10 @@ namespace HACGUI.Main.TitleManager
             {
                 Task<ImageSource> source = FindTitleIcon(title);
                 if (source != null)
-                    return await source;
+                    return source;
             }
 
-            return await RootWindow.Current.Submit(new Task<ImageSource>(() => UnknownIcon));
+            return new Task<ImageSource>(() => UnknownIcon);
         }
 
         public Task<ImageSource> FindTitleIcon(Title title)
@@ -185,7 +189,7 @@ namespace HACGUI.Main.TitleManager
                 }
 
                 if (iconFile != null)
-                    return RootWindow.Current.Submit(new Task<ImageSource>(() =>
+                    return new Task<ImageSource>(() =>
                     {
                         try
                         {
@@ -196,7 +200,7 @@ namespace HACGUI.Main.TitleManager
                         {
                             return null;
                         }
-                    }));
+                    });
             }
             return null;
         }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HACGUI.Extensions;
+using HACGUI.Main.TaskManager;
+using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager;
 using LibHac;
 using LibHac.IO;
@@ -48,7 +50,7 @@ namespace HACGUI.Services
                         StatusService.SDStatus = StatusService.Status.OK;
                         Update();
                     };
-                    SDTitleView.LoadFileSystemAsync("Opening SD filesystem...", () => SwitchFs.OpenSdCard(HACGUIKeyset.Keyset, new LocalFileSystem(drive.RootDirectory.FullName)));
+                    SDTitleView.LoadFileSystemAsync("Opening SD filesystem...", () => SwitchFs.OpenSdCard(HACGUIKeyset.Keyset, new LocalFileSystem(drive.RootDirectory.FullName)), false);
 
                     StatusService.SDStatus = StatusService.Status.Progress;
                 };
@@ -82,11 +84,9 @@ namespace HACGUI.Services
                             onComplete();
                     };
 
-                    RootWindow.Current.Submit(new Task(() =>
-                    {
-                        NANDSystemTitleView.LoadFileSystemAsync("Opening SD user filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenUserPartition()));
-                        NANDSystemTitleView.LoadFileSystemAsync("Opening SD user filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()));
-                    }));
+                    NANDUserTitleView.LoadFileSystemAsync("Opening NAND user filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenUserPartition()), false);
+                    NANDSystemTitleView.LoadFileSystemAsync("Opening NAND system filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()), true);
+                    TaskManagerPage.Current.Queue.Submit(new DecryptTicketsTask());
 
                     StatusService.NANDStatus = StatusService.Status.Progress;
                 };
@@ -118,72 +118,76 @@ namespace HACGUI.Services
 
         public static void Update()
         {
-            Dictionary<ulong, Application> totalApps = new Dictionary<ulong, Application>();
-            Dictionary<ulong, Title> totalTitles = new Dictionary<ulong, Title>();
-            Dictionary<string, SaveDataFileSystem> totalSaves = new Dictionary<string, SaveDataFileSystem>();
+            TaskManagerPage.Current.Queue.Submit(new RunTask("Updating application view...", new Task(() =>
+            {
 
-            if (SDTitleView.FS != null)
-            {
-                totalSaves.AddRange(SDTitleView.FS.Saves);
-                lock (totalApps)
+                Dictionary<ulong, Application> totalApps = new Dictionary<ulong, Application>();
+                Dictionary<ulong, Title> totalTitles = new Dictionary<ulong, Title>();
+                Dictionary<string, SaveDataFileSystem> totalSaves = new Dictionary<string, SaveDataFileSystem>();
+
+                if (SDTitleView.FS != null)
                 {
-                    foreach (KeyValuePair<ulong, LibHac.Application> kv in SDTitleView.FS.Applications)
+                    totalSaves.AddRange(SDTitleView.FS.Saves);
+                    lock (totalApps)
                     {
-                        ulong titleid = kv.Key;
-                        Application app = kv.Value;
-                        if (totalApps.ContainsKey(titleid))
+                        foreach (KeyValuePair<ulong, LibHac.Application> kv in SDTitleView.FS.Applications)
                         {
-                            totalApps[titleid].AddTitle(app.Main);
-                            totalApps[titleid].AddTitle(app.Patch);
-                            foreach (Title title in totalApps[titleid].AddOnContent)
-                                totalApps[titleid].AddTitle(title);
-                        }
-                        else
-                            totalApps[titleid] = app;
-                    }
-                    totalTitles.AddRange(SDTitleView.FS.Titles);
-                }
-            }
-            if (NANDSystemTitleView.FS != null)
-            {
-                totalSaves.AddRange(NANDSystemTitleView.FS.Saves);
-                totalApps.AddRange(NANDSystemTitleView.FS.Applications);
-                totalTitles.AddRange(NANDSystemTitleView.FS.Titles);
-            }
-            if (NANDUserTitleView.FS != null)
-            {
-                totalSaves.AddRange(NANDUserTitleView.FS.Saves);
-                lock (totalApps) // ensure threads don't try to modify list while iterating through it
-                {
-                    foreach (KeyValuePair<ulong, LibHac.Application> kv in NANDUserTitleView.FS.Applications)
-                    {
-                        ulong titleid = kv.Key;
-                        LibHac.Application app = kv.Value;
-                        if (totalApps.ContainsKey(titleid))
-                        {
-                            if (app.Main != null)
+                            ulong titleid = kv.Key;
+                            Application app = kv.Value;
+                            if (totalApps.ContainsKey(titleid))
+                            {
                                 totalApps[titleid].AddTitle(app.Main);
-                            if (app.Patch != null)
                                 totalApps[titleid].AddTitle(app.Patch);
-                            foreach (Title title in totalApps[titleid].AddOnContent)
-                                if (title != null)
+                                foreach (Title title in totalApps[titleid].AddOnContent)
                                     totalApps[titleid].AddTitle(title);
+                            }
+                            else
+                                totalApps[titleid] = app;
                         }
-                        else
-                            totalApps[titleid] = app;
+                        totalTitles.AddRange(SDTitleView.FS.Titles);
                     }
-                    totalTitles.AddRange(NANDUserTitleView.FS.Titles);
                 }
-            }
+                if (NANDSystemTitleView.FS != null)
+                {
+                    totalSaves.AddRange(NANDSystemTitleView.FS.Saves);
+                    totalApps.AddRange(NANDSystemTitleView.FS.Applications);
+                    totalTitles.AddRange(NANDSystemTitleView.FS.Titles);
+                }
+                if (NANDUserTitleView.FS != null)
+                {
+                    totalSaves.AddRange(NANDUserTitleView.FS.Saves);
+                    lock (totalApps) // ensure threads don't try to modify list while iterating through it
+                    {
+                        foreach (KeyValuePair<ulong, LibHac.Application> kv in NANDUserTitleView.FS.Applications)
+                        {
+                            ulong titleid = kv.Key;
+                            LibHac.Application app = kv.Value;
+                            if (totalApps.ContainsKey(titleid))
+                            {
+                                if (app.Main != null)
+                                    totalApps[titleid].AddTitle(app.Main);
+                                if (app.Patch != null)
+                                    totalApps[titleid].AddTitle(app.Patch);
+                                foreach (Title title in totalApps[titleid].AddOnContent)
+                                    if (title != null)
+                                        totalApps[titleid].AddTitle(title);
+                            }
+                            else
+                                totalApps[titleid] = app;
+                        }
+                        totalTitles.AddRange(NANDUserTitleView.FS.Titles);
+                    }
+                }
 
-            Applications.Clear();
-            Titles.Clear();
-            Saves.Clear();
-            Applications.AddRange(totalApps);
-            Titles.AddRange(totalTitles);
-            Saves.AddRange(totalSaves);
+                Applications.Clear();
+                Titles.Clear();
+                Saves.Clear();
+                Applications.AddRange(totalApps);
+                Titles.AddRange(totalTitles);
+                Saves.AddRange(totalSaves);
 
-            TitlesChanged(Applications, Titles, Saves);
+                TitlesChanged(Applications, Titles, Saves);
+            })));
         }
 
 

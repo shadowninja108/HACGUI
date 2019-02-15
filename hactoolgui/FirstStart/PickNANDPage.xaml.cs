@@ -19,6 +19,7 @@ using LibHac.IO;
 using LibHac.IO.Save;
 using System.Security.Principal;
 using System.Diagnostics;
+using HACGUI.Main.TaskManager.Tasks;
 
 namespace HACGUI.FirstStart
 {
@@ -330,14 +331,14 @@ namespace HACGUI.FirstStart
             {
                 IFile e1File = system.OpenFile(e1FileName, OpenMode.Read);
                 IStorage e1Storage = new FileStorage(e1File);
-                tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e1Storage));
+                tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e1Storage, PickConsolePage.ConsoleName));
             }
 
             if (system.FileExists(e2FileName))
             {
                 IFile e2File = system.OpenFile(e2FileName, OpenMode.Read);
                 IStorage e2Storage = new FileStorage(e2File);
-                tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e2Storage));
+                tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e2Storage, PickConsolePage.ConsoleName));
             }
 
             IStorage nsAppmanStorage = new FileStorage(system.OpenFile("save\\8000000000000043", OpenMode.Read));
@@ -362,21 +363,7 @@ namespace HACGUI.FirstStart
             }
 
             // write all keys to file
-            Stream prodKeys = HACGUIKeyset.ProductionKeysFileInfo.Create();
-            prodKeys.WriteString(HACGUIKeyset.PrintCommonKeys(HACGUIKeyset.Keyset, true));
-            Stream extraKeys = HACGUIKeyset.ExtraKeysFileInfo.Create();
-            extraKeys.WriteString(HACGUIKeyset.PrintCommonWithoutFriendlyKeys(HACGUIKeyset.Keyset));
-            Stream consoleKeys = HACGUIKeyset.ConsoleKeysFileInfo.Create();
-            consoleKeys.WriteString(ExternalKeys.PrintUniqueKeys(HACGUIKeyset.Keyset));
-            Stream specificConsoleKeys = HACGUIKeyset.GetConsoleKeysFileInfoByName(PickConsolePage.ConsoleName).Create();
-            specificConsoleKeys.WriteString(ExternalKeys.PrintUniqueKeys(HACGUIKeyset.Keyset));
-            Stream titleKeys = HACGUIKeyset.TitleKeysFileInfo.Create();
-            titleKeys.WriteString(ExternalKeys.PrintTitleKeys(HACGUIKeyset.Keyset));
-            prodKeys.Close();
-            extraKeys.Close();
-            consoleKeys.Close();
-            specificConsoleKeys.Close();
-            titleKeys.Close();
+            new SaveKeysetTask(PickConsolePage.ConsoleName).StartAsync().RunSynchronously();
 
             Preferences.Current.DefaultConsoleName = PickConsolePage.ConsoleName;
             Preferences.Current.Write();
@@ -385,33 +372,6 @@ namespace HACGUI.FirstStart
         public override void OnBack()
         {
             NANDService.Stop();
-        }
-
-        private static List<Ticket> DumpTickets(Keyset keyset, IStorage savefile)
-        {
-            var tickets = new List<Ticket>();
-            var save = new SaveDataFileSystem(keyset, savefile, IntegrityCheckLevel.ErrorOnInvalid, false);
-            var ticketList = new BinaryReader(save.OpenFile("/ticket_list.bin", OpenMode.Read).AsStream());
-            var ticketFile = new BinaryReader(save.OpenFile("/ticket.bin", OpenMode.Read).AsStream());
-            DirectoryInfo ticketFolder = HACGUIKeyset.GetTicketsDirectory(PickConsolePage.ConsoleName);
-            ticketFolder.Create();
-
-            var titleId = ticketList.ReadUInt64();
-            while (titleId != ulong.MaxValue)
-            {
-                ticketList.BaseStream.Position += 0x18;
-                var start = ticketFile.BaseStream.Position;
-                Ticket ticket = new Ticket(ticketFile);
-                Stream ticketFileStream = ticketFolder.GetFile(BitConverter.ToString(ticket.RightsId).Replace("-", "").ToLower() + ".tik").Create();
-                byte[] data = ticket.GetBytes();
-                ticketFileStream.Write(data, 0, data.Length);
-                ticketFileStream.Close();
-                tickets.Add(ticket);
-                ticketFile.BaseStream.Position = start + 0x400;
-                titleId = ticketList.ReadUInt64();
-            }
-
-            return tickets;
         }
 
         public void XOR(byte[] buffer1, byte[] buffer2, out byte[] output)
