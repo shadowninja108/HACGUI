@@ -101,7 +101,8 @@ namespace HACGUI.Services
 
         public void Cleanup(string fileName, DokanFileInfo info)
         {
-            CloseFile(fileName, info);
+            if(!info.IsDirectory)
+                CloseFile(fileName, info);
             if (info.DeleteOnClose)
             {
                 if (info.IsDirectory)
@@ -140,20 +141,38 @@ namespace HACGUI.Services
         {
             try
             {
-                if (info.IsDirectory)
+                fileName = FilterPath(fileName);
+                bool isDirectory = Fs.DirectoryExists(fileName);
+
+                if (info.IsDirectory || isDirectory)
                 {
+                    info.IsDirectory = true;
                     if (Fs.FileExists(fileName))
-                        return NtStatus.NotADirectory;
+                        return DokanResult.NotADirectory;
+                    else if (Fs.DirectoryExists(fileName))
+                        return DokanResult.Success;
+                    Fs.CreateDirectory(fileName);
                 }
                 else
                 {
-                    bool exists = false;
-                    if (mode == FileMode.OpenOrCreate)
-                        exists = Fs.FileExists(fileName);
+                    bool exists = Fs.FileExists(fileName);
+
                     if (!exists)
-                        Fs.CreateFile(fileName, 0, CreateFileOptions.None);
-                    else
-                        return DokanResult.AlreadyExists;
+                        return DokanResult.FileNotFound;
+
+                    if (mode == FileMode.Open && exists)
+                        return DokanResult.Success; 
+
+                    switch (mode)
+                    {
+                        case FileMode.Create:
+                        case FileMode.OpenOrCreate:
+                            if (exists)
+                                return DokanResult.AlreadyExists;
+                            Fs.CreateFile(fileName, 0, CreateFileOptions.None);
+                            break;
+                    }
+                    
                 }
                 return NtStatus.Success;
             }
@@ -200,7 +219,7 @@ namespace HACGUI.Services
             try
             {
                 foreach (DirectoryEntry entry in directory.EnumerateEntries(searchPattern, SearchOptions.Default))
-                    files.Add(CreateInfo(entry));
+                    files.Add(CreateInfo(entry, ToWindows(entry.FullPath)));
             } catch(Exception e)
             {
                 Console.WriteLine("Exception raised when iterating through directory:\n" + e.Message + "\n" + e.StackTrace);
@@ -232,7 +251,7 @@ namespace HACGUI.Services
         public NtStatus GetFileInformation(string fileName, out FileInformation fileInfo, DokanFileInfo info)
         {
             if (GetDirectory(fileName, OpenDirectoryMode.All) != null)
-                fileInfo = CreateInfo(GetDirectory(fileName, OpenDirectoryMode.All));
+                fileInfo = CreateInfo(GetDirectory(fileName, OpenDirectoryMode.All), fileName);
             else if (GetFile(fileName) != null)
                 fileInfo = CreateInfo(fileName);
             else
@@ -306,7 +325,7 @@ namespace HACGUI.Services
 
         public NtStatus SetEndOfFile(string fileName, long length, DokanFileInfo info)
         {
-            Fs.OpenFile(fileName, Mode).SetSize(length);
+            Fs.OpenFile(FilterPath(fileName), Mode).SetSize(length);
             return NtStatus.Success;
         }
 
@@ -357,14 +376,14 @@ namespace HACGUI.Services
             return NtStatus.Success;
         }
 
-        private FileInformation CreateInfo(DirectoryEntry entry)
+        private FileInformation CreateInfo(DirectoryEntry entry, string path)
         {
             switch (entry.Type)
             {
                 case DirectoryEntryType.File:
-                    return CreateInfo(entry.FullPath);
+                    return CreateInfo(path);
                 case DirectoryEntryType.Directory:
-                    return CreateInfo(Fs.OpenDirectory(entry.FullPath, OpenDirectoryMode.All));
+                    return CreateInfo(Fs.OpenDirectory(entry.FullPath, OpenDirectoryMode.All), path);
             }
             return new FileInformation();
         }
@@ -373,6 +392,16 @@ namespace HACGUI.Services
         {
             path =  path.Replace("\\", "/");
             path = PathTools.Normalize(path);
+            if (path.StartsWith("/"))
+                path = path.Substring(1);
+            return path;
+        }
+
+        private static string ToWindows(string path)
+        {
+            path = path.Replace("/", "\\");
+            if (!path.StartsWith("\\"))
+                path = "\\" + path;
             return path;
         }
 
@@ -396,12 +425,12 @@ namespace HACGUI.Services
                 return new FileInformation();
         }
 
-        private static FileInformation CreateInfo(IDirectory directory)
+        private static FileInformation CreateInfo(IDirectory directory, string path)
         {
             if (directory != null)
                 return new FileInformation
                 {
-                    FileName = GetFileName(directory.FullPath),
+                    FileName = GetFileName(path),
                     Attributes = FileAttributes.Directory
                 };
             else
