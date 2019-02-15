@@ -21,7 +21,7 @@ namespace HACGUI.Main.TaskManager.Tasks
             SetTotal(Length * Count);
         }
 
-        public override Task StartAsync()
+        public override Task CreateTask()
         {
             Timer = new Timer((state) => Event.Set(), Event, Length, Length);
             return new Task(() => Wait());

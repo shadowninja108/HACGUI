@@ -9,7 +9,7 @@ namespace HACGUI.Main.TaskManager.Tasks
     // On god?
     public class RunTask : ProgressTask
     {
-        private Task Task;
+        private readonly Task Task;
 
         public RunTask(string title, Task task) : base(title)
         {
@@ -17,7 +17,7 @@ namespace HACGUI.Main.TaskManager.Tasks
             Task = task;
         }
 
-        public override Task StartAsync()
+        public override Task CreateTask()
         {
             return Task;
         }

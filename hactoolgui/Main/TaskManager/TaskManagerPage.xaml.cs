@@ -74,5 +74,22 @@ namespace HACGUI.Main.TaskManager
             ProgressBar bar = sender as ProgressBar;
             (bar?.Tag as TaskElement).Binding = bar?.GetBindingExpression(ProgressBar.ValueProperty);
         }
+
+        private void StopButtonClicked(object sender, RoutedEventArgs e)
+        {
+            List<ProgressTask> tasks = new List<ProgressTask>();
+            foreach(TaskElement element in List.SelectedItems)
+                tasks.Add(element.Task);
+
+            ProgressView view = new ProgressView(tasks);
+            NavigationWindow window = new NavigationWindow
+            {
+                ShowsNavigationUI = false // get rid of the t r a s h
+            };
+
+            window.Navigate(view);
+            window.Owner = Window.GetWindow(this);
+            window.ShowDialog();
+        }
     }
 }

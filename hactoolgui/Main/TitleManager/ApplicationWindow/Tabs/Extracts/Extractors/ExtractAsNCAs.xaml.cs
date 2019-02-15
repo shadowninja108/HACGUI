@@ -86,7 +86,10 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                 destinationNcaFileInfo.CreateAndClose();
                 LocalFile destinationNcaFile = new LocalFile(destinationNcaFileInfo.FullName, OpenMode.Write);
                 IStorage source = nca.GetStorage();
-                destinationNcaFile.SetSize(source.Length);
+                tasks.Add(new RunTask($"Allocating space for {nca.Filename}...", new Task(() => 
+                {
+                    destinationNcaFile.SetSize(source.Length);
+                })));
                 tasks.Add(new CopyTask(source, new FileStorage(destinationNcaFile), $"Copying {nca.Filename}..."));
             }
             ProgressView view = new ProgressView(tasks);

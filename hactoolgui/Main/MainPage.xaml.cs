@@ -69,9 +69,11 @@ namespace HACGUI.Main
 
                 StatusService.Start();
 
-
                 if (IsAdministrator)
                     AdminButton.IsEnabled = false;
+
+                TaskManagerView.Queue.Submit(new WaitTask(1000, 10));
+                TaskManagerView.Queue.Submit(new WaitTask(1000, 12));
             };
         }
 

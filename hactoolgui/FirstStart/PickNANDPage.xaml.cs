@@ -363,7 +363,7 @@ namespace HACGUI.FirstStart
             }
 
             // write all keys to file
-            new SaveKeysetTask(PickConsolePage.ConsoleName).StartAsync().RunSynchronously();
+            new SaveKeysetTask(PickConsolePage.ConsoleName).CreateTask().RunSynchronously();
 
             Preferences.Current.DefaultConsoleName = PickConsolePage.ConsoleName;
             Preferences.Current.Write();
