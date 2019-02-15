@@ -145,7 +145,7 @@ namespace HACGUI.Extensions
             }
         }
 
-        public static void AddRange<T, S>(this Dictionary<T, S> source, Dictionary<T, S> collection)
+        public static void AddRange<T, S>(this Dictionary<T, S> source, Dictionary<T, S> collection, bool silent = false)
         {
             if (collection == null)
             {
@@ -158,7 +158,7 @@ namespace HACGUI.Extensions
                 {
                     source.Add(item.Key, item.Value);
                 }
-                else
+                else if(!silent)
                 {
                     throw new Exception($"Duplicate key {item.Key}!");
                 }

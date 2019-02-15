@@ -58,13 +58,15 @@ namespace HACGUI.Main
 
                 TaskManagerView.Queue.Submit(new RunTask("Deriving keys...", new Task(() => HACGUIKeyset.Keyset.Load())));
 
+                DeviceService.Start();
+
                 TitleManagerView = new MainTitleManagerPage();
                 TitleManagerFrame.Content = TitleManagerView;
                 SaveManagerView = new SaveManagerPage();
                 SaveManagerFrame.Content = SaveManagerView;
 
                 StatusService.Bar = StatusBar;
-                DeviceService.Start();
+
                 StatusService.Start();
 
 
