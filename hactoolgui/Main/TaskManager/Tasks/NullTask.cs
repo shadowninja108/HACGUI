@@ -13,7 +13,7 @@ namespace HACGUI.Main.TaskManager.Tasks
 
         }
 
-        public override Task StartAsync()
+        public override Task CreateTask()
         {
             return Task.CompletedTask;
         }

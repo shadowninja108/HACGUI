@@ -32,8 +32,30 @@ namespace HACGUI.Main
 
             Loggers = loggers;
 
-            foreach(ProgressTask logger in Loggers)
+            bool foundRunningTask = false;
+
+            foreach (ProgressTask logger in Loggers)
             {
+                logger.Started += () =>
+                {
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        string fullLog = logger.Log;
+                        fullLog = fullLog ?? "\n";
+                        fullLog = fullLog.Substring(0, fullLog.Length - 1);
+                        string[] log = fullLog.Split('\n');
+                        if (log != null && log.Length > 0)
+                            Status.Content = log.Reverse().Last();
+                        Log.Text += logger.Log;
+                    }));
+                };
+
+                if(!foundRunningTask && logger.UnderlyingTask != null && logger.UnderlyingTask?.Status != TaskStatus.WaitingToRun)
+                {
+                    foundRunningTask = true;
+                    logger.InformStart();
+                }
+
                 logger.MessageLogged += m =>
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
@@ -61,6 +83,11 @@ namespace HACGUI.Main
                 {
                     value += logger.Progress;
                     total += logger.Total;
+                    if (logger.Indeterminate)
+                    {
+                        ProgressBar.IsIndeterminate = true;
+                        break;
+                    }
                 }
 
                 if (total > 0)

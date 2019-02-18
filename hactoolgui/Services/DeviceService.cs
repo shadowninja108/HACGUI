@@ -186,7 +186,7 @@ namespace HACGUI.Services
                 Titles.AddRange(totalTitles, true);
                 Saves.AddRange(totalSaves, true);
 
-                TitlesChanged(Applications, Titles, Saves);
+                TitlesChanged?.Invoke(Applications, Titles, Saves);
             })));
         }
 

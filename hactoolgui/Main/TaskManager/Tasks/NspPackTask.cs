@@ -19,9 +19,13 @@ namespace HACGUI.Main.TaskManager.Tasks
             Target = target;
         }
 
-        public override Task StartAsync()
+        public override Task CreateTask()
         {
-            return new Task(() => Builder.Build(Target.Create(), this));
+            return new Task(() => {
+                Stream target = Target.Create();
+                Builder.Build(target, this);
+                target.Close();
+            });
         }
     }
 }

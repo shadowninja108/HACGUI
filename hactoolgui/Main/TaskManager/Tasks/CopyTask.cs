@@ -16,7 +16,7 @@ namespace HACGUI.Main.TaskManager.Tasks
             Message = message;
         }
 
-        public override Task StartAsync()
+        public override Task CreateTask()
         {
             return new Task(() => 
             {

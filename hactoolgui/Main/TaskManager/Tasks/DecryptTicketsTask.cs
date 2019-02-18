@@ -21,7 +21,7 @@ namespace HACGUI.Main.TaskManager.Tasks
             Blocking = true;
         }
 
-        public override Task StartAsync()
+        public override Task CreateTask()
         {
             return new Task(() =>
             {

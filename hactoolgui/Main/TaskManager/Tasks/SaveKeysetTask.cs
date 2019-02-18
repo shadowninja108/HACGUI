@@ -20,7 +20,7 @@ namespace HACGUI.Main.TaskManager.Tasks
             ConsoleName = consoleName;
         }
 
-        public override Task StartAsync()
+        public override Task CreateTask()
         {
             return new Task(() => 
             {

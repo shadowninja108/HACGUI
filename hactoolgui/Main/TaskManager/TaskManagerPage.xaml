@@ -13,13 +13,17 @@
         <System:Double x:Key="MinWidth">800</System:Double>
         <System:Double x:Key="MinHeight">500</System:Double>
         <views:FileSizeConverter x:Key="fileSizeConverter" />
+        <ContextMenu x:Key="TaskContextMenu">
+            <MenuItem Header="Stop" Click="StopButtonClicked" Tag="{Binding}"/>
+        </ContextMenu>
         <Style TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="ContextMenu" Value="{StaticResource TaskContextMenu}"/>
         </Style>
     </views:PageExtension.Resources>
     <Grid>
-        <ListView Name="List">
+        <ListView Name="List" SelectionMode="Extended">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Label" DisplayMemberBinding="{Binding Label}" Width="300"/>
