@@ -389,7 +389,7 @@ namespace HACGUI.FirstStart
             StreamWriter writer = new StreamWriter(continueStream);
             writer.WriteLine(HACGUIKeyset.Keyset.SecureBootKey.ToHexString());
             writer.WriteLine(HACGUIKeyset.Keyset.TsecKey.ToHexString());
-            writer.WriteLine(HACGUIKeyset.Keyset.TsecRootKey.Serialize().ToHexString()); // Serialize
+            writer.WriteLine(HACGUIKeyset.Keyset.TsecRootKeys.Serialize().ToHexString()); // Serialize
             writer.WriteLine(HACGUIKeyset.Keyset.EncryptedKeyblobs.Serialize().ToHexString());
             writer.WriteLine(PickConsolePage.ConsoleName);
             writer.Close();

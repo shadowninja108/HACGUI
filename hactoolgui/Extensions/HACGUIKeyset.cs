@@ -97,7 +97,7 @@ namespace HACGUI
             for (int i = 0; i < NintendoKeys.MasterKekSources.Length; i++)
                 Array.Copy(NintendoKeys.MasterKekSources[i], MasterKekSources[i], 0x10);
             Array.Copy(NintendoKeys.Pkg2KeySource, Package2KeySource, 0x10);
-            Array.Copy(NintendoKeys.TitleKekSource, TitlekekSource, 0x10);
+            Array.Copy(NintendoKeys.TitleKekSource, TitleKekSource, 0x10);
             Array.Copy(NintendoKeys.AesKekGenerationSource, AesKekGenerationSource, 0x10);
         }
 

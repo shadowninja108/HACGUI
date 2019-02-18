@@ -121,7 +121,7 @@ namespace HACGUI
                                 Array.Copy(reader.ReadLine().ToByteArray(), HACGUIKeyset.Keyset.TsecKey, 0x10);
                                 byte[][] tsecRootKey =  (byte[][]) reader.ReadLine().ToByteArray().Deserialize();
                                 for (int i = 0; i < tsecRootKey.Length; i++)
-                                    Array.Copy(tsecRootKey[i], HACGUIKeyset.Keyset.TsecRootKey[i], 0x10);
+                                    Array.Copy(tsecRootKey[i], HACGUIKeyset.Keyset.TsecRootKeys[i], 0x10);
                                 byte[][] keyblobs = (byte[][])reader.ReadLine().ToByteArray().Deserialize();
                                 for (int i = 0; i < tsecRootKey.Length; i++)
                                     Array.Copy(keyblobs[i], HACGUIKeyset.Keyset.EncryptedKeyblobs[i], 0xB0);

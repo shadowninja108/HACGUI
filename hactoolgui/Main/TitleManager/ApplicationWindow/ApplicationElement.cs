@@ -4,6 +4,7 @@ using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
 using LibHac.IO;
+using LibHac.IO.RomFs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -177,23 +178,14 @@ namespace HACGUI.Main.TitleManager
             {
                 NcaSection meta = title.ControlNca.Sections.FirstOrDefault(x => x?.Type == SectionType.Romfs);
                 RomFsFileSystem controlFS = new RomFsFileSystem(title.ControlNca.OpenSection(meta.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, false));
-                string iconFile = null;
-                foreach (KeyValuePair<string, RomfsFile> filekv in controlFS.FileDict)
-                {
-                    string name = filekv.Key; // just find any
-                    if (name.StartsWith("/icon_") && name.EndsWith(".dat"))
-                    {
-                        iconFile = name;
-                        break;
-                    }
-                }
+                DirectoryEntry file = controlFS.EnumerateEntries("icon_*.dat").FirstOrDefault();
 
-                if (iconFile != null)
+                if (file != null)
                     return new Task<ImageSource>(() =>
                     {
                         try
                         {
-                            JpegBitmapDecoder decoder = new JpegBitmapDecoder(controlFS.OpenFile(iconFile, OpenMode.Read).AsStream(), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+                            JpegBitmapDecoder decoder = new JpegBitmapDecoder(controlFS.OpenFile(file.FullPath, OpenMode.Read).AsStream(), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
                             decoder.Frames[0].Freeze();
                             return decoder.Frames[0];
                         } catch(Exception)

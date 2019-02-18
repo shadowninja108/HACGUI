@@ -145,7 +145,7 @@ namespace HACGUI.FirstStart
                 catch (Exception)
                 {
                     // likely 6.2.0, need to get extra info
-                    Array.Copy(TSECKeys[1], HACGUIKeyset.Keyset.TsecRootKey[0], 0x10); // we really don't know if there will be future tsec keys, and how it will be handled
+                    Array.Copy(TSECKeys[1], HACGUIKeyset.Keyset.TsecRootKeys[0], 0x10); // we really don't know if there will be future tsec keys, and how it will be handled
                     HACGUIKeyset.Keyset.DeriveKeys();
                 }
 
