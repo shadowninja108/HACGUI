@@ -1,4 +1,4 @@
 [submodule "LibHac"]
 	path = LibHac
 	url = https://github.com/Thealexbarney/LibHac
-	branch = ifilesystem
+	branch = master
