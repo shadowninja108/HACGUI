@@ -4,6 +4,7 @@ using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager;
 using HACGUI.Services;
+using static HACGUI.Extensions.Extensions;
 using LibHac;
 using LibHac.IO;
 using LibHac.Nand;
@@ -36,7 +37,7 @@ namespace HACGUI.Main
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        for (int i = 1; i < 5; i++)
+                        for (int i = 1; i < 6; i++)
                         {
                             (NANDContextMenu.Items[i] as MenuItem).IsEnabled = true;
                         }
@@ -46,7 +47,7 @@ namespace HACGUI.Main
 
                 NANDService.OnNANDRemoved += () =>
                 {
-                    for (int i = 1; i < 5; i++)
+                    for (int i = 1; i < 6; i++)
                     {
                         (NANDContextMenu.Items[i] as MenuItem).IsEnabled = false;
                     }
@@ -71,9 +72,6 @@ namespace HACGUI.Main
 
                 if (IsAdministrator)
                     AdminButton.IsEnabled = false;
-
-                TaskManagerView.Queue.Submit(new WaitTask(1000, 10));
-                TaskManagerView.Queue.Submit(new WaitTask(1000, 12));
             };
         }
 
@@ -153,6 +151,20 @@ namespace HACGUI.Main
         private void OpenUserSwitchClick(object sender, RoutedEventArgs e)
         {
             Process.Start(HACGUIKeyset.UserSwitchDirectoryInfo.FullName);
+        }
+
+        private void DumpNANDToFile(object sender, RoutedEventArgs e)
+        {
+            FileInfo info = RequestSaveFileFromUser("rawnand.bin", "NAND dump(.bin) | rawnand.bin");
+            if (info != null) {
+                IStorage source = NANDService.NANDSource;
+                info.CreateAndClose();
+                LocalFile target = new LocalFile(info.FullName, OpenMode.ReadWrite);
+                IStorage targetStorage = target.AsStorage();
+                TaskManagerPage.Current.Queue.Submit(new ResizeTask($"Allocating space for {info.Name} (NAND backup)...", target, source.Length));
+                TaskManagerPage.Current.Queue.Submit(new CopyTask($"Copying NAND to {info.Name}...", source, targetStorage));
+                MessageBox.Show("This is a lengthy operation.\nYou can check the status of it under\nthe tasks tab.");
+            }
         }
     }
 }

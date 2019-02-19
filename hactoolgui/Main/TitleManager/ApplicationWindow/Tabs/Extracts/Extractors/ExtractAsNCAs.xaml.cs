@@ -73,7 +73,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                                 LocalFile sourceTikFile = new LocalFile(sourceTikFileInfo.FullName, OpenMode.Read);
                                 LocalFile destinationTikFile = new LocalFile(destinationTikFileInfo.FullName, OpenMode.Write);
                                 destinationTikFile.SetSize(sourceTikFile.GetSize());
-                                tasks.Add(new CopyTask(new FileStorage(sourceTikFile), new FileStorage(destinationTikFile), $"Copying {ticketFileName}..."));
+                                tasks.Add(new CopyTask($"Copying {ticketFileName}...", new FileStorage(sourceTikFile), new FileStorage(destinationTikFile)));
                             }
                         }
                     }
@@ -90,7 +90,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                 {
                     destinationNcaFile.SetSize(source.Length);
                 })));
-                tasks.Add(new CopyTask(source, new FileStorage(destinationNcaFile), $"Copying {nca.Filename}..."));
+                tasks.Add(new CopyTask($"Copying {nca.Filename}...", source, new FileStorage(destinationNcaFile)));
             }
             ProgressView view = new ProgressView(tasks);
             NavigationWindow window = new NavigationWindow

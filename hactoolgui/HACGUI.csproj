@@ -143,6 +143,7 @@
       <DependentUpon>TaskManagerPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Main\TaskManager\TaskQueue.cs" />
+    <Compile Include="Main\TaskManager\Tasks\ResizeTask.cs" />
     <Compile Include="Main\TaskManager\Tasks\DecryptTicketsTask.cs" />
     <Compile Include="Main\TaskManager\Tasks\RunTask.cs" />
     <Compile Include="Main\TaskManager\Tasks\NspPackTask.cs" />

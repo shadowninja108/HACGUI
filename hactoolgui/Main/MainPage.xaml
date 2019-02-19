@@ -37,6 +37,7 @@
                                 <MenuItem Tag="1" Header="Mount SAFE partition" Click="MountPartition" IsEnabled="False"/>
                                 <MenuItem Tag="2" Header="Mount SYSTEM partition" Click="MountPartition" IsEnabled="False"/>
                                 <MenuItem Tag="3" Header="Mount USER partition" Click="MountPartition" IsEnabled="False"/>
+                                <MenuItem Header="Dump NAND to file" Click="DumpNANDToFile" IsEnabled="False"/>
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>
