@@ -3,7 +3,9 @@ using LibHac.IO;
 using LibHac.Nand;
 using NandReaderGui;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Management;
 
 namespace HACGUI.Services
@@ -87,7 +89,12 @@ namespace HACGUI.Services
                     try
                     {
                         DiskInfo info = CreateDiskInfo(disk);
-                        IStorage diskStorage = new CachedStorage(new DeviceStream(info.PhysicalName, info.Length).AsStorage().AsReadOnly(), info.SectorSize * 100, 4, true);
+                        IEnumerable<PartitionInfo> partitions = CreatePartitionInfos(GetPartitions()).Where((p) => info.Index == p.DiskIndex).OrderBy((p) => p.Index);
+                        PartitionInfo lastPartition = partitions.Last();
+                        long length = (long)(lastPartition.Size + lastPartition.StartingOffset);
+                        long missingLength = (0x747BFFE00 - 0x727800000) + 0x200; // (start of GPT backup - end of USER) + length of GPT backup
+                        length += missingLength;
+                        IStorage diskStorage = new CachedStorage(new DeviceStream(info.PhysicalName, length).AsStorage().AsReadOnly(), info.SectorSize * 100, 4, true);
                         if (InsertNAND(diskStorage, true))
                             CurrentDisk = info;
                     }
@@ -109,15 +116,44 @@ namespace HACGUI.Services
                 //todo Why is Windows returning small sizes? https://stackoverflow.com/questions/15051660
                 Length = (long)((ulong)disk.GetPropertyValue("Size")),
                 SectorSize = (int)((uint)disk.GetPropertyValue("BytesPerSector")),
-                DisplaySize = Util.GetBytesReadable((long)((ulong)disk.GetPropertyValue("Size")))
+                DisplaySize = Util.GetBytesReadable((long)((ulong)disk.GetPropertyValue("Size"))),
+                Partitions = (uint)disk.GetPropertyValue("Partitions"),
+                Index = (uint)disk.GetPropertyValue("Index")
             };
             return info;
         }
 
+        private static PartitionInfo CreatePartitionInfo(ManagementObject parition)
+        {
+            return new PartitionInfo()
+            {
+                DiskIndex = (uint)parition.GetPropertyValue("DiskIndex"),
+                Index = (uint)parition.GetPropertyValue("Index"),
+                Size = (ulong)parition.GetPropertyValue("Size"),
+                StartingOffset = (ulong)parition.GetPropertyValue("StartingOffset"),
+                Name = (string)parition.GetPropertyValue("Name"),
+                Description = (string)parition.GetPropertyValue("Description"),
+            };
+        }
+
+        private static PartitionInfo[] CreatePartitionInfos(ManagementObjectCollection partitions)
+        {
+            List<PartitionInfo> info = new List<PartitionInfo>();
+            foreach (ManagementObject partition in partitions)
+            {
+                info.Add(CreatePartitionInfo(partition));
+            }
+            return info.ToArray();
+        }
+
         private static ManagementObjectCollection GetDisks()
         {
-            ManagementClass wmi = new ManagementClass("Win32_DiskDrive");
-            return wmi.GetInstances();
+            return new ManagementClass("Win32_DiskDrive").GetInstances();
+        }
+
+        private static ManagementObjectCollection GetPartitions()
+        {
+            return new ManagementClass("Win32_DiskPartition").GetInstances();
         }
 
         public static bool InsertNAND(IStorage input, bool raw)
@@ -193,5 +229,17 @@ namespace HACGUI.Services
         public int SectorSize { get; set; }
         public string DisplaySize { get; set; }
         public string Display => $"{Name} ({DisplaySize})";
+        public uint Partitions { get; set; }
+        public uint Index { get; set; }
+    }
+
+    public class PartitionInfo
+    {
+        public uint DiskIndex { get; set; }
+        public uint Index { get; set; }
+        public ulong Size { get; set; }
+        public ulong StartingOffset { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
     }
 }
