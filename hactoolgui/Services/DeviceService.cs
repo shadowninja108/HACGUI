@@ -168,7 +168,7 @@ namespace HACGUI.Services
                                     totalApps[titleid].AddTitle(app.Main);
                                 if (app.Patch != null)
                                     totalApps[titleid].AddTitle(app.Patch);
-                                foreach (Title title in totalApps[titleid].AddOnContent)
+                                foreach (Title title in new List<Title>(totalApps[titleid].AddOnContent))
                                     if (title != null)
                                         totalApps[titleid].AddTitle(title);
                             }

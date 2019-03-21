@@ -21,6 +21,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using LibHac.IO;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TaskManager;
+using LibHac.IO.NcaUtils;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 {
@@ -88,7 +89,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                 IStorage source = nca.GetStorage();
                 tasks.Add(new RunTask($"Allocating space for {nca.Filename}...", new Task(() => 
                 {
-                    destinationNcaFile.SetSize(source.Length);
+                    destinationNcaFile.SetSize(source.GetSize());
                 })));
                 tasks.Add(new CopyTask($"Copying {nca.Filename}...", source, new FileStorage(destinationNcaFile)));
             }

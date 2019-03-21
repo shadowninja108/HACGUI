@@ -1,6 +1,7 @@
 ﻿using HACGUI.Main.TitleManager.Application.Tabs.Extracts.Extractors;
 using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
+using LibHac.IO.NcaUtils;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,7 +34,7 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
             }
         }
 
-        private void ExtractClicked(object sender, System.Windows.RoutedEventArgs e)
+        private void ExtractClicked(object sender, RoutedEventArgs e)
         {
             List<Nca> selected = new List<Nca>();
             foreach (TitleElement info in ListView.Items)

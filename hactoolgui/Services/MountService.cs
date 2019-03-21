@@ -305,7 +305,7 @@ namespace HACGUI.Services
         public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, DokanFileInfo info)
         {
             FileStorage storage = OpenFile(fileName);
-            long size = storage.Length - offset;
+            long size = storage.GetSize() - offset;
             if (size < 0)
             {
                 bytesRead = 0;
@@ -313,7 +313,7 @@ namespace HACGUI.Services
             }
             size = Math.Min(size, buffer.Length);
 
-            storage.Read(buffer, Math.Min(offset, storage.Length - size), (int) size, 0);
+            storage.Read(buffer, Math.Min(offset, storage.GetSize() - size), (int) size, 0);
             bytesRead = (int)size; // TODO accuracy
             return NtStatus.Success;
         }
@@ -363,7 +363,7 @@ namespace HACGUI.Services
         public NtStatus WriteFile(string fileName, byte[] buffer, out int bytesWritten, long offset, DokanFileInfo info)
         {
             FileStorage storage = OpenFile(fileName);
-            long size = storage.Length - offset;
+            long size = storage.GetSize() - offset;
             if (size < 0)
             {
                 bytesWritten = 0;
@@ -371,7 +371,7 @@ namespace HACGUI.Services
             }
             size = Math.Min(size, buffer.Length);
 
-            storage.Write(buffer, Math.Min(offset, storage.Length - size), (int)size, 0);
+            storage.Write(buffer, Math.Min(offset, storage.GetSize() - size), (int)size, 0);
             bytesWritten = (int)size; // TODO accuracy
             return NtStatus.Success;
         }
@@ -417,7 +417,7 @@ namespace HACGUI.Services
                 return new FileInformation
                 {
                     FileName = GetFileName(path),
-                    Length = storage.Length,
+                    Length = storage.GetSize(),
                     Attributes = FileAttributes.ReadOnly
                 };
             }

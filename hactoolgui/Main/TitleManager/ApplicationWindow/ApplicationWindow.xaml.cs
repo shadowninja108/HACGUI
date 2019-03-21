@@ -32,7 +32,7 @@ namespace HACGUI.Main.TitleManager.Application
         {
             Current = this;
             Element = element;
-            Title = element.Name;
+            Title = element.Name ?? "Unknown Title";
 
             InitializeComponent();
         }

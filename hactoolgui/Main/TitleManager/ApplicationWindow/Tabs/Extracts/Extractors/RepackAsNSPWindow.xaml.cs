@@ -4,6 +4,7 @@ using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Utilities;
 using LibHac;
 using LibHac.IO;
+using LibHac.IO.NcaUtils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +35,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
         {
             FileInfo info = new FileInfo(Path.Text);
             info.Directory.Create(); // ensure that the folder exists
-            Pfs0Builder builder = new Pfs0Builder();
+            PartitionFileSystemBuilder builder = new PartitionFileSystemBuilder();
             NspPackTask logger = new NspPackTask(builder, info);
             ProgressView view = new ProgressView(new List<ProgressTask> { logger });
             if (TicketCheckbox.IsChecked == true)
@@ -52,14 +53,14 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                         {
                             foundTickets.Add(rightsId);
                             LocalFile tikFile = new LocalFile(sourceTikFileInfo.FullName, OpenMode.Read);
-                            builder.AddFile(ticketFileName, new FileStorage(tikFile).AsStream());
+                            builder.AddFile(ticketFileName, tikFile);
                         }
                     }
                 }
             }
 
             foreach (Nca nca in SelectedNcas)
-                builder.AddFile(nca.Filename, nca.GetStorage().AsStream());
+                builder.AddFile(nca.Filename, nca.GetStorage().AsFile(OpenMode.Read));
             
 
             NavigationWindow window = new NavigationWindow
