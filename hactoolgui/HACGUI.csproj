@@ -134,7 +134,7 @@
     </Compile>
     <Compile Include="Extensions\Converters.cs" />
     <Compile Include="Extensions\DropdownButton.cs" />
-    <Compile Include="Extensions\ObservableDictionary.cs" />
+    <Compile Include="Utilities\ObservableDictionary.cs" />
     <Compile Include="Main\SaveManager\SaveManagerPage.xaml.cs">
       <DependentUpon>SaveManagerPage.xaml</DependentUpon>
     </Compile>
