@@ -63,7 +63,7 @@ namespace HACGUI.Main
 
                 TitleManagerView = new MainTitleManagerPage();
                 TitleManagerFrame.Content = TitleManagerView;
-                SaveManagerView = new SaveManagerPage();
+                SaveManagerView = new SaveManagerPage(0);
                 SaveManagerFrame.Content = SaveManagerView;
 
                 StatusService.Bar = StatusBar;

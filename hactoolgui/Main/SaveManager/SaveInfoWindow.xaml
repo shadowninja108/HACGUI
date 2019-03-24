@@ -1,0 +1,52 @@
+﻿<Window x:Class="HACGUI.Main.SaveManager.SaveInfoWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HACGUI.Main.SaveManager"
+        xmlns:utilities="clr-namespace:HACGUI.Utilities"
+        mc:Ignorable="d"
+        Name="root"
+        Title="SaveInfoWindow" Height="280" Width="370">
+    <Grid>
+        <Grid Margin="20,25,0,0" Width="130" Height="130" VerticalAlignment="Top" HorizontalAlignment="Left">
+            <DockPanel>
+                <Label Name="UserLabel" DockPanel.Dock="Bottom" Height="20"/>
+                <Border BorderThickness="2"
+                        BorderBrush="Gray"
+                        Width="110"
+                        Height="110">
+                    <Image Name="Icon">
+                        <Image.ContextMenu>
+                            <ContextMenu StaysOpen="True">
+                                <!--<MenuItem Header="Copy" Click="CopyImage"/>-->
+                            </ContextMenu>
+                        </Image.ContextMenu>
+                    </Image>
+                </Border>
+            </DockPanel>
+        </Grid>
+
+        <StackPanel Name="FramePanel" Margin="0,25,15,0"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="190">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type utilities:LabelBoxFrame}">
+                    <Setter Property="Margin" Value="0,0,0,10"/>
+                </Style>
+            </StackPanel.Resources>
+
+            <utilities:LabelBoxFrame Label="Name" Text="{Binding SaveName, ElementName=root}" Ratio1="2" Ratio2="5"/>
+            <utilities:LabelBoxFrame Label="ID" Text="{Binding SaveID, StringFormat={}{0:x16}, ElementName=root}" Ratio1="2" Ratio2="5"/>
+            <utilities:LabelBoxFrame Label="Owner" Text="{Binding SaveOwner, ElementName=root}" Ratio1="2" Ratio2="5"/>
+            <utilities:LabelBoxFrame Label="Timestamp" Text="{Binding Timestamp, ElementName=root}" Ratio1="3" Ratio2="5"/>
+        </StackPanel>
+        <DockPanel Margin="0,0,0,15" Width="290" Height="65" VerticalAlignment="Bottom">
+            <Label DockPanel.Dock="Top" Content="Mounting"/>
+            <Border Padding="4">
+                <ComboBox Width="140" Name="MountTypesComboBox" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            </Border>
+            <Border Padding="4" HorizontalAlignment="Right">
+                <Button Width="75"  Click="MountClicked">Mount</Button>
+            </Border>
+        </DockPanel>
+    </Grid>
+</Window>

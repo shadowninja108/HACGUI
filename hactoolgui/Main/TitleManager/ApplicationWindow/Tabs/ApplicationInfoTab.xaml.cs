@@ -21,7 +21,6 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
     public partial class ApplicationInfoTab : UserControl
     {
         private ApplicationElement Element => ApplicationWindow.Current.Element;
-        //private LibHac.Application Application => ApplicationWindow.Current.Applications[Element.BaseTitleId];
 
         public ApplicationInfoTab()
         {

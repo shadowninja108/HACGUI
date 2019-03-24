@@ -33,7 +33,6 @@ namespace HACGUI.Services
                 Thread thread = new Thread(new ThreadStart(() => 
                 {
                     Dokan.Mount(fs, $"{drive}:", DokanOptions.RemovableDrive | DokanOptions.WriteProtection);
-                    Mounted.Remove(fs);
                 }
                 ));
                 if (Mounted.ContainsKey(fs))

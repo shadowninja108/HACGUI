@@ -134,6 +134,13 @@
     </Compile>
     <Compile Include="Extensions\Converters.cs" />
     <Compile Include="Extensions\DropdownButton.cs" />
+    <Compile Include="Main\SaveManager\SaveInfoWindow.xaml.cs">
+      <DependentUpon>SaveInfoWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Main\SaveManager\SystemSaveNames.cs" />
+    <Compile Include="Utilities\LabelBoxFrame.xaml.cs">
+      <DependentUpon>LabelBoxFrame.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\ObservableDictionary.cs" />
     <Compile Include="Main\SaveManager\SaveManagerPage.xaml.cs">
       <DependentUpon>SaveManagerPage.xaml</DependentUpon>
@@ -259,6 +266,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Main\SaveManager\SaveInfoWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Main\SaveManager\SaveManagerPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -308,6 +319,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="RootWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Utilities\LabelBoxFrame.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

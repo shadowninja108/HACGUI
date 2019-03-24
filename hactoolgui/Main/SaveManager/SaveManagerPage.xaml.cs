@@ -21,35 +21,79 @@ namespace HACGUI.Main.SaveManager
     /// <summary>
     /// Interaction logic for SaveManagerPage.xaml
     /// </summary>
-    public partial class SaveManagerPage : PageExtension
+    public partial class SaveManagerPage : UserControl
     {
-        public SaveManagerPage()
+        private ulong TitleID;
+
+        public SaveManagerPage(ulong titleId)
         {
+            TitleID = titleId;
             InitializeComponent();
 
             DeviceService.TitlesChanged += RefreshSavesView;
 
             DeviceService.Start();
+
+            GridView grid = ListView.View as GridView;
+            if (titleId == 0)
+            {
+                grid.Columns.Insert(0, new GridViewColumn()
+                {
+                    DisplayMemberBinding = new Binding("Owner"),
+                    Header = "Owner",
+                    Width = double.NaN
+                });
+            }
+            else
+            {
+                GridViewColumn column = grid.Columns.Where((c) => c.Header as string == "Name/ID").FirstOrDefault();
+                if (column != null)
+                    grid.Columns.Remove(column);
+                else
+                {
+                    ; // for breakpoint (this should never happen)
+                }
+            }
+
+            Refresh();
         }
 
         private void SaveDoubleClicked(object sender, MouseButtonEventArgs e)
         {
             SaveElement element = ListView.SelectedItem as SaveElement;
-            ulong view = element.SaveId;
-            if (view == 0)
-                view = element.TitleId;
-            MountService.Mount(new MountableFileSystem(element.Save, view.ToString("x16"), "Savefile", LibHac.IO.OpenMode.Read));
+            SaveInfoWindow window = new SaveInfoWindow(element)
+            {
+                Owner = Window.GetWindow(this)
+            };
+            window.ShowDialog();
         }
 
-        private void RefreshSavesView(Dictionary<ulong, LibHac.Application> apps, Dictionary<ulong, LibHac.Title> titles, Dictionary<string, LibHac.IO.Save.SaveDataFileSystem> saves)
+        private void RefreshSavesView(Dictionary<ulong, LibHac.Application> apps, Dictionary<ulong, LibHac.Title> titles, Dictionary<string, SaveDataFileSystem> saves)
+        {
+            Refresh();
+        }
+
+        private void Refresh()
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 ListView.Items.Clear();
 
                 foreach (KeyValuePair<string, SaveDataFileSystem> kv in DeviceService.Saves)
-                    ListView.Items.Add(new SaveElement(kv));
-                
+                {
+                    SaveElement element = new SaveElement(kv);
+                    if (TitleID == 0)
+                    {
+                        if ((element.SaveId & 0x8000000000000000) != 0)
+                            ListView.Items.Add(element);
+                    }
+                    else
+                    {
+                        if (element.SaveId == TitleID)
+                            ListView.Items.Add(element);
+                    }
+                }
+
             }));
         }
     }

@@ -294,8 +294,8 @@ namespace HACGUI.FirstStart
             prodinfo.CopyTo(prodinfoFile);
             prodinfo.Close();
             prodinfoFile.Seek(0, SeekOrigin.Begin);
+            new DecryptTicketsTask().CreateTask().RunSynchronously();
             Calibration cal0 = new Calibration(prodinfoFile);
-            HACGUIKeyset.Keyset.EticketExtKeyRsa = Crypto.DecryptRsaKey(cal0.EticketExtKeyRsa, HACGUIKeyset.Keyset.EticketRsaKek);
 
             // get client certificate
             prodinfo.Seek(0x0AD0, SeekOrigin.Begin);
