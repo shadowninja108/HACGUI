@@ -58,12 +58,15 @@ namespace HACGUI.Services
             string mountPoint = $"{Mounted[fs].Item2}:";
             Mounted[fs].Item1.Join(); // wait for thread to actually stop
             Dokan.RemoveMountPoint(mountPoint);
+            Mounted.Remove(fs);
         }
 
         public static void UnmountAll()
         {
-            foreach (MountableFileSystem fs in new List<MountableFileSystem>(Mounted.Keys))
-                Unmount(fs);
+            foreach (Tuple<Thread, char> fs in Mounted.Values)
+                Dokan.Unmount(fs.Item2);
+            foreach (Tuple<Thread, char> fs in new List<Tuple<Thread, char>>(Mounted.Values))
+                fs.Item1.Join(); // wait for thread to stop
             Mounted.Clear();
         }
 
