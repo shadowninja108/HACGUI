@@ -1,0 +1,20 @@
+﻿<UserControl x:Class="HACGUI.Utilities.LabelBoxFrame"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             DataContext="{Binding RelativeSource={RelativeSource Self}}"
+             d:DesignHeight="50" d:DesignWidth="200">
+    <Grid Name="Frame" VerticalAlignment="Stretch">
+        <Grid.ColumnDefinitions>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="{Binding Label}" VerticalContentAlignment="Center" VerticalAlignment="Stretch"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Text}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" IsReadOnly="True" MaxLines="1"/>
+    </Grid>
+</UserControl>

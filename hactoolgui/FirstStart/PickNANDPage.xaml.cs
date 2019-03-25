@@ -20,6 +20,7 @@ using LibHac.IO.Save;
 using System.Security.Principal;
 using System.Diagnostics;
 using HACGUI.Main.TaskManager.Tasks;
+using LibHac.IO.NcaUtils;
 
 namespace HACGUI.FirstStart
 {
@@ -227,7 +228,7 @@ namespace HACGUI.FirstStart
                             {
                                 case ContentType.Program:
                                     NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
-                                    IStorage pfsStorage = nca.OpenSection(exefsSection.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, false);
+                                    IStorage pfsStorage = nca.OpenStorage(exefsSection.SectionNum, IntegrityCheckLevel.ErrorOnInvalid);
                                     PartitionFileSystem pfs = new PartitionFileSystem(pfsStorage);
                                     Nso nso = new Nso(new FileStorage(pfs.OpenFile("main", OpenMode.Read)));
                                     NsoSection section = nso.Sections[1];
@@ -258,7 +259,7 @@ namespace HACGUI.FirstStart
                             {
                                 case ContentType.Program:
                                     NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
-                                    IStorage pfsStorage = nca.OpenSection(exefsSection.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, false);
+                                    IStorage pfsStorage = nca.OpenStorage(exefsSection.SectionNum, IntegrityCheckLevel.ErrorOnInvalid);
                                     PartitionFileSystem pfs = new PartitionFileSystem(pfsStorage);
                                     Nso nso = new Nso(new FileStorage(pfs.OpenFile("main", OpenMode.Read)));
                                     NsoSection section = nso.Sections[1];
@@ -293,8 +294,8 @@ namespace HACGUI.FirstStart
             prodinfo.CopyTo(prodinfoFile);
             prodinfo.Close();
             prodinfoFile.Seek(0, SeekOrigin.Begin);
+            new DecryptTicketsTask().CreateTask().RunSynchronously();
             Calibration cal0 = new Calibration(prodinfoFile);
-            HACGUIKeyset.Keyset.EticketExtKeyRsa = Crypto.DecryptRsaKey(cal0.EticketExtKeyRsa, HACGUIKeyset.Keyset.EticketRsaKek);
 
             // get client certificate
             prodinfo.Seek(0x0AD0, SeekOrigin.Begin);

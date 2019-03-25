@@ -7,6 +7,7 @@ using HACGUI.Extensions;
 using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager;
+using HACGUI.Utilities;
 using LibHac;
 using LibHac.IO;
 using LibHac.IO.Save;
@@ -88,6 +89,7 @@ namespace HACGUI.Services
                     NANDUserTitleView.LoadFileSystemAsync("Opening NAND user filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenUserPartition()), false);
                     NANDSystemTitleView.LoadFileSystemAsync("Opening NAND system filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()), true);
                     TaskManagerPage.Current.Queue.Submit(new DecryptTicketsTask());
+                    TaskManagerPage.Current.Queue.Submit(new SaveKeysetTask(Preferences.Current.DefaultConsoleName)); // TODO
 
                     StatusService.NANDStatus = StatusService.Status.Progress;
                 };
@@ -168,7 +170,7 @@ namespace HACGUI.Services
                                     totalApps[titleid].AddTitle(app.Main);
                                 if (app.Patch != null)
                                     totalApps[titleid].AddTitle(app.Patch);
-                                foreach (Title title in totalApps[titleid].AddOnContent)
+                                foreach (Title title in new List<Title>(totalApps[titleid].AddOnContent))
                                     if (title != null)
                                         totalApps[titleid].AddTitle(title);
                             }

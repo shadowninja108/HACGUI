@@ -92,6 +92,7 @@ namespace HACGUI.Services
                         IEnumerable<PartitionInfo> partitions = CreatePartitionInfos(GetPartitions()).Where((p) => info.Index == p.DiskIndex).OrderBy((p) => p.Index);
                         PartitionInfo lastPartition = partitions.Last();
                         long length = (long)(lastPartition.Size + lastPartition.StartingOffset);
+                        // thx windows for ignoring the GPT backup AND reporting the size of the disk incorrectly...
                         long missingLength = (0x747BFFE00 - 0x727800000) + 0x200; // (start of GPT backup - end of USER) + length of GPT backup
                         length += missingLength;
                         IStorage diskStorage = new CachedStorage(new DeviceStream(info.PhysicalName, length).AsStorage().AsReadOnly(), info.SectorSize * 100, 4, true);

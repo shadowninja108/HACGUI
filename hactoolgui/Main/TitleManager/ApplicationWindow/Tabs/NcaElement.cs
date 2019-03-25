@@ -1,4 +1,5 @@
 ﻿using LibHac;
+using LibHac.IO.NcaUtils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
         public Nca Nca;
 
         public string FileName => Nca.Filename;
-        public long Size => Nca.GetStorage().Length;
+        public long Size => Nca.GetStorage().GetSize();
         public ContentType Type => Nca.Header.ContentType;
         public bool Selected { get; set; }
 

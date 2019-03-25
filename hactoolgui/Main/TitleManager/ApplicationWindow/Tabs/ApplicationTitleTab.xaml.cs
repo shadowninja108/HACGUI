@@ -1,6 +1,9 @@
 ﻿using HACGUI.Main.TitleManager.Application.Tabs.Extracts.Extractors;
 using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
+using LibHac.IO;
+using LibHac.IO.NcaUtils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,7 +36,7 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
             }
         }
 
-        private void ExtractClicked(object sender, System.Windows.RoutedEventArgs e)
+        private void ExtractClicked(object sender, RoutedEventArgs e)
         {
             List<Nca> selected = new List<Nca>();
             foreach (TitleElement info in ListView.Items)
@@ -45,22 +48,7 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
             window.Owner = Window.GetWindow(this);
             window.ShowDialog();
 
-            /*List<Nca> updates = new List<Nca>();
-            List<Nca> normal = new List<Nca>();
-            Title main = selected.FirstOrDefault(x => x.Metadata.Type == TitleType.Application);
-            foreach (Title title in selected) {
-                if (title.Metadata.Type == TitleType.Patch)
-                    updates.Add(title.MainNca);
-                else if(title != main)
-                    normal.Add(title.MainNca);
-            }
-
-            if(updates.Any() && main == null)
-            {
-                // no base game found
-                ;
-            }
-
+            /*
             Dictionary<SectionType, List<NcaSection>> indexed = new Dictionary<SectionType, List<NcaSection>>();
             foreach (Title title in selected)
             {
@@ -90,6 +78,68 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
                 };
                 window.ShowDialog();
             }
+        }
+
+        private void MountClicked(object sender, RoutedEventArgs e)
+        {
+            List<Title> selected = new List<Title>();
+            foreach (TitleElement info in ListView.Items)
+                if (info.Selected)
+                    selected.Add(info.Title);
+            if (!HasBaseGame(selected))
+            {
+                System.Windows.MessageBox.Show("You have selected an update but haven't selected the base game.");
+                return;
+            }
+
+            Dictionary<SectionType, List<Tuple<Nca, NcaSection>>> indexed = new Dictionary<SectionType, List<Tuple<Nca, NcaSection>>>();
+            foreach (Title title in selected)
+            {
+                Nca nca = title.MainNca;
+                if (nca.Header.ContentType != ContentType.Meta)
+                    foreach (NcaSection section in nca.Sections)
+                    {
+                        if (section == null) continue;
+                        if (!indexed.ContainsKey(section.Type)) indexed[section.Type] = new List<Tuple<Nca, NcaSection>>();
+                        indexed[section.Type].Add(new Tuple<Nca, NcaSection>(nca, section));
+                    }
+            }
+            Window window = new TitleMountDialog(indexed)
+            {
+                Owner = Window.GetWindow(this)
+            };
+            window.ShowDialog();
+        }
+
+        private static bool HasBaseGame(List<Title> titles)
+        {
+            List<Nca> updates = new List<Nca>();
+            List<Nca> normal = new List<Nca>();
+            Title main = titles.Where(t => t.Metadata.Type == TitleType.Application).FirstOrDefault();
+            foreach (Title title in titles)
+            {
+                if (title.Metadata.Type == TitleType.Patch)
+                {
+                    if(main != null)
+                        title.MainNca.SetBaseNca(main.MainNca);
+                    updates.Add(title.MainNca);
+                }
+                else if (title != main)
+                    normal.Add(title.MainNca);
+            }
+
+            return !(updates.Any() && main == null);
+        }
+
+
+        private static Nca GetMeta(Nca search, List<Nca> list)
+        {
+            foreach (Nca nca in list.Where(n => n.Header.ContentType == ContentType.Meta))
+            {
+                if (nca.NcaId == search.NcaId)
+                    return nca;
+            }
+            return null;
         }
     }
 }

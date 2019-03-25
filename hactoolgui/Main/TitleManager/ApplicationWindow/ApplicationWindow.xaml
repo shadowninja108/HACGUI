@@ -4,17 +4,20 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:tabs="clr-namespace:HACGUI.Main.TitleManager.Application.Tabs"
     mc:Ignorable="d" 
-    xmlns:Tabs="clr-namespace:HACGUI.Main.TitleManager.Application.Tabs"
       Width="350" Height="300" ResizeMode="NoResize">
 
     <Grid>
         <TabControl>
             <TabItem Header="Info">
-                <Tabs:ApplicationInfoTab/>
+                <tabs:ApplicationInfoTab/>
+            </TabItem>
+            <TabItem Header="Saves">
+                <tabs:ApplicationSaveTab/>
             </TabItem>
             <TabItem Header="Titles">
-                <Tabs:ApplicationTitleTab/>
+                <tabs:ApplicationTitleTab/>
             </TabItem>
         </TabControl>
     </Grid>

@@ -4,6 +4,7 @@ using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
 using LibHac.IO;
+using LibHac.IO.NcaUtils;
 using LibHac.IO.RomFs;
 using System;
 using System.Collections.Generic;
@@ -108,7 +109,7 @@ namespace HACGUI.Main.TitleManager
                 Title title = titles.LastOrDefault((x) => x.Metadata.Type == TitleType.Patch);
                 if (title == null)
                     title = titles.FirstOrDefault((x) => x.Metadata.Type == TitleType.Application);
-                if (title == null)
+                if (title == null || title.Control == null)
                     return "";
                 else
                     return title.Control.BcatPassphrase;
@@ -177,7 +178,7 @@ namespace HACGUI.Main.TitleManager
             if (title.ControlNca != null)
             {
                 NcaSection meta = title.ControlNca.Sections.FirstOrDefault(x => x?.Type == SectionType.Romfs);
-                RomFsFileSystem controlFS = new RomFsFileSystem(title.ControlNca.OpenSection(meta.SectionNum, false, IntegrityCheckLevel.ErrorOnInvalid, false));
+                IFileSystem controlFS = title.ControlNca.OpenFileSystem(meta.SectionNum, IntegrityCheckLevel.ErrorOnInvalid);
                 DirectoryEntry file = controlFS.EnumerateEntries("icon_*.dat").FirstOrDefault();
 
                 if (file != null)

@@ -144,8 +144,22 @@ namespace HACGUI.FirstStart
                 }
                 catch (Exception)
                 {
-                    // likely 6.2.0, need to get extra info
-                    Array.Copy(TSECKeys[1], HACGUIKeyset.Keyset.TsecRootKeys[0], 0x10); // we really don't know if there will be future tsec keys, and how it will be handled
+                    // 6.2.0+
+                    MessageBoxResult r = MessageBox.Show("Is your console on 7.0.0 or later?", "", MessageBoxButton.YesNo);
+                    if (r == MessageBoxResult.No)
+                        Array.Copy(TSECKeys[1], HACGUIKeyset.Keyset.TsecRootKeys[0], 0x10); // we really don't know if there will be future tsec keys, and how it will be handled
+                    else if (r == MessageBoxResult.Yes)
+                    {
+                        Dispatcher.BeginInvoke(new Action(() => 
+                        {
+                            FileInfo info = RequestOpenFileFromUser(".keys", "Keys file (.keys) | *.keys", "Select dumped keys from Lockpick...", "prod.keys");
+                            if (info != null)
+                            {
+                                ExternalKeys.ReadKeyFile(HACGUIKeyset.Keyset, info.FullName);
+                            }
+                        })).Wait();
+                    }
+
                     HACGUIKeyset.Keyset.DeriveKeys();
                 }
 
@@ -283,6 +297,7 @@ namespace HACGUI.FirstStart
                     File.Copy(pkg1.FullName, HACGUIKeyset.TempPkg1FileInfo.FullName);
                 }
             }
+
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using LibHac;
+using LibHac.IO;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,10 +11,10 @@ namespace HACGUI.Main.TaskManager.Tasks
 {
     public class NspPackTask : ProgressTask
     {
-        private readonly Pfs0Builder Builder;
+        private readonly PartitionFileSystemBuilder Builder;
         private readonly FileInfo Target;
 
-        public NspPackTask(Pfs0Builder builder, FileInfo target) : base($"Packing {target.Name}...")
+        public NspPackTask(PartitionFileSystemBuilder builder, FileInfo target) : base($"Packing {target.Name}...")
         {
             Builder = builder;
             Target = target;
@@ -23,7 +24,8 @@ namespace HACGUI.Main.TaskManager.Tasks
         {
             return new Task(() => {
                 Stream target = Target.Create();
-                Builder.Build(target, this);
+                IStorage source = Builder.Build(PartitionFileSystemType.Standard);
+                source.CopyToStream(target, source.GetSize(), this);
                 target.Close();
             });
         }

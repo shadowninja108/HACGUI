@@ -4,13 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:HACGUI.Main.TitleManager.Application.Tabs"
+             xmlns:utilities="clr-namespace:HACGUI.Utilities"
              mc:Ignorable="d" 
+             Name="root"
              Width="335" Height="240"  Background="White">
     <Grid>
         <Grid Margin="25,25,0,0" Width="100" Height="100" VerticalAlignment="Top" HorizontalAlignment="Left">
             <Border BorderThickness="2"
                     BorderBrush="Gray">
-                <Image Name="Icon">
+                <Image Source="{Binding IconSource, ElementName=root}">
                     <Image.ContextMenu>
                         <ContextMenu StaysOpen="True">
                             <MenuItem Header="Copy" Click="CopyImage"/>
@@ -20,21 +22,21 @@
             </Border>
         </Grid>
 
-        <Grid Margin="0,25,15,0"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="190" Height="25">
-            <Label Content="Name" HorizontalAlignment="Left" VerticalContentAlignment="Center" Width="50"/>
-            <TextBox Name="NameBox" IsReadOnly="True" TextWrapping="NoWrap" Width="120" HorizontalAlignment="Right" VerticalContentAlignment="Center" />
-        </Grid>
-        <Grid Margin="0,62,15,0"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="190" Height="25">
-            <Label Content="Title ID" HorizontalAlignment="Left" VerticalContentAlignment="Center" Width="50"/>
-            <TextBox Name="TitleIDBox" IsReadOnly="True" MaxLines="1" Width="120" HorizontalAlignment="Right" VerticalContentAlignment="Center"/>
-        </Grid>
+        <StackPanel Margin="0,25,15,0"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="190" Height="150">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type utilities:LabelBoxFrame}">
+                    <Setter Property="Margin" Value="0,0,0,10"/>
+                </Style>
+            </StackPanel.Resources>
+
+            <utilities:LabelBoxFrame Label="Name" Text="{Binding AppName, ElementName=root}" Ratio1="2" Ratio2="5"/>
+            <utilities:LabelBoxFrame Label="Title ID" Text="{Binding TitleId, StringFormat={}{0:x16}, ElementName=root}" Ratio1="2" Ratio2="5"/>
+            <utilities:LabelBoxFrame Label="Version" Text="{Binding AppVersion, ElementName=root}" Ratio1="2" Ratio2="5"/>
+        </StackPanel>
+
         <DockPanel Margin="0,0,0,20" Width="290" Height="65" VerticalAlignment="Bottom">
             <Label DockPanel.Dock="Top" Content="BCAT Passphrase"/>
-            <TextBox Name="BCATPassphraseBox" IsReadOnly="True" TextWrapping="Wrap"/>
+            <TextBox Name="BCATPassphraseBox" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding BcatPassphrase, ElementName=root, Mode=OneWay}"/>
         </DockPanel>
-        <Grid Margin="0,100,15,0"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="190" Height="25">
-            <Label Content="Version" HorizontalAlignment="Left" VerticalContentAlignment="Center" Width="50"/>
-            <TextBox x:Name="VersionBox" IsReadOnly="True" MaxLines="1" Width="120" HorizontalAlignment="Right" VerticalContentAlignment="Center"/>
-        </Grid>
     </Grid>
 </UserControl>

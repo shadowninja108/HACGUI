@@ -33,7 +33,6 @@ namespace HACGUI.Services
                 Thread thread = new Thread(new ThreadStart(() => 
                 {
                     Dokan.Mount(fs, $"{drive}:", DokanOptions.RemovableDrive | DokanOptions.WriteProtection);
-                    Mounted.Remove(fs);
                 }
                 ));
                 if (Mounted.ContainsKey(fs))
@@ -58,12 +57,15 @@ namespace HACGUI.Services
             string mountPoint = $"{Mounted[fs].Item2}:";
             Mounted[fs].Item1.Join(); // wait for thread to actually stop
             Dokan.RemoveMountPoint(mountPoint);
+            Mounted.Remove(fs);
         }
 
         public static void UnmountAll()
         {
-            foreach (MountableFileSystem fs in new List<MountableFileSystem>(Mounted.Keys))
-                Unmount(fs);
+            foreach (Tuple<Thread, char> fs in Mounted.Values)
+                Dokan.Unmount(fs.Item2);
+            foreach (Tuple<Thread, char> fs in new List<Tuple<Thread, char>>(Mounted.Values))
+                fs.Item1.Join(); // wait for thread to stop
             Mounted.Clear();
         }
 
@@ -305,7 +307,7 @@ namespace HACGUI.Services
         public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, DokanFileInfo info)
         {
             FileStorage storage = OpenFile(fileName);
-            long size = storage.Length - offset;
+            long size = storage.GetSize() - offset;
             if (size < 0)
             {
                 bytesRead = 0;
@@ -313,7 +315,7 @@ namespace HACGUI.Services
             }
             size = Math.Min(size, buffer.Length);
 
-            storage.Read(buffer, Math.Min(offset, storage.Length - size), (int) size, 0);
+            storage.Read(buffer, Math.Min(offset, storage.GetSize() - size), (int) size, 0);
             bytesRead = (int)size; // TODO accuracy
             return NtStatus.Success;
         }
@@ -363,7 +365,7 @@ namespace HACGUI.Services
         public NtStatus WriteFile(string fileName, byte[] buffer, out int bytesWritten, long offset, DokanFileInfo info)
         {
             FileStorage storage = OpenFile(fileName);
-            long size = storage.Length - offset;
+            long size = storage.GetSize() - offset;
             if (size < 0)
             {
                 bytesWritten = 0;
@@ -371,7 +373,7 @@ namespace HACGUI.Services
             }
             size = Math.Min(size, buffer.Length);
 
-            storage.Write(buffer, Math.Min(offset, storage.Length - size), (int)size, 0);
+            storage.Write(buffer, Math.Min(offset, storage.GetSize() - size), (int)size, 0);
             bytesWritten = (int)size; // TODO accuracy
             return NtStatus.Success;
         }
@@ -417,7 +419,7 @@ namespace HACGUI.Services
                 return new FileInformation
                 {
                     FileName = GetFileName(path),
-                    Length = storage.Length,
+                    Length = storage.GetSize(),
                     Attributes = FileAttributes.ReadOnly
                 };
             }

@@ -63,7 +63,7 @@ namespace HACGUI.Main
 
                 TitleManagerView = new MainTitleManagerPage();
                 TitleManagerFrame.Content = TitleManagerView;
-                SaveManagerView = new SaveManagerPage();
+                SaveManagerView = new SaveManagerPage(0);
                 SaveManagerFrame.Content = SaveManagerView;
 
                 StatusService.Bar = StatusBar;
@@ -161,7 +161,7 @@ namespace HACGUI.Main
                 info.CreateAndClose();
                 LocalFile target = new LocalFile(info.FullName, OpenMode.ReadWrite);
                 IStorage targetStorage = target.AsStorage();
-                TaskManagerPage.Current.Queue.Submit(new ResizeTask($"Allocating space for {info.Name} (NAND backup)...", target, source.Length));
+                TaskManagerPage.Current.Queue.Submit(new ResizeTask($"Allocating space for {info.Name} (NAND backup)...", target, source.GetSize()));
                 TaskManagerPage.Current.Queue.Submit(new CopyTask($"Copying NAND to {info.Name}...", source, targetStorage));
                 MessageBox.Show("This is a lengthy operation.\nYou can check the status of it under\nthe tasks tab.");
             }

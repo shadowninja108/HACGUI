@@ -13,16 +13,19 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
+namespace HACGUI.Main.TitleManager.Application.Tabs
 {
     /// <summary>
     /// Interaction logic for ApplicationSaveTab.xaml
     /// </summary>
     public partial class ApplicationSaveTab : UserControl
     {
+        private ApplicationElement Element => ApplicationWindow.Current.Element;
+
         public ApplicationSaveTab()
         {
             InitializeComponent();
+            Content = new SaveManager.SaveManagerPage(Element.BaseTitleId);
         }
     }
 }
