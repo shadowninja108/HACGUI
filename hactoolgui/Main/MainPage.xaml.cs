@@ -16,6 +16,7 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Linq;
 
 namespace HACGUI.Main
 {
@@ -35,29 +36,23 @@ namespace HACGUI.Main
             {
                 NANDService.OnNANDPluggedIn += () => 
                 {
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        for (int i = 1; i < 6; i++)
-                        {
-                            (NANDContextMenu.Items[i] as MenuItem).IsEnabled = true;
-                        }
-                    }));
-
+                    foreach (MenuItem item in
+                        NANDContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresNAND"))
+                        item.IsEnabled = true;
                 };
 
                 NANDService.OnNANDRemoved += () =>
                 {
-                    for (int i = 1; i < 6; i++)
-                    {
-                        (NANDContextMenu.Items[i] as MenuItem).IsEnabled = false;
-                    }
+                    foreach (MenuItem item in
+                        NANDContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresNAND"))
+                        item.IsEnabled = false;
                 };
 
                 // init this first as other pages may request tasks on init
                 TaskManagerView = new TaskManagerPage();
                 TaskManagerFrame.Content = TaskManagerView;
 
-                TaskManagerView.Queue.Submit(new RunTask("Deriving keys...", new Task(() => HACGUIKeyset.Keyset.Load())));
+                TaskManagerView.Queue.Submit(new RunTask("Opening/Deriving keys...", new Task(() => HACGUIKeyset.Keyset.Load())));
 
                 DeviceService.Start();
 
@@ -77,7 +72,7 @@ namespace HACGUI.Main
 
         private void PickNANDButtonClick(object sender, RoutedEventArgs e)
         {
-            FileInfo[] files = Extensions.Extensions.RequestOpenFilesFromUser(".bin", "Raw NAND dump (.bin or .bin.*)|*.bin*", "Select raw NAND dump", "rawnand.bin");
+            FileInfo[] files = RequestOpenFilesFromUser(".bin", "Raw NAND dump (.bin or .bin.*)|*.bin*", "Select raw NAND dump", "rawnand.bin");
 
             if (files != null)
             {
@@ -116,36 +111,11 @@ namespace HACGUI.Main
 
         private void MountPartition(object sender, RoutedEventArgs e)
         {
-            if (MountService.CanMount()) { 
-                MenuItem button = sender as MenuItem;
-                int partitionIndex = int.Parse((string)button.Tag);
-                FatFileSystemProvider partition = null;
-                string partitionName = "";
-                switch (partitionIndex)
-                {
-                    case 0:
-                        partition = NANDService.NAND.OpenProdInfoF();
-                        partitionName = "PRODINFOF";
-                        break;
-                    case 1:
-                        partition = NANDService.NAND.OpenSafePartition();
-                        partitionName = "SAFE";
-                        break;
-                    case 2:
-                        partition = NANDService.NAND.OpenSystemPartition();
-                        partitionName = "SYSTEM";
-                        break;
-                    case 3:
-                        partition = NANDService.NAND.OpenUserPartition();
-                        partitionName = "USER";
-                        break;
-                    default:
-                        return;
-                }
-
-                MountService.Mount(new MountableFileSystem(partition, $"NAND ({partitionName})", "FAT32", OpenMode.Read));
-            } else
-                MessageBox.Show("Dokan driver not installed.\nInstall it to use this feature.");
+            Window window = new NANDMounterWindow()
+            {
+                Owner = Window.GetWindow(this)
+            };
+            window.ShowDialog();
         }
 
         private void OpenUserSwitchClick(object sender, RoutedEventArgs e)

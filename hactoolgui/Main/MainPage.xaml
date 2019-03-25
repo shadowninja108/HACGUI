@@ -33,11 +33,8 @@
                         <ext:DropdownButton.DropdownMenu>
                             <ContextMenu Name="NANDContextMenu">
                                 <MenuItem Header="Pick NAND" Click="PickNANDButtonClick"/>
-                                <MenuItem Tag="0" Header="Mount PRODINFOF partition" Click="MountPartition" IsEnabled="False"/>
-                                <MenuItem Tag="1" Header="Mount SAFE partition" Click="MountPartition" IsEnabled="False"/>
-                                <MenuItem Tag="2" Header="Mount SYSTEM partition" Click="MountPartition" IsEnabled="False"/>
-                                <MenuItem Tag="3" Header="Mount USER partition" Click="MountPartition" IsEnabled="False"/>
-                                <MenuItem Header="Dump NAND to file" Click="DumpNANDToFile" IsEnabled="False"/>
+                                <MenuItem Tag="RequiresNAND" Header="Mount NAND partitions" Click="MountPartition" IsEnabled="False"/>
+                                <MenuItem Tag="RequiresNAND" Header="Dump NAND to file" Click="DumpNANDToFile" IsEnabled="False"/>
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>
