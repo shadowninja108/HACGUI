@@ -17,37 +17,33 @@ namespace HACGUI.Services
 
         static StatusService()
         {
-            Statuses = new ObservableDictionary<string, Status>()
-            {
-                { "SD" , Status.Incorrect },
-                { "NAND" , Status.Incorrect },
-            };
+            InitDefaultStatus();
         }
 
-        public static readonly ObservableDictionary<string, Status> Statuses;
+        public static ObservableDictionary<string, Status> Statuses;
 
         public static StatusBar Bar;
 
         public static void Start()
         {
             Statuses.CollectionChanged += CollectionChanged;
-            UpdateAsync();
+            Update();
         }
 
         public static void Stop()
         {
             Bar = null;
-            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(StatusService).TypeHandle);
+            InitDefaultStatus();
         }
 
         private static void CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            UpdateAsync();
+            Update();
         }
 
-        public static async Task UpdateAsync()
+        public static void Update()
         {
-            await Bar.Dispatcher.BeginInvoke(new Action(() =>
+            Bar.Dispatcher.BeginInvoke(new Action(() =>
             {
                 List<string> foundItems = new List<string>();
                 foreach (StatusEntry entry in Bar.Items)
@@ -63,7 +59,13 @@ namespace HACGUI.Services
                     entry.Shape.Fill = GetBrush(Statuses[toBeAdded]);
                     Bar.Items.Add(entry);
                 }
-            }));
+
+                foreach(StatusEntry entry in new List<StatusEntry>(Bar.Items.Cast<StatusEntry>()))
+                {
+                    if (!Statuses.Keys.Contains(entry.TextBox.Text))
+                        Bar.Items.Remove(entry);
+                }
+            })).Wait();
         }
 
         private static Brush GetBrush(Status status)
@@ -79,6 +81,15 @@ namespace HACGUI.Services
                 default:
                     return new SolidColorBrush(Colors.Gray);
             }
+        }
+
+        public static void InitDefaultStatus()
+        {
+            Statuses = new ObservableDictionary<string, Status>()
+            {
+                { "SD" , Status.Incorrect },
+                { "NAND" , Status.Incorrect },
+            };
         }
 
         public static Status SDStatus
