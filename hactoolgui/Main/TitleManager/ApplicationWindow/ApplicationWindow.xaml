@@ -13,11 +13,11 @@
             <TabItem Header="Info">
                 <tabs:ApplicationInfoTab/>
             </TabItem>
-            <TabItem Header="Saves">
-                <tabs:ApplicationSaveTab/>
-            </TabItem>
             <TabItem Header="Titles">
                 <tabs:ApplicationTitleTab/>
+            </TabItem>
+            <TabItem Header="Saves">
+                <tabs:ApplicationSaveTab/>
             </TabItem>
         </TabControl>
     </Grid>
