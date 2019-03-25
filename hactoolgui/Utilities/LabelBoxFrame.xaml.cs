@@ -57,6 +57,11 @@ namespace HACGUI.Utilities
             set => SetValue(Ratio2Property, value);
         }
 
+        public GridLength Ratio1Length => new GridLength(Ratio1, GridUnitType.Star);
+        public GridLength Ratio2Length => new GridLength(Ratio2, GridUnitType.Star);
+
+        private bool HasLoaded;
+
         public LabelBoxFrame()
         {
             InitializeComponent();
@@ -79,18 +84,16 @@ namespace HACGUI.Utilities
 
         private void Setup()
         {
-            ColumnDefinition c1 = new ColumnDefinition()
+            if (!HasLoaded)
             {
-                Width = new GridLength(Ratio1, GridUnitType.Star)
-            };
-            ColumnDefinition c2 = new ColumnDefinition()
-            {
-                Width = new GridLength(Ratio2, GridUnitType.Star)
-            };
-
-            Frame.ColumnDefinitions.Add(c1);
-            Frame.ColumnDefinitions.Add(c2);
-
+                HasLoaded = true;
+                ColumnDefinition c1 = new ColumnDefinition();
+                BindingOperations.SetBinding(c1, ColumnDefinition.WidthProperty, new Binding("Ratio1Length"));
+                ColumnDefinition c2 = new ColumnDefinition();
+                BindingOperations.SetBinding(c2, ColumnDefinition.WidthProperty, new Binding("Ratio2Length"));
+                Frame.ColumnDefinitions.Add(c1);
+                Frame.ColumnDefinitions.Add(c2);
+            }
         }
     }
 }

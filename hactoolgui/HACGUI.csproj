@@ -138,6 +138,9 @@
       <DependentUpon>SaveInfoWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Main\SaveManager\SystemSaveNames.cs" />
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\TitleMountDialog.xaml.cs">
+      <DependentUpon>TitleMountDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\LabelBoxFrame.xaml.cs">
       <DependentUpon>LabelBoxFrame.xaml</DependentUpon>
     </Compile>
@@ -311,6 +314,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Main\TitleManager\ApplicationWindow\Tabs\TitleInfoWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Main\TitleManager\ApplicationWindow\Tabs\TitleMountDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

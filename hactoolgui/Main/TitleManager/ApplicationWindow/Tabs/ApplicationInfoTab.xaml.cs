@@ -22,15 +22,15 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
     {
         private ApplicationElement Element => ApplicationWindow.Current.Element;
 
+        public string AppName => Element.Name;
+        public string AppVersion => Element.FriendlyVersion;
+        public string BcatPassphrase => Element.BcatPassphrase;
+        public ulong TitleId => Element.TitleId;
+        public ImageSource IconSource => Element.Icon;
+
         public ApplicationInfoTab()
         {
             InitializeComponent();
-
-            Icon.Source = Element.Icon;
-            NameBox.Text = Element.Name;
-            TitleIDBox.Text = string.Format("{0:x16}", Element.TitleId);
-            BCATPassphraseBox.Text = Element.BcatPassphrase;
-            VersionBox.Text = Element.FriendlyVersion;
         }
 
         private void CopyImage(object sender, RoutedEventArgs e)
