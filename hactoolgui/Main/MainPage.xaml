@@ -23,7 +23,7 @@
                         <ext:DropdownButton.DropdownMenu>
                             <ContextMenu>
                                 <MenuItem Header="Restart as admin" Name="AdminButton" Click="RestartAsAdminButtonClick"/>
-                                <MenuItem Header="Open .switch" Click="OpenUserSwitchClick"/>
+                                <MenuItem Header="Open keys folder" Click="OpenUserSwitchClick"/>
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>

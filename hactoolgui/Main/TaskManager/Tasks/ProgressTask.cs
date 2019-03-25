@@ -22,6 +22,7 @@ namespace HACGUI.Main.TaskManager.Tasks
 
         public bool Indeterminate { get; internal set; } = false;
         public bool Blocking { get; internal set; } = true;
+        public bool HasStarted { get; internal set; } = false;
 
         public Task UnderlyingTask { get; internal set; }
 
@@ -60,6 +61,7 @@ namespace HACGUI.Main.TaskManager.Tasks
 
         public void InformStart()
         {
+            HasStarted = true;
             Started?.Invoke();
         }
     }

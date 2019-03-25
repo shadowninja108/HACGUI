@@ -56,6 +56,7 @@ namespace HACGUI.Main.TaskManager
                     Task stask = task.CreateTask();
                     stask.ContinueWith((t) => TaskCompleted(task));
                     RootWindow.Current.Submit(stask);
+                    task.HasStarted = true;
                     task.UnderlyingTask = stask;
                     if (task.Blocking) 
                         stask.Wait();

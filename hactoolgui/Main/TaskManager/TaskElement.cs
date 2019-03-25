@@ -31,7 +31,7 @@ namespace HACGUI.Main.TaskManager
             } 
         }
 
-        public bool Indeterminate => Task.Indeterminate;
+        public bool Indeterminate => Task.Indeterminate & Task.HasStarted;
 
         public TaskElement(ProgressTask task)
         {
