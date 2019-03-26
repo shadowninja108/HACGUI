@@ -23,13 +23,17 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
     public partial class TitleMountDialog : Window
     {
         private Dictionary<SectionType, List<Tuple<Nca, NcaSection>>> Indexed;
+        private Nca MainNca;
 
-        public TitleMountDialog(Dictionary<SectionType, List<Tuple<Nca, NcaSection>>> indexed)
+        public TitleMountDialog(Dictionary<SectionType, List<Tuple<Nca, NcaSection>>> indexed, Nca mainNca)
         {
             InitializeComponent();
             Indexed = indexed;
+            MainNca = mainNca;
 
             if (Indexed.ContainsKey(SectionType.Romfs))
+                ComboBox.Items.Add(MountType.Romfs);
+            if (Indexed.ContainsKey(SectionType.Bktr))
                 ComboBox.Items.Add(MountType.Romfs);
             if (Indexed.ContainsKey(SectionType.Pfs0))
                 ComboBox.Items.Add(MountType.Exefs);
@@ -38,22 +42,37 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
 
         private void MountClicked(object sender, RoutedEventArgs e)
         {
-            MountType type = (MountType) ComboBox.SelectedItem;
+            MountType mountType = (MountType) ComboBox.SelectedItem;
             SectionType sectionType = SectionType.Romfs;
-            switch (type)
+            switch (mountType)
             {
                 case MountType.Exefs:
                     sectionType = SectionType.Pfs0;
                     break;
                 case MountType.Romfs:
                     sectionType = SectionType.Romfs;
+                    if (!Indexed.ContainsKey(sectionType))
+                        sectionType = SectionType.Bktr;
                     break;
             }
             List<IFileSystem> filesystems = new List<IFileSystem>();
-            foreach (Tuple<Nca, NcaSection> t in Indexed[sectionType])
-                filesystems.Add(t.Item1.OpenFileSystem(t.Item2.SectionNum, IntegrityCheckLevel.ErrorOnInvalid));
+            IEnumerable<Tuple<Nca, NcaSection>> list = Indexed[sectionType];
+            if (mountType == MountType.Romfs)
+                list = list.Concat(Indexed[SectionType.Bktr]);
+            foreach (Tuple<Nca, NcaSection> t in list)
+            {
+                Nca nca = t.Item1;
+                NcaSection section = t.Item2;
+                if (section.Header.Type == SectionType.Bktr)
+                    nca.SetBaseNca(MainNca);
+                filesystems.Add(nca.OpenFileSystem(section.SectionNum, IntegrityCheckLevel.ErrorOnInvalid));
+            }
+            filesystems.Reverse();
             LayeredFileSystem fs = new LayeredFileSystem(filesystems);
-            MountService.Mount(new MountableFileSystem(fs, $"Mounted {sectionType.ToString().ToLower()}", sectionType.ToString(), OpenMode.Read));
+            string typeString = sectionType.ToString();
+            if (sectionType == SectionType.Bktr)
+                typeString = $"{mountType} ({typeString})";
+            MountService.Mount(new MountableFileSystem(fs, $"Mounted {mountType.ToString().ToLower()}", typeString, OpenMode.Read));
         }
 
         public enum MountType

@@ -86,9 +86,12 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
             foreach (TitleElement info in ListView.Items)
                 if (info.Selected)
                     selected.Add(info.Title);
-            if (!HasBaseGame(selected))
+
+            Title baseTitle = Element.OrderTitlesByBest().Where(t => t.Metadata.Type == TitleType.Application).FirstOrDefault();
+
+            if (!IsMountable(baseTitle, selected))
             {
-                System.Windows.MessageBox.Show("You have selected an update but haven't selected the base game.");
+                System.Windows.MessageBox.Show("The base game isn't available, so the patch cannot be mounted.");
                 return;
             }
 
@@ -104,18 +107,18 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
                         indexed[section.Type].Add(new Tuple<Nca, NcaSection>(nca, section));
                     }
             }
-            Window window = new TitleMountDialog(indexed)
+            Window window = new TitleMountDialog(indexed, baseTitle.MainNca)
             {
                 Owner = Window.GetWindow(this)
             };
             window.ShowDialog();
         }
 
-        private static bool HasBaseGame(List<Title> titles)
+        private static bool IsMountable(Title main, List<Title> titles)
         {
             List<Nca> updates = new List<Nca>();
             List<Nca> normal = new List<Nca>();
-            Title main = titles.Where(t => t.Metadata.Type == TitleType.Application).FirstOrDefault();
+            
             foreach (Title title in titles)
             {
                 if (title.Metadata.Type == TitleType.Patch)
