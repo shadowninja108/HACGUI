@@ -388,12 +388,10 @@ namespace HACGUI.FirstStart
         {
             Stream continueStream = HACGUIKeyset.TempContinueFileInfo.Create();
             StreamWriter writer = new StreamWriter(continueStream);
-            writer.WriteLine(HACGUIKeyset.Keyset.SecureBootKey.ToHexString());
-            writer.WriteLine(HACGUIKeyset.Keyset.TsecKey.ToHexString());
-            writer.WriteLine(HACGUIKeyset.Keyset.TsecRootKeys.Serialize().ToHexString()); // Serialize
-            writer.WriteLine(HACGUIKeyset.Keyset.EncryptedKeyblobs.Serialize().ToHexString());
             writer.WriteLine(PickConsolePage.ConsoleName);
             writer.Close();
+
+            new SaveKeysetTask(PickConsolePage.ConsoleName).CreateTask().RunSynchronously();
 
             Process proc = new Process();
             proc.StartInfo.FileName = AppDomain.CurrentDomain.FriendlyName;
