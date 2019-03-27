@@ -36,9 +36,13 @@ namespace HACGUI.Main
             {
                 NANDService.OnNANDPluggedIn += () => 
                 {
-                    foreach (MenuItem item in
-                        NANDContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresNAND"))
-                        item.IsEnabled = true;
+                    Dispatcher.Invoke(() => 
+                    {
+                        foreach (MenuItem item in
+                            NANDContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresNAND"))
+                            item.IsEnabled = true;
+                    });
+
                 };
 
                 NANDService.OnNANDRemoved += () =>

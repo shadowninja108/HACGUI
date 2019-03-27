@@ -13,6 +13,8 @@ namespace HACGUI.FirstStart
         public IntroPage() : base()
         {
             InitializeComponent();
+
+            MissingLabel.Content = HACGUIKeyset.IsValidInstall().Item2;
         }
 
         private void StartButtonPressed(object sender, RoutedEventArgs e)
