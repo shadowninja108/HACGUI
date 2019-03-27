@@ -117,17 +117,11 @@ namespace HACGUI
                             FileInfo continueFile = HACGUIKeyset.TempContinueFileInfo;
                             if (continueFile.Exists) {
                                 StreamReader reader = new StreamReader(continueFile.OpenRead());
-                                Array.Copy(reader.ReadLine().ToByteArray(), HACGUIKeyset.Keyset.SecureBootKey, 0x10);
-                                Array.Copy(reader.ReadLine().ToByteArray(), HACGUIKeyset.Keyset.TsecKey, 0x10);
-                                byte[][] tsecRootKey =  (byte[][]) reader.ReadLine().ToByteArray().Deserialize();
-                                for (int i = 0; i < tsecRootKey.Length; i++)
-                                    Array.Copy(tsecRootKey[i], HACGUIKeyset.Keyset.TsecRootKeys[i], 0x10);
-                                byte[][] keyblobs = (byte[][])reader.ReadLine().ToByteArray().Deserialize();
-                                for (int i = 0; i < tsecRootKey.Length; i++)
-                                    Array.Copy(keyblobs[i], HACGUIKeyset.Keyset.EncryptedKeyblobs[i], 0xB0);
                                 PickConsolePage.ConsoleName = reader.ReadLine();
                                 reader.Close();
 
+                                HACGUIKeyset.Keyset.LoadCommon();
+                                HACGUIKeyset.Keyset.LoadPersonal(PickConsolePage.ConsoleName);
                                 HACGUIKeyset.Keyset.DeriveKeys();
 
                                 nextPage = new PickNANDPage();

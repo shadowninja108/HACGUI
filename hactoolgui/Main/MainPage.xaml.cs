@@ -56,7 +56,7 @@ namespace HACGUI.Main
                 TaskManagerView = new TaskManagerPage();
                 TaskManagerFrame.Content = TaskManagerView;
 
-                TaskManagerView.Queue.Submit(new RunTask("Opening/Deriving keys...", new Task(() => HACGUIKeyset.Keyset.Load())));
+                TaskManagerView.Queue.Submit(new RunTask("Opening/Deriving keys...", new Task(() => HACGUIKeyset.Keyset.LoadAll())));
 
                 DeviceService.Start();
 

@@ -101,15 +101,23 @@ namespace HACGUI
             Array.Copy(NintendoKeys.AesKekGenerationSource, AesKekGenerationSource, 0x10);
         }
 
-        public void Load(string consoleName)
+        public void LoadCommon()
         {
             ReadKeyFile(Keyset, ExtraKeysFileInfo.FullName);
-            ReadKeyFile(Keyset, ProductionKeysFileInfo.FullName, TitleKeysFileInfo.FullName, GetConsoleKeysFileInfoByName(consoleName).FullName);
+            ReadKeyFile(Keyset, ProductionKeysFileInfo.FullName, TitleKeysFileInfo.FullName);
+            Keyset.DeriveKeys();
         }
 
-        public void Load()
+        public void LoadPersonal(string consoleName)
         {
-            Load(Preferences.Current.DefaultConsoleName);
+            ReadKeyFile(Keyset, GetConsoleKeysFileInfoByName(consoleName).FullName);
+            Keyset.DeriveKeys();
+        }
+
+        public void LoadAll()
+        {
+            LoadCommon();
+            LoadPersonal(Preferences.Current.DefaultConsoleName);
         }
 
         internal static DirectoryInfo GetConsoleFolderInfo(string name)
