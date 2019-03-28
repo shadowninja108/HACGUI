@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:HACGUI.Main.SaveManager"
         xmlns:utilities="clr-namespace:HACGUI.Utilities"
         mc:Ignorable="d"
         Name="root"
@@ -16,7 +15,7 @@
                         BorderBrush="Gray"
                         Width="110"
                         Height="110">
-                    <Image Name="Icon">
+                    <Image>
                         <Image.ContextMenu>
                             <ContextMenu StaysOpen="True">
                                 <!--<MenuItem Header="Copy" Click="CopyImage"/>-->

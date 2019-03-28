@@ -397,14 +397,13 @@ namespace HACGUI.FirstStart
             proc.StartInfo.FileName = AppDomain.CurrentDomain.FriendlyName;
             proc.StartInfo.UseShellExecute = true;
             proc.StartInfo.Verb = "runas";
-            proc.StartInfo.Arguments = $"continue";
+            proc.StartInfo.Arguments = $"continue {PickConsolePage.ConsoleName}";
             try
             {
                 proc.Start();
                 System.Windows.Application.Current.Shutdown();
             } catch(System.ComponentModel.Win32Exception)
             {
-                HACGUIKeyset.TempContinueFileInfo.Delete(); // prob cancelled by user, delete unused continue file
             }
         }
 

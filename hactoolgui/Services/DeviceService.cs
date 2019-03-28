@@ -30,6 +30,8 @@ namespace HACGUI.Services
 
         private static bool Started;
 
+        private static readonly object Lock = new object();
+
         public static void Start()
         {
             if (!Started)
@@ -121,17 +123,17 @@ namespace HACGUI.Services
 
         public static void Update()
         {
-            TaskManagerPage.Current.Queue.Submit(new RunTask("Updating application view...", new Task(() =>
-            {
-                Dictionary<ulong, Application> totalApps = new Dictionary<ulong, Application>();
-                Dictionary<ulong, Title> totalTitles = new Dictionary<ulong, Title>();
-                Dictionary<string, SaveDataFileSystem> totalSaves = new Dictionary<string, SaveDataFileSystem>();
-
-                if (SDTitleView.FS != null)
+            lock(Lock)
+            { 
+                TaskManagerPage.Current.Queue.Submit(new RunTask("Updating application view...", new Task(() =>
                 {
-                    totalSaves.AddRange(SDTitleView.FS.Saves, true);
-                    lock (totalApps)
+                    Dictionary<ulong, Application> totalApps = new Dictionary<ulong, Application>();
+                    Dictionary<ulong, Title> totalTitles = new Dictionary<ulong, Title>();
+                    Dictionary<string, SaveDataFileSystem> totalSaves = new Dictionary<string, SaveDataFileSystem>();
+
+                    if (SDTitleView.FS != null)
                     {
+                        totalSaves.AddRange(SDTitleView.FS.Saves, true);
                         foreach (KeyValuePair<ulong, Application> kv in SDTitleView.FS.Applications)
                         {
                             ulong titleid = kv.Key;
@@ -147,19 +149,18 @@ namespace HACGUI.Services
                                 totalApps[titleid] = app;
                         }
                         totalTitles.AddRange(SDTitleView.FS.Titles, true);
+
                     }
-                }
-                if (NANDSystemTitleView.FS != null)
-                {
-                    totalSaves.AddRange(NANDSystemTitleView.FS.Saves, true);
-                    totalApps.AddRange(NANDSystemTitleView.FS.Applications, true);
-                    totalTitles.AddRange(NANDSystemTitleView.FS.Titles, true);
-                }
-                if (NANDUserTitleView.FS != null)
-                {
-                    totalSaves.AddRange(NANDUserTitleView.FS.Saves, true);
-                    lock (totalApps) // ensure threads don't try to modify list while iterating through it
+                    if (NANDSystemTitleView.FS != null)
                     {
+                        totalSaves.AddRange(NANDSystemTitleView.FS.Saves, true);
+                        totalApps.AddRange(NANDSystemTitleView.FS.Applications, true);
+                        totalTitles.AddRange(NANDSystemTitleView.FS.Titles, true);
+                    }
+                    if (NANDUserTitleView.FS != null)
+                    {
+                        totalSaves.AddRange(NANDUserTitleView.FS.Saves, true);
+
                         foreach (KeyValuePair<ulong, Application> kv in NANDUserTitleView.FS.Applications)
                         {
                             ulong titleid = kv.Key;
@@ -179,17 +180,17 @@ namespace HACGUI.Services
                         }
                         totalTitles.AddRange(NANDUserTitleView.FS.Titles, true);
                     }
-                }
 
-                Applications.Clear();
-                Titles.Clear();
-                Saves.Clear();
-                Applications.AddRange(totalApps, true);
-                Titles.AddRange(totalTitles, true);
-                Saves.AddRange(totalSaves, true);
+                    Applications.Clear();
+                    Titles.Clear();
+                    Saves.Clear();
+                    Applications.AddRange(totalApps, true);
+                    Titles.AddRange(totalTitles, true);
+                    Saves.AddRange(totalSaves, true);
 
-                TitlesChanged?.Invoke(Applications, Titles, Saves);
-            })));
+                    TitlesChanged?.Invoke(Applications, Titles, Saves);
+                })));
+            }
         }
 
 

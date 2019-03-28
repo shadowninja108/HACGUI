@@ -273,7 +273,7 @@ namespace HACGUI.Services
         public NtStatus GetVolumeInformation(out string volumeLabel, out FileSystemFeatures features, out string fileSystemName, out uint maximumComponentLength, DokanFileInfo info)
         {
             volumeLabel = Name;
-            features = FileSystemFeatures.ReadOnlyVolume; // TODO sort out write support
+            features = 0;
             fileSystemName = FileSystemType;
             maximumComponentLength = int.MaxValue; // idk lol
             return NtStatus.Success;
@@ -322,7 +322,16 @@ namespace HACGUI.Services
 
         public NtStatus SetAllocationSize(string fileName, long length, DokanFileInfo info)
         {
-            return NtStatus.NotImplemented;
+            try
+            {
+                IStorage storage = OpenFile(fileName);
+                storage.SetSize(length);
+                return NtStatus.Success;
+            }
+            catch (NotImplementedException)
+            {
+                return NtStatus.NotImplemented;
+            }
         }
 
         public NtStatus SetEndOfFile(string fileName, long length, DokanFileInfo info)

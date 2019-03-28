@@ -110,22 +110,16 @@ namespace HACGUI
                 {
                     string[] args = App.Args.Args;
                     nextPage = new IntroPage();
-                    if (args.Length == 1)
+                    if (args.Length == 2)
                     {
                         if (args[0] == "continue")
                         {
-                            FileInfo continueFile = HACGUIKeyset.TempContinueFileInfo;
-                            if (continueFile.Exists) {
-                                StreamReader reader = new StreamReader(continueFile.OpenRead());
-                                PickConsolePage.ConsoleName = reader.ReadLine();
-                                reader.Close();
+                            PickConsolePage.ConsoleName = args[1];
+                            HACGUIKeyset.Keyset.LoadCommon();
+                            HACGUIKeyset.Keyset.LoadPersonal(PickConsolePage.ConsoleName);
+                            HACGUIKeyset.Keyset.DeriveKeys();
 
-                                HACGUIKeyset.Keyset.LoadCommon();
-                                HACGUIKeyset.Keyset.LoadPersonal(PickConsolePage.ConsoleName);
-                                HACGUIKeyset.Keyset.DeriveKeys();
-
-                                nextPage = new PickNANDPage();
-                            }
+                            nextPage = new PickNANDPage();
                         }
                     }
                 }
