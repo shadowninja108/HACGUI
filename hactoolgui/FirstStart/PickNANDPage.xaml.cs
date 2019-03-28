@@ -289,23 +289,27 @@ namespace HACGUI.FirstStart
             }
 
             // save PRODINFO to file, then derive eticket_ext_key_rsa
-            Stream prodinfo = nand.OpenProdInfo();
-            Stream prodinfoFile = HACGUIKeyset.TempPRODINFOFileInfo.Create();
-            prodinfo.CopyTo(prodinfoFile);
-            prodinfo.Close();
-            prodinfoFile.Seek(0, SeekOrigin.Begin);
-            new DecryptTicketsTask().CreateTask().RunSynchronously();
-            Calibration cal0 = new Calibration(prodinfoFile);
+            Calibration cal0;
+            byte[] certBytes;
+            using (Stream prodinfoFile = HACGUIKeyset.TempPRODINFOFileInfo.Create())
+            {
+                // copy PRODINFO from NAND to local file
+                using (Stream prodinfo = nand.OpenProdInfo())
+                    prodinfo.CopyTo(prodinfoFile);
 
-            // get client certificate
-            prodinfo.Seek(0x0AD0, SeekOrigin.Begin);
-            byte[] buffer;
-            buffer = new byte[0x4];
-            prodinfo.Read(buffer, 0, buffer.Length); // read cert length
-            uint certLength = BitConverter.ToUInt32(buffer, 0);
-            buffer = new byte[certLength];
-            prodinfo.Seek(0x0AE0, SeekOrigin.Begin); // should be redundant?
-            prodinfo.Read(buffer, 0, buffer.Length); // read actual cert
+                prodinfoFile.Seek(0, SeekOrigin.Begin);
+                new DecryptTicketsTask().CreateTask().RunSynchronously();
+                cal0 = new Calibration(prodinfoFile);
+
+                prodinfoFile.Seek(0x0AD0, SeekOrigin.Begin);  // seek to certificate length
+                byte[] buffer = new byte[0x4];
+                prodinfoFile.Read(buffer, 0, buffer.Length); // read cert length
+                uint certLength = BitConverter.ToUInt32(buffer, 0);
+
+                certBytes = new byte[certLength];
+                prodinfoFile.Seek(0x0AE0, SeekOrigin.Begin); // seek to cert (should be redundant?)
+                prodinfoFile.Read(certBytes, 0, (int) certLength); // read actual cert
+            }
 
             byte[] counter = cal0.SslExtKey.Take(0x10).ToArray();
             byte[] key = cal0.SslExtKey.Skip(0x10).ToArray(); // bit strange structure but it works
@@ -313,14 +317,12 @@ namespace HACGUI.FirstStart
             new Aes128CtrTransform(HACGUIKeyset.Keyset.SslRsaKek, counter).TransformBlock(key); // decrypt private key
 
             X509Certificate2 certificate = new X509Certificate2();
-            certificate.Import(buffer);
+            certificate.Import(certBytes);
             certificate.ImportPrivateKey(key);
 
             byte[] pfx = certificate.Export(X509ContentType.Pkcs12, "switch");
-            Stream pfxStream = HACGUIKeyset.GetClientCertificateByName(PickConsolePage.ConsoleName).Create();
-            pfxStream.Write(pfx, 0, pfx.Length);
-            pfxStream.Close();
-            prodinfoFile.Close();
+            using (Stream pfxStream = HACGUIKeyset.GetClientCertificateByName(PickConsolePage.ConsoleName).Create())
+                pfxStream.Write(pfx, 0, pfx.Length);
 
             // get tickets
             List<Ticket> tickets = new List<Ticket>();
@@ -386,11 +388,6 @@ namespace HACGUI.FirstStart
 
         private void RestartAsAdminButtonClick(object sender, RoutedEventArgs e)
         {
-            Stream continueStream = HACGUIKeyset.TempContinueFileInfo.Create();
-            StreamWriter writer = new StreamWriter(continueStream);
-            writer.WriteLine(PickConsolePage.ConsoleName);
-            writer.Close();
-
             new SaveKeysetTask(PickConsolePage.ConsoleName).CreateTask().RunSynchronously();
 
             Process proc = new Process();

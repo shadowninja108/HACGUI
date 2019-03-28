@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static LibHac.ExternalKeys;
 
 namespace HACGUI
@@ -76,7 +74,6 @@ namespace HACGUI
         public static FileInfo TempKernelFileInfo => RootTempPkg2FolderInfo.GetFile(TempKernelFileName);
         public static FileInfo TempINI1FileInfo => RootTempPkg2FolderInfo.GetFile(TempINI1FileName);
         public static FileInfo TempPRODINFOFileInfo => RootTempFolderInfo.GetFile(TempPRODINFOFileName);
-        public static FileInfo TempContinueFileInfo => RootTempFolderInfo.GetFile(TempContinueFileName);
 
         public static FileInfo PreferencesFileInfo => RootFolderInfo.GetFile(PreferencesFileName);
 

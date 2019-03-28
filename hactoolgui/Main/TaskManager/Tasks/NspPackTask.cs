@@ -1,10 +1,5 @@
-﻿using LibHac;
-using LibHac.IO;
-using System;
-using System.Collections.Generic;
+﻿using LibHac.IO;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace HACGUI.Main.TaskManager.Tasks

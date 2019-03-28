@@ -1,17 +1,13 @@
 ﻿using HACGUI.Extensions;
 using LibHac;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace HACGUI.Main.TaskManager.Tasks
 {
     public class SaveKeysetTask : ProgressTask
     {
-        private string ConsoleName;
+        private readonly string ConsoleName;
 
         public SaveKeysetTask(string consoleName) : base("Saving keyset...")
         {
