@@ -277,7 +277,7 @@ namespace HACGUI.Extensions
             string sub = str;
             while (true)
             {
-                if (string.IsNullOrWhiteSpace(sub.Replace(" ", ""))) break;
+                if (string.IsNullOrWhiteSpace(sub.Replace(Environment.NewLine, ""))) break;
                 char ce = sub.Where(c => !char.IsWhiteSpace(c)).FirstOrDefault();
                 int ie = sub.IndexOf(ce);
                 sub = sub.Substring(ie);
@@ -285,7 +285,6 @@ namespace HACGUI.Extensions
                 retstr += sub.Substring(0, s);
                 sub = sub.Substring(s);
             }
-
             return retstr;
         }
 
