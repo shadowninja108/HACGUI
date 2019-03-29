@@ -19,7 +19,14 @@
         <DockPanel>
             <ToolBarTray DockPanel.Dock="Top">
                 <ToolBar>
-                    <ext:DropdownButton Content="General">
+                    <ext:DropdownButton Content="File">
+                        <ext:DropdownButton.DropdownMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Import game data" Click="ImportGameDataClicked"/>
+                            </ContextMenu>
+                        </ext:DropdownButton.DropdownMenu>
+                    </ext:DropdownButton>
+                    <ext:DropdownButton Content="Utilities">
                         <ext:DropdownButton.DropdownMenu>
                             <ContextMenu>
                                 <MenuItem Header="Restart as admin" Name="AdminButton" Click="RestartAsAdminButtonClick"/>
@@ -27,8 +34,6 @@
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>
-                </ToolBar>
-                <ToolBar>
                     <ext:DropdownButton Content="NAND">
                         <ext:DropdownButton.DropdownMenu>
                             <ContextMenu Name="NANDContextMenu">

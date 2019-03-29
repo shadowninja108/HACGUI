@@ -270,6 +270,25 @@ namespace HACGUI.Extensions
             File.WriteAllBytes(info.FullName, new byte[] { });
         }
 
+        public static string FilterMultilineString(this string str)
+        {
+            str = str.Replace("\t", "");
+            string retstr = "";
+            string sub = str;
+            while (true)
+            {
+                if (string.IsNullOrWhiteSpace(sub.Replace(" ", ""))) break;
+                char ce = sub.Where(c => !char.IsWhiteSpace(c)).FirstOrDefault();
+                int ie = sub.IndexOf(ce);
+                sub = sub.Substring(ie);
+                int s = sub.IndexOf(Environment.NewLine);
+                retstr += sub.Substring(0, s);
+                sub = sub.Substring(s);
+            }
+
+            return retstr;
+        }
+
         public static List<Ticket> DumpTickets(Keyset keyset, IStorage savefile, string consoleName)
         {
             var tickets = new List<Ticket>();

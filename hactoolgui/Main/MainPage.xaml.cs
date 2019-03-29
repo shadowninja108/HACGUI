@@ -140,5 +140,18 @@ namespace HACGUI.Main
                 MessageBox.Show("This is a lengthy operation.\nYou can check the status of it under\nthe tasks tab.");
             }
         }
+
+        private void ImportGameDataClicked(object sender, RoutedEventArgs e)
+        {
+            string filter = @"
+                Any game data (*.xci,*.nca,*.nsp)|*.xci;*.nca;*.nsp|
+                NX Card Image (*.xci)|*.xci|
+                Nintendo Content Archive (*.nca)|*.nca|
+                Nintendo Installable Package (*.nsp)|*.nsp
+            ".FilterMultilineString();
+            FileInfo[] files = RequestOpenFilesFromUser(".*", filter, "Select the game data");
+
+            ;
+        }
     }
 }

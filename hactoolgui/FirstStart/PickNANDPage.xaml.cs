@@ -216,10 +216,8 @@ namespace HACGUI.FirstStart
 
             SwitchFs fs = SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition());
 
-            foreach (KeyValuePair<string, Nca> kv in fs.Ncas)
+            foreach (Nca nca in fs.Ncas.Values)
             {
-                Nca nca = kv.Value;
-
                 if(nca.CanOpenSection(0)) // mainly a check if the NCA can be decrypted
                     switch (nca.Header.TitleId)
                     {
@@ -228,8 +226,7 @@ namespace HACGUI.FirstStart
                             {
                                 case ContentType.Program:
                                     NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
-                                    IStorage pfsStorage = nca.OpenStorage(exefsSection.SectionNum, IntegrityCheckLevel.ErrorOnInvalid);
-                                    PartitionFileSystem pfs = new PartitionFileSystem(pfsStorage);
+                                    IFileSystem pfs = nca.OpenFileSystem(exefsSection.SectionNum, IntegrityCheckLevel.ErrorOnInvalid);
                                     Nso nso = new Nso(new FileStorage(pfs.OpenFile("main", OpenMode.Read)));
                                     NsoSection section = nso.Sections[1];
                                     Stream data = new MemoryStream(section.DecompressSection());
@@ -259,8 +256,7 @@ namespace HACGUI.FirstStart
                             {
                                 case ContentType.Program:
                                     NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
-                                    IStorage pfsStorage = nca.OpenStorage(exefsSection.SectionNum, IntegrityCheckLevel.ErrorOnInvalid);
-                                    PartitionFileSystem pfs = new PartitionFileSystem(pfsStorage);
+                                    IFileSystem pfs = nca.OpenFileSystem(exefsSection.SectionNum, IntegrityCheckLevel.ErrorOnInvalid);
                                     Nso nso = new Nso(new FileStorage(pfs.OpenFile("main", OpenMode.Read)));
                                     NsoSection section = nso.Sections[1];
                                     Stream data = new MemoryStream(section.DecompressSection());
