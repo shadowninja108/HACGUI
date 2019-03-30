@@ -58,8 +58,12 @@ namespace HACGUI.Main.TaskManager
                     RootWindow.Current.Submit(stask);
                     task.HasStarted = true;
                     task.UnderlyingTask = stask;
-                    if (task.Blocking) 
-                        stask.Wait();
+                    if (task.Blocking)
+                        try
+                        {
+                            stask.Wait();
+                        }
+                        catch (Exception) { }
                 }
                 else
                     Thread.Sleep(200);

@@ -1,5 +1,6 @@
 ﻿using HACGUI.Extensions;
 using HACGUI.Main.TaskManager.Tasks;
+using HACGUI.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,6 +48,7 @@ namespace HACGUI.Main.TaskManager
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
+                        StatusService.CurrentTask = task.Title;
                         GetTaskElement(task).Binding?.UpdateTarget();
                     }));
                 };
@@ -56,6 +58,7 @@ namespace HACGUI.Main.TaskManager
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
+                    StatusService.CurrentTask = "";
                     List.Items.Remove(GetTaskElement(task));
                 }));
             };

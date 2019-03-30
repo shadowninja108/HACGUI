@@ -45,7 +45,10 @@
                     </ext:DropdownButton>
                 </ToolBar>
             </ToolBarTray>
-            <StatusBar DockPanel.Dock="Bottom" Name="StatusBar" Height="20"/>
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Height="20">
+                <StatusBar Name="StatusBar" />
+                <Label Name="CurrentTaskLabel"/>
+            </StackPanel>
             <TabControl>
                 <TabItem Header="Title Manager">
                     <Frame Name="TitleManagerFrame"/>

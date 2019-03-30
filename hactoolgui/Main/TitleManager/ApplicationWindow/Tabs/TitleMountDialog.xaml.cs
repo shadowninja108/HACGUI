@@ -57,7 +57,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
             }
             List<IFileSystem> filesystems = new List<IFileSystem>();
             IEnumerable<Tuple<Nca, NcaSection>> list = Indexed[sectionType];
-            if (mountType == MountType.Romfs)
+            if (mountType == MountType.Romfs && Indexed.ContainsKey(SectionType.Bktr))
                 list = list.Concat(Indexed[SectionType.Bktr]);
             foreach (Tuple<Nca, NcaSection> t in list)
             {

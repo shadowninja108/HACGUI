@@ -237,10 +237,7 @@ namespace HACGUI
         {
             if (!Debugger.IsAttached)
             {
-                task.ContinueWith((t) =>
-                {
-                    Dispatcher.Invoke(() => HandleException(t.Exception));
-                }, TaskContinuationOptions.OnlyOnFaulted);
+                task.ContinueWith((t) => HandleException(t.Exception), TaskContinuationOptions.OnlyOnFaulted);
             }
 
             task.Start();
@@ -250,8 +247,12 @@ namespace HACGUI
 
         public void HandleException(Exception e)
         {
-            new ExceptionWindow(e).Show();
-            Close(); // make sure everything has ended
+            if (!Debugger.IsAttached)
+                Dispatcher.Invoke(() =>
+                {
+                    new ExceptionWindow(e).Show();
+                    Close(); // make sure everything has ended
+                });
         }
 
         public void HandleDispatcherException(object sender, DispatcherUnhandledExceptionEventArgs args)

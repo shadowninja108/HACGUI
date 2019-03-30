@@ -66,6 +66,7 @@ namespace HACGUI.Main
                 SaveManagerFrame.Content = SaveManagerView;
 
                 StatusService.Bar = StatusBar;
+                StatusService.CurrentTaskLabel = CurrentTaskLabel;
 
                 StatusService.Start();
 

@@ -5,7 +5,9 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Xamarin.Forms.Dynamic;
@@ -23,6 +25,19 @@ namespace HACGUI.Services
         public static ObservableDictionary<string, Status> Statuses;
 
         public static StatusBar Bar;
+        public static Label CurrentTaskLabel;
+
+        public static string CurrentTask
+        {
+            get
+            {
+                return CurrentTaskLabel.Content as string;
+            }
+            set
+            {
+                CurrentTaskLabel.Content = value;
+            }
+        }
 
         public static void Start()
         {
@@ -46,7 +61,7 @@ namespace HACGUI.Services
             Bar.Dispatcher.BeginInvoke(new Action(() =>
             {
                 List<string> foundItems = new List<string>();
-                foreach (StatusEntry entry in Bar.Items)
+                foreach (StatusEntry entry in Bar.Items.OfType<StatusEntry>())
                 {
                     entry.Shape.Fill = GetBrush(Statuses[entry.TextBox.Text]);
                     foundItems.Add(entry.TextBox.Text);
@@ -60,7 +75,7 @@ namespace HACGUI.Services
                     Bar.Items.Add(entry);
                 }
 
-                foreach(StatusEntry entry in new List<StatusEntry>(Bar.Items.Cast<StatusEntry>()))
+                foreach(StatusEntry entry in new List<StatusEntry>(Bar.Items.OfType<StatusEntry>()))
                 {
                     if (!Statuses.Keys.Contains(entry.TextBox.Text))
                         Bar.Items.Remove(entry);
