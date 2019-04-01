@@ -56,6 +56,9 @@ namespace HACGUI.Main
                 TaskManagerView = new TaskManagerPage();
                 TaskManagerFrame.Content = TaskManagerView;
 
+                StatusService.Bar = StatusBar;
+                StatusService.CurrentTaskBlock = CurrentTaskBlock;
+                CurrentTaskBlock.Background = StatusBar.Background;
                 TaskManagerView.Queue.Submit(new RunTask("Opening/Deriving keys...", new Task(() => HACGUIKeyset.Keyset.LoadAll())));
 
                 DeviceService.Start();
@@ -64,9 +67,6 @@ namespace HACGUI.Main
                 TitleManagerFrame.Content = TitleManagerView;
                 SaveManagerView = new SaveManagerPage(0);
                 SaveManagerFrame.Content = SaveManagerView;
-
-                StatusService.Bar = StatusBar;
-                StatusService.CurrentTaskLabel = CurrentTaskLabel;
 
                 StatusService.Start();
 

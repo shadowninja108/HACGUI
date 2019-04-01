@@ -25,17 +25,14 @@ namespace HACGUI.Services
         public static ObservableDictionary<string, Status> Statuses;
 
         public static StatusBar Bar;
-        public static Label CurrentTaskLabel;
+        public static TextBlock CurrentTaskBlock;
 
         public static string CurrentTask
         {
-            get
-            {
-                return CurrentTaskLabel.Content as string;
-            }
+            get => CurrentTaskBlock.Dispatcher.Invoke(() => CurrentTaskBlock.Text) as string;
             set
             {
-                CurrentTaskLabel.Content = value;
+                CurrentTaskBlock.Dispatcher.Invoke(() => CurrentTaskBlock.Text = value);
             }
         }
 

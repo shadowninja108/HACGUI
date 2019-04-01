@@ -44,11 +44,11 @@ namespace HACGUI.Main.TaskManager
 
             Queue.TaskStarted += (task) =>
             {
+                StatusService.CurrentTask = task.Title;
                 task.ProgressChanged += (v) =>
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        StatusService.CurrentTask = task.Title;
                         GetTaskElement(task).Binding?.UpdateTarget();
                     }));
                 };
@@ -56,9 +56,9 @@ namespace HACGUI.Main.TaskManager
 
             Queue.TaskCompleted += (task) =>
             {
+                StatusService.CurrentTask = "";
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    StatusService.CurrentTask = "";
                     List.Items.Remove(GetTaskElement(task));
                 }));
             };

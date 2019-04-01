@@ -86,7 +86,7 @@ namespace HACGUI.Main.SaveManager
                     }
                 }
 
-            }));
+            })).Wait();
         }
     }
 }
