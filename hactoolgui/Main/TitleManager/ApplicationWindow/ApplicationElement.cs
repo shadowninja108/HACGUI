@@ -99,7 +99,7 @@ namespace HACGUI.Main.TitleManager
                 return list;
             }
         }
-        public string TypesAsString => string.Join(", ", Types);
+        public string TypesAsString => string.Join(Environment.NewLine, Types);
 
         public string BcatPassphrase
         {

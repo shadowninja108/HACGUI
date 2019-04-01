@@ -31,9 +31,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
             Indexed = indexed;
             MainNca = mainNca;
 
-            if (Indexed.ContainsKey(SectionType.Romfs))
-                ComboBox.Items.Add(MountType.Romfs);
-            if (Indexed.ContainsKey(SectionType.Bktr))
+            if (Indexed.ContainsKey(SectionType.Romfs) | Indexed.ContainsKey(SectionType.Bktr))
                 ComboBox.Items.Add(MountType.Romfs);
             if (Indexed.ContainsKey(SectionType.Pfs0))
                 ComboBox.Items.Add(MountType.Exefs);

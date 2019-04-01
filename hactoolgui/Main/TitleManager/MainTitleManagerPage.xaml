@@ -31,8 +31,14 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}"/>
-                            <GridViewColumn Header="Title ID" DisplayMemberBinding="{Binding Path=TitleId, StringFormat={}{0:x16}}"/>
+                            <GridViewColumn Header="Name">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock TextWrapping="Wrap" Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                                <GridViewColumn Header="Title ID" DisplayMemberBinding="{Binding Path=TitleId, StringFormat={}{0:x16}}"/>
                             <GridViewColumn Header="Version" DisplayMemberBinding="{Binding FriendlyVersion}" Width="55"/>
                             <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Path=TypesAsString}"/>
                             <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Path=Size, Converter={StaticResource fileSizeConverter}}"/>
