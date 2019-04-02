@@ -146,6 +146,8 @@
     <Compile Include="Main\TitleManager\NANDMounterWindow.xaml.cs">
       <DependentUpon>NANDMounterWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Services\PseudoFileSystem.cs" />
+    <Compile Include="Services\PseudoRootDirectory.cs" />
     <Compile Include="Utilities\LabelBoxFrame.xaml.cs">
       <DependentUpon>LabelBoxFrame.xaml</DependentUpon>
     </Compile>

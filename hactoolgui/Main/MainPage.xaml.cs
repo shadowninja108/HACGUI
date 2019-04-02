@@ -152,6 +152,12 @@ namespace HACGUI.Main
             ".FilterMultilineString();
             FileInfo[] files = RequestOpenFilesFromUser(".*", filter, "Select the game data");
 
+            PseudoFileSystem constructedFs = new PseudoFileSystem();
+            foreach(FileInfo file in files)
+            {
+                LocalFileSystem fs = new LocalFileSystem(file.Directory.FullName);
+                constructedFs.Add($"/{file.Name}", fs);
+            }
             ;
         }
     }
