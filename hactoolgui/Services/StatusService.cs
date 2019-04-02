@@ -58,12 +58,15 @@ namespace HACGUI.Services
             Bar.Dispatcher.BeginInvoke(new Action(() =>
             {
                 List<string> foundItems = new List<string>();
+
+                // update
                 foreach (StatusEntry entry in Bar.Items.OfType<StatusEntry>())
                 {
                     entry.Shape.Fill = GetBrush(Statuses[entry.TextBox.Text]);
                     foundItems.Add(entry.TextBox.Text);
                 }
                 
+                // add
                 foreach (string toBeAdded in new List<string>(Statuses.Keys.Except(foundItems)))
                 {
                     StatusEntry entry = new StatusEntry();
@@ -72,6 +75,7 @@ namespace HACGUI.Services
                     Bar.Items.Add(entry);
                 }
 
+                // remove
                 foreach(StatusEntry entry in new List<StatusEntry>(Bar.Items.OfType<StatusEntry>()))
                 {
                     if (!Statuses.Keys.Contains(entry.TextBox.Text))
