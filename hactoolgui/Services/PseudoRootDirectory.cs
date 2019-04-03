@@ -22,12 +22,20 @@ namespace HACGUI.Services
 
         public int GetEntryCount()
         {
-            (ParentFileSystem as PseudoFileSystem).FileDict.;
+            return (ParentFileSystem as PseudoFileSystem).FileDict.Count;
         }
 
         public IEnumerable<DirectoryEntry> Read()
         {
-            throw new NotImplementedException();
+            foreach(KeyValuePair<string, IAttributeFileSystem> kv in (ParentFileSystem as PseudoFileSystem).FileDict)
+            {
+                IAttributeFileSystem fs = kv.Value;
+                string fullPath = kv.Key;
+                int split = fullPath.LastIndexOf('/');
+                string path = fullPath.Substring(0, split);
+                string name = kv.Key.Substring(split);
+                yield return new DirectoryEntry(name, fullPath, DirectoryEntryType.File, fs.GetFileSize(fullPath));
+            }
         }
     }
 }

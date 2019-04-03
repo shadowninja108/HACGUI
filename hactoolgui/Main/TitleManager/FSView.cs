@@ -1,6 +1,8 @@
 ﻿using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using LibHac;
+using LibHac.IO.NcaUtils;
+using LibHac.IO.Save;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,18 +13,56 @@ namespace HACGUI.Main.TitleManager
 {
     public class FSView
     {
-        public SwitchFs FS;
-        public EventHandler Ready;
-        public TitleSource Source;
+        //public SwitchFs FS;
+        public delegate void FsReadyEvent(TitleSource source);
+        public FsReadyEvent Ready;
+        public Dictionary<TitleSource, List<SwitchFs>> IndexedFilesystems;
 
-        public FSView(TitleSource source)
+        public List<SwitchFs> Filesystems => IndexedFilesystems.Values.SelectMany(l => l).ToList();
+        public Dictionary<string, Nca> Ncas => Filesystems.SelectMany(f => f.Ncas).ToDictionary(k => k.Key, v => v.Value);
+        public Dictionary<string, SaveDataFileSystem> Saves => Filesystems.SelectMany(f => f.Saves).ToDictionary(k => k.Key, v => v.Value);
+        public Dictionary<ulong, Title> Titles => Filesystems.SelectMany(f => f.Titles).ToDictionary(k => k.Key, v => v.Value);
+        public Dictionary<ulong, LibHac.Application> Applications
         {
-            Source = source;
+            get
+            {
+                Dictionary<ulong, LibHac.Application> apps = new Dictionary<ulong, LibHac.Application>();
+                foreach (SwitchFs fs in Filesystems)
+                {
+                    foreach (KeyValuePair<ulong, LibHac.Application> kv in fs.Applications) {
+                        ulong titleid = kv.Key;
+                        LibHac.Application app = kv.Value;
+                        if (apps.ContainsKey(titleid))
+                        {
+                            if (app.Main != null)
+                                apps[titleid].AddTitle(app.Main);
+                            if (app.Patch != null)
+                                apps[titleid].AddTitle(app.Patch);
+                            foreach (Title title in new List<Title>(apps[titleid].AddOnContent))
+                                if (title != null)
+                                    apps[titleid].AddTitle(title);
+                        }
+                        else
+                            apps[titleid] = app;
+                    }
+                }
+                return apps;
+            }
         }
 
-        public Task<SwitchFs> LoadFileSystemAsync(string title, Func<SwitchFs> fs, bool blocking)
+        public FSView()
         {
-            Task<SwitchFs> task = new Task<SwitchFs>(() => LoadFileSystem(fs));
+            IndexedFilesystems = new Dictionary<TitleSource, List<SwitchFs>>
+            {
+                [TitleSource.SD] = new List<SwitchFs>(),
+                [TitleSource.NAND] = new List<SwitchFs>(),
+                [TitleSource.Imported] = new List<SwitchFs>()
+            };
+        }
+
+        public Task LoadFileSystemAsync(string title, Func<SwitchFs> fs, TitleSource source, bool blocking)
+        {
+            Task task = new Task(() => LoadFileSystem(fs, source));
             ProgressTask ptask = new RunTask(title, task)
             {
                 Blocking = blocking
@@ -31,17 +71,16 @@ namespace HACGUI.Main.TitleManager
             return task;
         }
 
-        public SwitchFs LoadFileSystem(Func<SwitchFs> fs)
+        public void LoadFileSystem(Func<SwitchFs> fsf, TitleSource source)
         {
-            FS = fs();
-            Ready(this, null);
-            
-            return FS;
+            SwitchFs fs = fsf();
+            Ready?.Invoke(source);
+            IndexedFilesystems[source].Add(fs);
         }
 
         public enum TitleSource
         {
-            SD, NAND
+            SD, NAND, Imported
         }
     }
 }

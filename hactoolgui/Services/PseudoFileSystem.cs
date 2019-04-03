@@ -88,7 +88,9 @@ namespace HACGUI.Services
         public IDirectory OpenDirectory(string path, OpenDirectoryMode mode)
         {
             if (path == "/")
-                return new Directory();
+                return new PseudoRootDirectory(this);
+            else
+                throw new NotImplementedException();
         }
 
         public IFile OpenFile(string path, OpenMode mode)

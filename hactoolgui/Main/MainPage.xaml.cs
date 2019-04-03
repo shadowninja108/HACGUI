@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Linq;
+using LibHac.IO.NcaUtils;
 
 namespace HACGUI.Main
 {
@@ -152,13 +153,70 @@ namespace HACGUI.Main
             ".FilterMultilineString();
             FileInfo[] files = RequestOpenFilesFromUser(".*", filter, "Select the game data");
 
-            PseudoFileSystem constructedFs = new PseudoFileSystem();
-            foreach(FileInfo file in files)
+            IEnumerable<FileInfo> ncas = files.Where((f) =>
+            {
+                try
+                {
+                    new Nca(HACGUIKeyset.Keyset, new LocalFile(f.FullName, OpenMode.Read).AsStorage(), false);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            });
+            IEnumerable<FileInfo> xcis = files.Except(ncas).Where((f) =>
+            {
+                try
+                {
+                    new Xci(HACGUIKeyset.Keyset, new LocalFile(f.FullName, OpenMode.Read).AsStorage());
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            });
+            IEnumerable<FileInfo> nsp = files.Except(ncas).Except(xcis).Where((f) =>
+            {
+                try
+                {
+                    new PartitionFileSystem(new LocalFile(f.FullName, OpenMode.Read).AsStorage());
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            });
+
+            List<SwitchFs> switchFilesystems = new List<SwitchFs>();
+
+            PseudoFileSystem ncaFs = new PseudoFileSystem();
+            bool foundNcas = false;
+            foreach(FileInfo file in ncas)
             {
                 LocalFileSystem fs = new LocalFileSystem(file.Directory.FullName);
-                constructedFs.Add($"/{file.Name}", fs);
+                ncaFs.Add($"/{file.Name}", fs);
+                foundNcas = true;
             }
-            ;
+            if(foundNcas)
+                switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, ncaFs));
+
+            foreach(FileInfo file in xcis)
+            {
+                Xci xci = new Xci(HACGUIKeyset.Keyset, new LocalFile(file.FullName, OpenMode.Read).AsStorage());
+                switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, xci.OpenPartition(XciPartitionType.Secure)));
+            }
+
+            foreach(FileInfo file in nsp)
+            {
+                PartitionFileSystem fs = new PartitionFileSystem(new LocalFile(file.FullName, OpenMode.Read).AsStorage());
+                switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, fs));
+            }
+
+            foreach (SwitchFs fs in switchFilesystems)
+                DeviceService.FsView.LoadFileSystem(() => fs, FSView.TitleSource.Imported);
         }
     }
 }

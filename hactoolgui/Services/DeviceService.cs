@@ -20,13 +20,13 @@ namespace HACGUI.Services
         public delegate void TitlesChangedEvent(Dictionary<ulong, Application> apps, Dictionary<ulong, Title> titles, Dictionary<string, SaveDataFileSystem> saves);
         public static event TitlesChangedEvent TitlesChanged;
 
-        public static Dictionary<ulong, Application> Applications;
-        public static Dictionary<ulong, Title> Titles;
-        public static Dictionary<string, SaveDataFileSystem> Saves;
+        public static Dictionary<ulong, Application> Applications => FsView.Applications;
+        public static Dictionary<ulong, Title> Titles => FsView.Titles;
+        public static Dictionary<string, SaveDataFileSystem> Saves => FsView.Saves;
 
         public static List<ApplicationElement> ApplicationElements => IndexTitles(Titles.Values);
 
-        static FSView SDTitleView, NANDSystemTitleView, NANDUserTitleView;
+        public static FSView FsView;
 
         private static bool Started;
 
@@ -38,22 +38,29 @@ namespace HACGUI.Services
             {
                 Started = true;
 
-                NANDSystemTitleView = new FSView(TitleSource.NAND);
-                NANDUserTitleView = new FSView(TitleSource.NAND);
-                SDTitleView = new FSView(TitleSource.SD);
+                FsView = new FSView();
 
-                Applications = new Dictionary<ulong, Application>();
-                Titles = new Dictionary<ulong, Title>();
-                Saves = new Dictionary<string, SaveDataFileSystem>();
+                int count = 0;
+                FsView.Ready += (source) =>
+                {
+                    if (source == TitleSource.SD)
+                        StatusService.SDStatus = StatusService.Status.OK;
+                    else if (source == TitleSource.NAND)
+                    {
+                        count++;
+                        if(count == 2)
+                        {
+                            StatusService.NANDStatus = StatusService.Status.OK;
+                            Update();
+                            count = 0;
+                        }
+                    }
+                    Update();
+                };
 
                 SDService.OnSDPluggedIn += (drive) =>
                 {
-                    SDTitleView.Ready += (_, __) =>
-                    {
-                        StatusService.SDStatus = StatusService.Status.OK;
-                    };
-
-                    SDTitleView.LoadFileSystemAsync("Opening SD filesystem...", () => SwitchFs.OpenSdCard(HACGUIKeyset.Keyset, new LocalFileSystem(drive.RootDirectory.FullName)), true);
+                    FsView.LoadFileSystemAsync("Opening SD filesystem...", () => SwitchFs.OpenSdCard(HACGUIKeyset.Keyset, new LocalFileSystem(drive.RootDirectory.FullName)), TitleSource.SD, true);
                     Update();
 
                     StatusService.SDStatus = StatusService.Status.Progress;
@@ -62,34 +69,14 @@ namespace HACGUI.Services
                 SDService.OnSDRemoved += (drive) =>
                 {
                     StatusService.SDStatus = StatusService.Status.Incorrect;
-                    SDTitleView.FS = null;
+                    FsView.IndexedFilesystems[TitleSource.SD].Clear();
                     Update();
                 };
 
                 NANDService.OnNANDPluggedIn += () =>
                 {
-                    void onComplete()
-                    {
-                        StatusService.NANDStatus = StatusService.Status.OK;
-                        Update();
-                    };
-
-                    int count = 0;
-                    NANDSystemTitleView.Ready += (_, __) =>
-                    {
-                        count++;
-                        if (count >= 2)
-                            onComplete();
-                    };
-                    NANDUserTitleView.Ready += (_, __) =>
-                    {
-                        count++;
-                        if (count >= 2)
-                            onComplete();
-                    };
-
-                    NANDUserTitleView.LoadFileSystemAsync("Opening NAND user filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenUserPartition()), false);
-                    NANDSystemTitleView.LoadFileSystemAsync("Opening NAND system filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()), true);
+                    FsView.LoadFileSystemAsync("Opening NAND user filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenUserPartition()), TitleSource.NAND, false);
+                    FsView.LoadFileSystemAsync("Opening NAND system filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()), TitleSource.NAND, true);
                     TaskManagerPage.Current.Queue.Submit(new DecryptTicketsTask());
                     TaskManagerPage.Current.Queue.Submit(new SaveKeysetTask(Preferences.Current.DefaultConsoleName)); // TODO
 
@@ -100,8 +87,7 @@ namespace HACGUI.Services
                 {
                     StatusService.NANDStatus = StatusService.Status.Incorrect;
 
-                    NANDSystemTitleView.FS = null;
-                    NANDUserTitleView.FS = null;
+                    FsView.IndexedFilesystems[TitleSource.NAND].Clear();
 
                     Update();
                 };
@@ -126,68 +112,7 @@ namespace HACGUI.Services
             lock(Lock)
             { 
                 TaskManagerPage.Current.Queue.Submit(new RunTask("Updating application view...", new Task(() =>
-                {
-                    Dictionary<ulong, Application> totalApps = new Dictionary<ulong, Application>();
-                    Dictionary<ulong, Title> totalTitles = new Dictionary<ulong, Title>();
-                    Dictionary<string, SaveDataFileSystem> totalSaves = new Dictionary<string, SaveDataFileSystem>();
-
-                    if (SDTitleView.FS != null)
-                    {
-                        totalSaves.AddRange(SDTitleView.FS.Saves, true);
-                        foreach (KeyValuePair<ulong, Application> kv in SDTitleView.FS.Applications)
-                        {
-                            ulong titleid = kv.Key;
-                            Application app = kv.Value;
-                            if (totalApps.ContainsKey(titleid))
-                            {
-                                totalApps[titleid].AddTitle(app.Main);
-                                totalApps[titleid].AddTitle(app.Patch);
-                                foreach (Title title in totalApps[titleid].AddOnContent)
-                                    totalApps[titleid].AddTitle(title);
-                            }
-                            else
-                                totalApps[titleid] = app;
-                        }
-                        totalTitles.AddRange(SDTitleView.FS.Titles, true);
-
-                    }
-                    if (NANDSystemTitleView.FS != null)
-                    {
-                        totalSaves.AddRange(NANDSystemTitleView.FS.Saves, true);
-                        totalApps.AddRange(NANDSystemTitleView.FS.Applications, true);
-                        totalTitles.AddRange(NANDSystemTitleView.FS.Titles, true);
-                    }
-                    if (NANDUserTitleView.FS != null)
-                    {
-                        totalSaves.AddRange(NANDUserTitleView.FS.Saves, true);
-
-                        foreach (KeyValuePair<ulong, Application> kv in NANDUserTitleView.FS.Applications)
-                        {
-                            ulong titleid = kv.Key;
-                            Application app = kv.Value;
-                            if (totalApps.ContainsKey(titleid))
-                            {
-                                if (app.Main != null)
-                                    totalApps[titleid].AddTitle(app.Main);
-                                if (app.Patch != null)
-                                    totalApps[titleid].AddTitle(app.Patch);
-                                foreach (Title title in new List<Title>(totalApps[titleid].AddOnContent))
-                                    if (title != null)
-                                        totalApps[titleid].AddTitle(title);
-                            }
-                            else
-                                totalApps[titleid] = app;
-                        }
-                        totalTitles.AddRange(NANDUserTitleView.FS.Titles, true);
-                    }
-
-                    Applications.Clear();
-                    Titles.Clear();
-                    Saves.Clear();
-                    Applications.AddRange(totalApps, true);
-                    Titles.AddRange(totalTitles, true);
-                    Saves.AddRange(totalSaves, true);
-
+                { 
                     TitlesChanged?.Invoke(Applications, Titles, Saves);
                 })));
             }
