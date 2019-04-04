@@ -39,7 +39,8 @@ namespace HACGUI
             TempContinueFileName = "continue.txt",
             ClientCertificateFileName = "nx_tls_client_cert.pfx",
             TicketFolderName = "tickets",
-            CrashZipFileName = "crash.zip";
+            CrashZipFileName = "crash.zip",
+            AccountsFolderName = "accounts";
 
         public static DirectoryInfo RootUserDirectory
         {
@@ -139,6 +140,11 @@ namespace HACGUI
             return GetConsoleFolderInfo(name).GetDirectory(TicketFolderName);
         }
 
+        public static DirectoryInfo GetAccountsDirectory(string name)
+        {
+            return GetConsoleFolderInfo(name).GetDirectory(AccountsFolderName);
+        }
+
         public static FileInfo GetCrashZip()
         {
             RootTempFolderInfo.Create();
@@ -186,6 +192,9 @@ namespace HACGUI
 
                             if(!GetTicketsDirectory(consoleName).Exists)
                                 return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a {TicketFolderName} folder.");
+
+                            if (!GetAccountsDirectory(consoleName).Exists)
+                                return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a {AccountsFolderName} folder.");
                         }
                     }
                     else

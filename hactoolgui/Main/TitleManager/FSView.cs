@@ -29,6 +29,7 @@ namespace HACGUI.Main.TitleManager
                 return saves;
             }
         }
+
         public Dictionary<ulong, Title> Titles => Filesystems.SelectMany(f => f.Titles).ToDictionary(k => k.Key, v => v.Value);
         public Dictionary<ulong, LibHac.Application> Applications
         {

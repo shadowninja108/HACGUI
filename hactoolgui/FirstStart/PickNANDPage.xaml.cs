@@ -214,7 +214,7 @@ namespace HACGUI.FirstStart
 
             HACGUIKeyset.Keyset.DeriveKeys();
 
-            SwitchFs fs = SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition());
+            SwitchFs fs = SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, nand.OpenSystemPartition());
 
             foreach (Nca nca in fs.Ncas.Values)
             {
@@ -343,9 +343,12 @@ namespace HACGUI.FirstStart
             IStorage nsAppmanStorage = new FileStorage(system.OpenFile("save\\8000000000000043", OpenMode.Read));
             SaveDataFileSystem save = new SaveDataFileSystem(HACGUIKeyset.Keyset, nsAppmanStorage, IntegrityCheckLevel.ErrorOnInvalid, false);
             IStorage privateStorage = new FileStorage(save.OpenFile("/private", OpenMode.Read));
+            byte[] sdIdenitifyer = new byte[0x10];
             byte[] sdSeed = new byte[0x10];
+            privateStorage.Read(sdIdenitifyer, 0); // stored on SD and NAND, used to uniquely idenitfy the SD card
             privateStorage.Read(sdSeed, 0x10);
             HACGUIKeyset.Keyset.SetSdSeed(sdSeed);
+            Preferences.Current.SdIdentifiers[sdIdenitifyer.ToHexString()] = sdSeed.ToHexString();
 
             foreach (Ticket ticket in tickets)
             {

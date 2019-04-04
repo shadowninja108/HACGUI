@@ -140,6 +140,7 @@
       <DependentUpon>SaveInfoWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Main\SaveManager\SystemSaveNames.cs" />
+    <Compile Include="Main\TaskManager\Tasks\CopyAccountDataTask.cs" />
     <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\TitleMountDialog.xaml.cs">
       <DependentUpon>TitleMountDialog.xaml</DependentUpon>
     </Compile>

@@ -16,14 +16,17 @@ namespace HACGUI.Utilities
         private FileIniDataParser parser;
         public IniData data;
 
+        public KeyDataCollectionAccessor General => new KeyDataCollectionAccessor(data["General"]);
+        public KeyDataCollectionAccessor SdIdentifiers => new KeyDataCollectionAccessor(data["SdIdentifiers"]);
+
         public string DefaultConsoleName {
             get
             {
-                return data["General"]["DefaultConsole"];
+                return General["DefaultConsole"];
             }
             set
             {
-                data["General"]["DefaultConsole"] = value;
+                General["DefaultConsole"] = value;
             }
         }
 
@@ -39,6 +42,28 @@ namespace HACGUI.Utilities
         public void Write()
         {
             parser.WriteFile(HACGUIKeyset.PreferencesFileInfo.FullName, data);
+        }
+
+        public class KeyDataCollectionAccessor
+        {
+            private readonly KeyDataCollection Internal;
+
+            public KeyDataCollectionAccessor(KeyDataCollection i)
+            {
+                Internal = i;
+            }
+
+            public string this[string i]
+            {
+                get
+                {
+                    return Internal[i];
+                }
+                set
+                {
+                    Internal[i] = value;
+                }
+            }
         }
 
     }
