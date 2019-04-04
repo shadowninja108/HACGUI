@@ -86,9 +86,7 @@ namespace HACGUI.Services
                 NANDService.OnNANDRemoved += () =>
                 {
                     StatusService.NANDStatus = StatusService.Status.Incorrect;
-
                     FsView.IndexedFilesystems[TitleSource.NAND].Clear();
-
                     Update();
                 };
 

@@ -20,7 +20,15 @@ namespace HACGUI.Main.TitleManager
 
         public List<SwitchFs> Filesystems => IndexedFilesystems.Values.SelectMany(l => l).ToList();
         public Dictionary<string, Nca> Ncas => Filesystems.SelectMany(f => f.Ncas).ToDictionary(k => k.Key, v => v.Value);
-        public Dictionary<string, SaveDataFileSystem> Saves => Filesystems.SelectMany(f => f.Saves).ToDictionary(k => k.Key, v => v.Value);
+        public Dictionary<string, SaveDataFileSystem> Saves
+        {
+            get {
+                Dictionary<string, SaveDataFileSystem> saves = new Dictionary<string, SaveDataFileSystem>();
+                foreach (KeyValuePair<string, SaveDataFileSystem> kv in Filesystems.SelectMany(f => f.Saves))
+                    saves[kv.Key] = kv.Value;
+                return saves;
+            }
+        }
         public Dictionary<ulong, Title> Titles => Filesystems.SelectMany(f => f.Titles).ToDictionary(k => k.Key, v => v.Value);
         public Dictionary<ulong, LibHac.Application> Applications
         {
