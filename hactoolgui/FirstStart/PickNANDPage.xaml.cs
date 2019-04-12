@@ -294,8 +294,8 @@ namespace HACGUI.FirstStart
                     prodinfo.CopyTo(prodinfoFile);
 
                 prodinfoFile.Seek(0, SeekOrigin.Begin);
-                new DecryptTicketsTask().CreateTask().RunSynchronously();
                 cal0 = new Calibration(prodinfoFile);
+                HACGUIKeyset.Keyset.EticketExtKeyRsa = Crypto.DecryptRsaKey(cal0.EticketExtKeyRsa, HACGUIKeyset.Keyset.EticketRsaKek);
 
                 prodinfoFile.Seek(0x0AD0, SeekOrigin.Begin);  // seek to certificate length
                 byte[] buffer = new byte[0x4];

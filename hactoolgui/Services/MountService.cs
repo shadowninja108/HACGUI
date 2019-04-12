@@ -85,7 +85,7 @@ namespace HACGUI.Services
         public readonly string Name, FileSystemType;
 
         private readonly IFileSystem Fs;
-        private readonly Dictionary<IFile, FileStorage> OpenedFiles;
+        private readonly Dictionary<string, FileStorage> OpenedFiles;
         private readonly object OpenedFileLock = new object();
         private readonly OpenMode Mode;
 
@@ -94,7 +94,7 @@ namespace HACGUI.Services
             Fs = fs;
             Name = name;
             FileSystemType = fileSystemType;
-            OpenedFiles = new Dictionary<IFile, FileStorage>();
+            OpenedFiles = new Dictionary<string, FileStorage>();
             Mode = mode;
         }
 
@@ -115,25 +115,25 @@ namespace HACGUI.Services
         {
             IFile file = GetFile(fileName);
             if (file != null)
-                CloseFile(file);
+                CloseFile(fileName);
         }
 
-        public void CloseFile(IFile file)
+        public void CloseFile(string fileName)
         {
             lock (OpenedFileLock)
             {
-                if (OpenedFiles.ContainsKey(file))
+                if (OpenedFiles.ContainsKey(fileName))
                 {
-                    OpenedFiles[file].Dispose();
-                    OpenedFiles.Remove(file);
+                    OpenedFiles[fileName].Dispose();
+                    OpenedFiles.Remove(fileName);
                 }
             }
         }
 
         public void CloseAllFiles()
         {
-            foreach (IFile file in new List<IFile>(OpenedFiles.Keys))
-                CloseFile(file);
+            foreach (string fileName in new List<string>(OpenedFiles.Keys))
+                CloseFile(fileName);
         }
 
         public NtStatus CreateFile(string fileName, DokanNet.FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, DokanFileInfo info)
@@ -468,13 +468,13 @@ namespace HACGUI.Services
             if (key == null)
                 return null;
 
-            if (OpenedFiles.ContainsKey(key))
-                return OpenedFiles[key];
+            if (OpenedFiles.ContainsKey(path))
+                return OpenedFiles[path];
 
             try
             {
                 FileStorage storage = new FileStorage(key);
-                OpenedFiles[key] = storage;
+                OpenedFiles[path] = storage;
                 return storage;
             }
             catch (UnauthorizedAccessException)
