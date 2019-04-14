@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Windows;
 
 namespace HACGUI.Services
 {
@@ -84,12 +85,15 @@ namespace HACGUI.Services
             ManagementObjectCollection disks = GetDisks();
             foreach (ManagementObject disk in disks)
             {
-                if (disk["Model"].ToString() == "Linux UMS disk 0 USB Device") // probably a bad way of filtering?
+                DiskInfo info = CreateDiskInfo(disk);
+                if (info.Model == "Linux UMS disk 0 USB Device") // probably a bad way of filtering?
                 {
                     try
                     {
-                        DiskInfo info = CreateDiskInfo(disk);
+                        MessageBox.Show($"Model: {info.Model}\nPartitions: {info.Partitions}\nIndex: {info.Index}\nPhysical Name: {info.PhysicalName}");
                         IEnumerable<PartitionInfo> partitions = CreatePartitionInfos(GetPartitions()).Where((p) => info.Index == p.DiskIndex).OrderBy((p) => p.Index);
+                        if (!partitions.Any())
+                            continue; // obv the NAND should have *some* partitions
                         PartitionInfo lastPartition = partitions.Last();
                         long length = (long)(lastPartition.Size + lastPartition.StartingOffset);
                         // thx windows for ignoring the GPT backup AND reporting the size of the disk incorrectly...
@@ -97,7 +101,10 @@ namespace HACGUI.Services
                         length += missingLength;
                         IStorage diskStorage = new CachedStorage(new DeviceStream(info.PhysicalName, length).AsStorage().AsReadOnly(), info.SectorSize * 100, 4, true);
                         if (InsertNAND(diskStorage, true))
+                        {
                             CurrentDisk = info;
+                            break;
+                        }
                     }
                     catch (UnauthorizedAccessException)
                     {
