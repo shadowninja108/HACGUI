@@ -43,7 +43,7 @@ namespace HACGUI.Main.TitleManager
         {
             FatFileSystemProvider partition = null;
             string partitionName = "";
-            switch (SelectedType)
+            switch (ComboBox.SelectedValue)
             {
                 case NANDMountType.PRODINFOF:
                     partition = NANDService.NAND.OpenProdInfoF();

@@ -9,7 +9,7 @@
     <Grid>
         <DockPanel>
             <Button DockPanel.Dock="Right" Click="MountClicked">Mount</Button>
-            <ComboBox Name="ComboBox" SelectedItem="{Binding SelectedType}" DockPanel.Dock="Left" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <ComboBox Name="ComboBox" DockPanel.Dock="Left" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
         </DockPanel>
     </Grid>
 </Window>

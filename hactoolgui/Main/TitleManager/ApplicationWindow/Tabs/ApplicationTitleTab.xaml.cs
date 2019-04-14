@@ -87,7 +87,12 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
                 if (info.Selected)
                     selected.Add(info.Title);
 
-            Title baseTitle = Element.OrderTitlesByBest().Where(t => t.Metadata.Type == TitleType.Application).FirstOrDefault();
+            List<Title> orderedTitles = Element.OrderTitlesByBest();
+
+            Title baseTitle = orderedTitles.FirstOrDefault(t => t.Metadata.Type == TitleType.Application);
+
+            if (baseTitle == null && orderedTitles.Count == 1)
+                baseTitle = orderedTitles.First();
 
             if (!IsMountable(baseTitle, selected))
             {
