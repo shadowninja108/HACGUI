@@ -48,7 +48,10 @@ namespace HACGUI
             {
                 if (WorkingDirectoryInfo.GetFile("portable.txt").Exists)
                     return WorkingDirectoryInfo;
-                return new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+                DirectoryInfo info = new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+                if (info.Name != Environment.UserName)
+                    info = info.Parent.GetDirectory(Environment.UserName);
+                return info;
             }
         }
         public static DirectoryInfo UserSwitchDirectoryInfo => RootUserDirectory.GetDirectory(UserSwitchFolderName);
