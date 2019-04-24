@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static HACGUI.Utilities.Native;
 using static LibHac.ExternalKeys;
 
 namespace HACGUI
@@ -49,8 +50,9 @@ namespace HACGUI
                 if (WorkingDirectoryInfo.GetFile("portable.txt").Exists)
                     return WorkingDirectoryInfo;
                 DirectoryInfo info = new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-                if (info.Name != Environment.UserName)
-                    info = info.Parent.GetDirectory(Environment.UserName);
+                string user = GetLoggedInUser();
+                if (info.Name != user)
+                    info = info.Parent.GetDirectory(user);
                 return info;
             }
         }

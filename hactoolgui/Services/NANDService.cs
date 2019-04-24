@@ -1,5 +1,4 @@
-﻿using LibHac;
-using LibHac.IO;
+﻿using LibHac.IO;
 using LibHac.Nand;
 using NandReaderGui;
 using System;
@@ -7,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
-using System.Windows;
+using static HACGUI.Utilities.Native;
 
 namespace HACGUI.Services
 {
@@ -61,11 +60,9 @@ namespace HACGUI.Services
                 {
                     if (CurrentDisk != null)
                     { // means the NAND is access over USB, so we need to determine if it 
-                        ManagementObjectCollection disks = GetDisks();
                         bool found = false;
-                        foreach (ManagementObject disk in disks) // search to see if we can match the DiskInfo with an existing device
+                        foreach (DiskInfo info in CreateDiskInfos(GetDisks())) // search to see if we can match the DiskInfo with an existing device
                         {
-                            DiskInfo info = CreateDiskInfo(disk);
                             if (info.PhysicalName.Equals(CurrentDisk.PhysicalName))
                             {
                                 found = true;
@@ -82,14 +79,12 @@ namespace HACGUI.Services
 
         private static void Refresh()
         {
-            ManagementObjectCollection disks = GetDisks();
-            foreach (ManagementObject disk in disks)
+            foreach (DiskInfo info in CreateDiskInfos(GetDisks()))
             {
-                if (disk.GetPropertyValue("Model") as string == "Linux UMS disk 0 USB Device") // probably a bad way of filtering?
+                if (info.Model == "Linux UMS disk 0 USB Device") // probably a bad way of filtering?
                 {
                     try
                     {
-                        DiskInfo info = CreateDiskInfo(disk);
                         IEnumerable<PartitionInfo> partitions = CreatePartitionInfos(GetPartitions()).Where((p) => info.Index == p.DiskIndex).OrderBy((p) => p.Index);
                         if (!partitions.Any())
                             continue; // obv the NAND should have *some* partitions
@@ -113,55 +108,7 @@ namespace HACGUI.Services
             }
         }
 
-        private static DiskInfo CreateDiskInfo(ManagementObject disk)
-        {
-            var info = new DiskInfo
-            {
-                PhysicalName = (string)disk.GetPropertyValue("Name"),
-                Name = (string)disk.GetPropertyValue("Caption"),
-                Model = (string)disk.GetPropertyValue("Model"),
-                //todo Why is Windows returning small sizes? https://stackoverflow.com/questions/15051660
-                Length = (long)((ulong)disk.GetPropertyValue("Size")),
-                SectorSize = (int)((uint)disk.GetPropertyValue("BytesPerSector")),
-                DisplaySize = Util.GetBytesReadable((long)((ulong)disk.GetPropertyValue("Size"))),
-                Partitions = (uint)disk.GetPropertyValue("Partitions"),
-                Index = (uint)disk.GetPropertyValue("Index")
-            };
-            return info;
-        }
 
-        private static PartitionInfo CreatePartitionInfo(ManagementObject parition)
-        {
-            return new PartitionInfo()
-            {
-                DiskIndex = (uint)parition.GetPropertyValue("DiskIndex"),
-                Index = (uint)parition.GetPropertyValue("Index"),
-                Size = (ulong)parition.GetPropertyValue("Size"),
-                StartingOffset = (ulong)parition.GetPropertyValue("StartingOffset"),
-                Name = (string)parition.GetPropertyValue("Name"),
-                Description = (string)parition.GetPropertyValue("Description"),
-            };
-        }
-
-        private static PartitionInfo[] CreatePartitionInfos(ManagementObjectCollection partitions)
-        {
-            List<PartitionInfo> info = new List<PartitionInfo>();
-            foreach (ManagementObject partition in partitions)
-            {
-                info.Add(CreatePartitionInfo(partition));
-            }
-            return info.ToArray();
-        }
-
-        private static ManagementObjectCollection GetDisks()
-        {
-            return new ManagementClass("Win32_DiskDrive").GetInstances();
-        }
-
-        private static ManagementObjectCollection GetPartitions()
-        {
-            return new ManagementClass("Win32_DiskPartition").GetInstances();
-        }
 
         public static bool InsertNAND(IStorage input, bool raw)
         {
@@ -227,26 +174,5 @@ namespace HACGUI.Services
         
     }
 
-    public class DiskInfo
-    {
-        public string PhysicalName { get; set; }
-        public string Name { get; set; }
-        public string Model { get; set; }
-        public long Length { get; set; }
-        public int SectorSize { get; set; }
-        public string DisplaySize { get; set; }
-        public string Display => $"{Name} ({DisplaySize})";
-        public uint Partitions { get; set; }
-        public uint Index { get; set; }
-    }
 
-    public class PartitionInfo
-    {
-        public uint DiskIndex { get; set; }
-        public uint Index { get; set; }
-        public ulong Size { get; set; }
-        public ulong StartingOffset { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-    }
 }
