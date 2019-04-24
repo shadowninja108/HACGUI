@@ -81,7 +81,7 @@ namespace HACGUI.Extensions
         }
 
         // as efficient as hashing shit everywhere will get
-        public static Dictionary<byte[], byte[]> FindKeysViaHash(this Stream source, List<HashSearchEntry> searches, HashAlgorithm crypto, int dataLength, long length = -1)
+        public static void FindKeysViaHash(this Stream source, List<HashSearchEntry> searches, HashAlgorithm crypto, int dataLength, long length = -1)
         {
             Dictionary<byte[], byte[]> dict = new Dictionary<byte[], byte[]>();
             long beginning = source.Position;
@@ -100,6 +100,7 @@ namespace HACGUI.Extensions
                         if (crypto.Hash.SequenceEqual(search.Hash))
                         {
                             dict[search.Hash] = new byte[dataLength];
+                            Array.Copy(buffer, dict[search.Hash], dataLength);
                             Array.Copy(buffer, search.Setter(), dataLength);
                         }
                 if (searches.Count == dict.Count)
@@ -109,7 +110,7 @@ namespace HACGUI.Extensions
 
                 source.Position -= (dataLength - 1);
             }
-            return dict;
+            //return dict;
         }
 
         public static bool VerifyViaHash(this byte[] data, byte[] expectedHash, HashAlgorithm crypto)

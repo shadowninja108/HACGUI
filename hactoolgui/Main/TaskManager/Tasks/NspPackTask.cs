@@ -18,10 +18,9 @@ namespace HACGUI.Main.TaskManager.Tasks
         public override Task CreateTask()
         {
             return new Task(() => {
-                Stream target = Target.Create();
                 IStorage source = Builder.Build(PartitionFileSystemType.Standard);
-                source.CopyToStream(target, source.GetSize(), this);
-                target.Close();
+                using (Stream target = Target.Create())
+                    source.CopyToStream(target, source.GetSize(), this);
             });
         }
     }

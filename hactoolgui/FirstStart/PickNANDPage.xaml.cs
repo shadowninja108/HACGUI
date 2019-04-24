@@ -350,7 +350,7 @@ namespace HACGUI.FirstStart
             IStorage privateStorage = new FileStorage(nsAppmanSave.OpenFile("/private", OpenMode.Read));
             byte[] sdIdenitifyer = new byte[0x10];
             byte[] sdSeed = new byte[0x10];
-            privateStorage.Read(sdIdenitifyer, 0); // stored on SD and NAND, used to uniquely idenitfy the SD card
+            privateStorage.Read(sdIdenitifyer, 0); // stored on SD and NAND, used to uniquely idenitfy the SD/NAND
             privateStorage.Read(sdSeed, 0x10);
             HACGUIKeyset.Keyset.SetSdSeed(sdSeed);
             Preferences.Current.SdIdentifiers[sdIdenitifyer.ToHexString()] = sdSeed.ToHexString();
