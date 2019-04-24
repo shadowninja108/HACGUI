@@ -60,9 +60,9 @@ namespace HACGUI.Services
         public static void UnmountAll()
         {
             foreach (Tuple<Thread, char> fs in Mounted.Values)
-                Dokan.Unmount(fs.Item2);
+                Dokan.Unmount(fs.Item2); // tell every drive to unmount
             foreach (Tuple<Thread, char> fs in new List<Tuple<Thread, char>>(Mounted.Values))
-                fs.Item1.Join(); // wait for thread to stop
+                fs.Item1.Join(); // wait for thread to stop (wait for drives to be unmounted)
             Mounted.Clear();
         }
 

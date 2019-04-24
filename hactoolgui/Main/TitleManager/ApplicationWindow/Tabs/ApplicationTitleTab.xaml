@@ -18,6 +18,11 @@
             </StackPanel>
 
             <ListView Name="ListView" MouseDoubleClick="TitleDoubleClicked">
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Copy Title ID" Click="CopyTitleIdClicked"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
                 <ListView.View>
                     <GridView>
                         <GridViewColumn>

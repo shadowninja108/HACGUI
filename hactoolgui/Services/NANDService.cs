@@ -85,12 +85,11 @@ namespace HACGUI.Services
             ManagementObjectCollection disks = GetDisks();
             foreach (ManagementObject disk in disks)
             {
-                DiskInfo info = CreateDiskInfo(disk);
-                if (info.Model == "Linux UMS disk 0 USB Device") // probably a bad way of filtering?
+                if (disk.GetPropertyValue("Model") as string == "Linux UMS disk 0 USB Device") // probably a bad way of filtering?
                 {
                     try
                     {
-                        MessageBox.Show($"Model: {info.Model}\nPartitions: {info.Partitions}\nIndex: {info.Index}\nPhysical Name: {info.PhysicalName}");
+                        DiskInfo info = CreateDiskInfo(disk);
                         IEnumerable<PartitionInfo> partitions = CreatePartitionInfos(GetPartitions()).Where((p) => info.Index == p.DiskIndex).OrderBy((p) => p.Index);
                         if (!partitions.Any())
                             continue; // obv the NAND should have *some* partitions

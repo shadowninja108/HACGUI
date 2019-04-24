@@ -58,7 +58,8 @@ namespace HACGUI
         public static DirectoryInfo RootTempFolderInfo => WorkingDirectoryInfo.GetDirectory(RootTempFolderName);
         public static DirectoryInfo RootTempPkg1FolderInfo => RootTempFolderInfo.GetDirectory(TempPkg1FolderName);
         public static DirectoryInfo RootTempPkg2FolderInfo => RootTempFolderInfo.GetDirectory(TempPkg2FolderName);
-        public static DirectoryInfo RootTempINI1Folder => RootTempPkg2FolderInfo.GetDirectory(TempINI1FolderName);
+        public static DirectoryInfo RootTempINI1FolderInfo => RootTempPkg2FolderInfo.GetDirectory(TempINI1FolderName);
+        public static DirectoryInfo AccountsFolderInfo => RootFolderInfo.GetDirectory(AccountsFolderName);
 
 
         public static FileInfo ProductionKeysFileInfo => UserSwitchDirectoryInfo.GetFile(ProductionKeysFileName);
@@ -101,8 +102,11 @@ namespace HACGUI
 
         public void LoadCommon()
         {
-            ReadKeyFile(Keyset, ExtraKeysFileInfo.FullName);
-            ReadKeyFile(Keyset, ProductionKeysFileInfo.FullName, TitleKeysFileInfo.FullName);
+            if(ExtraKeysFileInfo.Exists)
+                ReadKeyFile(Keyset, ExtraKeysFileInfo.FullName);
+            string prodPath = ProductionKeysFileInfo.Exists ? ProductionKeysFileInfo.FullName : null;
+            string titlePath = TitleKeysFileInfo.Exists ? TitleKeysFileInfo.FullName : null;
+            ReadKeyFile(Keyset, prodPath, titlePath);
             Keyset.DeriveKeys();
         }
 
@@ -138,11 +142,6 @@ namespace HACGUI
         public static DirectoryInfo GetTicketsDirectory(string name)
         {
             return GetConsoleFolderInfo(name).GetDirectory(TicketFolderName);
-        }
-
-        public static DirectoryInfo GetAccountsDirectory(string name)
-        {
-            return GetConsoleFolderInfo(name).GetDirectory(AccountsFolderName);
         }
 
         public static FileInfo GetCrashZip()
@@ -193,8 +192,8 @@ namespace HACGUI
                             if(!GetTicketsDirectory(consoleName).Exists)
                                 return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a {TicketFolderName} folder.");
 
-                            if (!GetAccountsDirectory(consoleName).Exists)
-                                return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a {AccountsFolderName} folder.");
+                            /*if (!GetAccountsDirectory(consoleName).Exists)
+                                return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a {AccountsFolderName} folder.");*/
                         }
                     }
                     else

@@ -15,10 +15,10 @@
                         BorderBrush="Gray"
                         Width="110"
                         Height="110">
-                    <Image>
+                    <Image Name="ProfileIcon">
                         <Image.ContextMenu>
                             <ContextMenu StaysOpen="True">
-                                <!--<MenuItem Header="Copy" Click="CopyImage"/>-->
+                                <MenuItem Header="Copy" Click="CopyImage"/>
                             </ContextMenu>
                         </Image.ContextMenu>
                     </Image>

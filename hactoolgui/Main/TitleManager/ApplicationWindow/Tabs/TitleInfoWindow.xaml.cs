@@ -37,9 +37,20 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
                 if (info.Selected)
                     selected.Add(info.Nca);
 
-            Window window = new ExtractPickerWindow(selected);
-            window.Owner = Window.GetWindow(this);
+            Window window = new ExtractPickerWindow(selected)
+            {
+                Owner = GetWindow(this)
+            };
             window.ShowDialog();
+        }
+
+        private void CopyTitleIdClicked(object sender, RoutedEventArgs e)
+        {
+            MenuItem item = sender as MenuItem;
+            ContextMenu contextMenu = item.Parent as ContextMenu;
+            ListView listView = contextMenu.PlacementTarget as ListView;
+            if (listView.SelectedItem is NcaElement element)
+                Clipboard.SetText(string.Format("{0:x16}", element.FileName));
         }
     }
 }

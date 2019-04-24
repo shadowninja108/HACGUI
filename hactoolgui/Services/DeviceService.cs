@@ -54,6 +54,7 @@ namespace HACGUI.Services
                             Update();
                             count = 0;
                         }
+                        return;
                     }
                     Update();
                 };
@@ -61,7 +62,6 @@ namespace HACGUI.Services
                 SDService.OnSDPluggedIn += (drive) =>
                 {
                     FsView.LoadFileSystemAsync("Opening SD filesystem...", () => SwitchFs.OpenSdCard(HACGUIKeyset.Keyset, new LocalFileSystem(drive.RootDirectory.FullName)), TitleSource.SD, true);
-                    Update();
 
                     StatusService.SDStatus = StatusService.Status.Progress;
                 };
@@ -79,6 +79,7 @@ namespace HACGUI.Services
                     FsView.LoadFileSystemAsync("Opening NAND system filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()), TitleSource.NAND, true);
                     TaskManagerPage.Current.Queue.Submit(new DecryptTicketsTask());
                     TaskManagerPage.Current.Queue.Submit(new SaveKeysetTask(Preferences.Current.DefaultConsoleName)); // TODO
+                    TaskManagerPage.Current.Queue.Submit(new CopyAccountDataTask());
 
                     StatusService.NANDStatus = StatusService.Status.Progress;
                 };

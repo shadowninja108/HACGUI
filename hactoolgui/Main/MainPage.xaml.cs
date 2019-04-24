@@ -48,9 +48,12 @@ namespace HACGUI.Main
 
                 NANDService.OnNANDRemoved += () =>
                 {
-                    foreach (MenuItem item in
-                        NANDContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresNAND"))
-                        item.IsEnabled = false;
+                    Dispatcher.Invoke(() =>
+                    {
+                        foreach (MenuItem item in
+                            NANDContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresNAND"))
+                            item.IsEnabled = false;
+                    });
                 };
 
                 // init this first as other pages may request tasks on init
@@ -153,6 +156,9 @@ namespace HACGUI.Main
             ".FilterMultilineString();
             FileInfo[] files = RequestOpenFilesFromUser(".*", filter, "Select the game data");
 
+            if (files == null)
+                return;
+
             IEnumerable<FileInfo> ncas = files.Where((f) =>
             {
                 try
@@ -197,7 +203,12 @@ namespace HACGUI.Main
             foreach(FileInfo file in ncas)
             {
                 LocalFileSystem fs = new LocalFileSystem(file.Directory.FullName);
-                ncaFs.Add($"/{file.Name}", fs);
+                
+                // clean up filename so it only ends with .nca, then map to actual name
+                string s = file.Name;
+                while (s.EndsWith(".nca"))
+                    s = s.Substring(0, s.IndexOf(".nca"));
+                ncaFs.Add($"/{s}.nca", $"/{file.Name}", fs);
                 foundNcas = true;
             }
             if(foundNcas)

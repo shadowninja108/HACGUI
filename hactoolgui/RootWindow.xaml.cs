@@ -100,6 +100,7 @@ namespace HACGUI
 
             Loaded += (_1, _2) =>
             {
+                HACGUIKeyset.Keyset.LoadCommon(); // only loads what exists, so safe to call
                 Tuple<bool, string> result = HACGUIKeyset.IsValidInstall();
                 Page nextPage;
                 if (result.Item1)
@@ -115,7 +116,6 @@ namespace HACGUI
                         if (args[0] == "continue")
                         {
                             PickConsolePage.ConsoleName = args[1];
-                            HACGUIKeyset.Keyset.LoadCommon();
                             HACGUIKeyset.Keyset.LoadPersonal(PickConsolePage.ConsoleName);
                             HACGUIKeyset.Keyset.DeriveKeys();
 

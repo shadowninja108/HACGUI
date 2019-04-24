@@ -41,7 +41,7 @@ namespace HACGUI.FirstStart
             get => _infos[1];
             set
             {
-                StatusService.Statuses[TSECFileString] = value == null ? StatusService.Status.Incorrect : StatusService.Status.OK;
+                //StatusService.Statuses[TSECFileString] = value == null ? StatusService.Status.Incorrect : StatusService.Status.OK;
                 _infos[1] = value;
             }
         }
@@ -85,7 +85,7 @@ namespace HACGUI.FirstStart
                     StatusService.Statuses[SDInsertedString] = StatusService.Status.Incorrect;
                     StatusService.Statuses[BackupFolderString] = StatusService.Status.Incorrect;
                     StatusService.Statuses[FuseFileString] = StatusService.Status.Incorrect;
-                    StatusService.Statuses[TSECFileString] = StatusService.Status.Incorrect;
+                    //StatusService.Statuses[TSECFileString] = StatusService.Status.Incorrect;
                     StatusService.Statuses[BOOT0FileString] = StatusService.Status.Incorrect;
                     Dispatcher.BeginInvoke(new Action(() => // Update on the UI thread
                     {
@@ -106,7 +106,7 @@ namespace HACGUI.FirstStart
                 StatusService.Statuses[SDInsertedString] = StatusService.Status.Incorrect;
                 StatusService.Statuses[BackupFolderString] = StatusService.Status.Incorrect;
                 StatusService.Statuses[FuseFileString] = StatusService.Status.Incorrect;
-                StatusService.Statuses[TSECFileString] = StatusService.Status.Incorrect;
+                StatusService.Statuses[TSECFileString] = StatusService.Status.OK;
                 StatusService.Statuses[BOOT0FileString] = StatusService.Status.Incorrect;
 
                 StatusService.Start();
@@ -152,11 +152,12 @@ namespace HACGUI.FirstStart
                     {
                         Dispatcher.BeginInvoke(new Action(() => 
                         {
-                            FileInfo info = RequestOpenFileFromUser(".keys", "Keys file (.keys) | *.keys", "Select dumped keys from Lockpick...", "prod.keys");
-                            if (info != null)
+                            FileInfo info = null;
+                            while (info == null)
                             {
-                                ExternalKeys.ReadKeyFile(HACGUIKeyset.Keyset, info.FullName);
+                                info = RequestOpenFileFromUser(".keys", "Keys file (.keys) | *.keys", "Select dumped keys from Lockpick_RCM...", "prod.keys");
                             }
+                            ExternalKeys.ReadKeyFile(HACGUIKeyset.Keyset, info.FullName);
                         })).Wait();
                     }
 
@@ -242,10 +243,10 @@ namespace HACGUI.FirstStart
 
         public bool IsValidBackupFolder(DirectoryInfo info)
         {
-            FileInfo[] infos = info.FindFiles(new string[] { "BOOT0", "fuses.bin", "tsec_keys.bin" });
+            FileInfo[] infos = info.FindFiles(new string[] { "BOOT0", "fuses.bin"/*, "tsec_keys.bin"*/ });
             BOOT0FileInfo = infos[0];
             FuseFileInfo = infos[1];
-            TSECFileInfo = infos[2];
+            //TSECFileInfo = infos[2];
             foreach (FileInfo i in infos)
                 if (i == null)
                     return false;
@@ -272,14 +273,17 @@ namespace HACGUI.FirstStart
         private void CopyDump()
         {
             byte[] fuses = File.ReadAllBytes(FuseFileInfo.FullName);
-            byte[] rawTsec = File.ReadAllBytes(TSECFileInfo.FullName);
+            //byte[] rawTsec = File.ReadAllBytes(TSECFileInfo.FullName);
             SBK = fuses.Skip(0xA4).Take(0x10).ToArray();
 
             TSECKeys = new byte[][]
             {
-                rawTsec.Take(0x10).ToArray(),
+                /*rawTsec.Take(0x10).ToArray(),
                 rawTsec.Skip(0x10).Take(0x10).ToArray(),
-                rawTsec.Skip(0x20).Take(0x10).ToArray()
+                rawTsec.Skip(0x20).Take(0x10).ToArray()*/
+                new byte[0x10],
+                new byte[0x10],
+                new byte[0x10]
             };
 
             DirectoryInfo temp = HACGUIKeyset.RootTempFolderInfo;

@@ -1,7 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using HACGUI.Extensions;
+using HACGUI.Main.TaskManager;
+using HACGUI.Main.TaskManager.Tasks;
+using HACGUI.Main.TitleManager;
 using HACGUI.Services;
 using HACGUI.Utilities;
 using LibHac.IO;
@@ -20,6 +28,7 @@ namespace HACGUI.Main.SaveManager
         public string SaveOwner => Element.Owner;
         public string Timestamp => CreateTimestamp();
         public ulong SaveID => Element.SaveId;
+        public string SaveUserId => Element.UserId;
 
         public SaveInfoWindow(SaveElement element)
         {
@@ -45,6 +54,36 @@ namespace HACGUI.Main.SaveManager
             if (IsWritable(element.Save))
                 MountTypesComboBox.Items.Add(OpenType.Writable);
 
+            Task<ImageSource> task = GetIconAync();
+            ProfileIcon.Source = ApplicationElement.UnknownIcon;
+            task.ContinueWith((source) => ProfileIcon.Dispatcher.Invoke(() => ProfileIcon.Source = source.Result));
+            TaskManagerPage.Current.Queue.Submit(new RunTask($"Decoding profile icon...", task));
+        }
+
+        public Task<ImageSource> GetIconAync()
+        {
+            return new Task<ImageSource>(() =>
+            {
+                try
+                {
+                    FileInfo info = HACGUIKeyset.AccountsFolderInfo.GetFile($"{SaveUserId.ToLower()}.jpg");
+                    if (info.Exists) {
+                        JpegBitmapDecoder decoder = new JpegBitmapDecoder(info.OpenRead(), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+                        decoder.Frames[0].Freeze();
+                        return decoder.Frames[0];
+                    }
+                    return ApplicationElement.UnknownIcon;
+                }
+                catch (Exception)
+                {
+                    return ApplicationElement.UnknownIcon;
+                }
+            });
+        }
+
+        private void CopyImage(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetImage(new WriteableBitmap((BitmapSource)ProfileIcon.Source));
         }
 
         public string CreateTimestamp()
@@ -84,6 +123,7 @@ namespace HACGUI.Main.SaveManager
                 save.DeleteDirectory("/temp");
                 save.CreateFile("/tmp.bin", 0, CreateFileOptions.None);
                 IFile temp = save.OpenFile("/tmp.bin", OpenMode.Write);
+                temp.SetSize(0x4);
                 byte[] testBytes = new byte[] { 0xBA, 0xDF, 0x00, 0xD };
                 temp.Write(testBytes, 0);
                 byte[] buff = new byte[4];

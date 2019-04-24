@@ -61,7 +61,8 @@ namespace HACGUI.Main.TitleManager
             {
                 Application.ApplicationWindow window = new Application.ApplicationWindow(element)
                 {
-                    Owner = Window.GetWindow(this)
+                    Owner = Window.GetWindow(this),
+                    Icon = new WriteableBitmap(element.Icon as BitmapSource)
                 };
                 window.ShowDialog();
             }

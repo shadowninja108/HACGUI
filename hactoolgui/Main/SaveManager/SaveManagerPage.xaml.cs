@@ -76,7 +76,7 @@ namespace HACGUI.Main.SaveManager
                     SaveElement element = new SaveElement(kv);
                     if (TitleID == 0)
                     {
-                        if ((element.SaveId & 0x8000000000000000) != 0)
+                        if ((element.SaveId & 0x8000000000000000) != 0 || DeviceService.Titles.ContainsKey(element.SaveId))
                             ListView.Items.Add(element);
                     }
                     else

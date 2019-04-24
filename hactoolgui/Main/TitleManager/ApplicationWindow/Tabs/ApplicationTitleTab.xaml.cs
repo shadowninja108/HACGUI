@@ -9,8 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms;
 using UserControl = System.Windows.Controls.UserControl;
+using static LibHac.Util;
 
 namespace HACGUI.Main.TitleManager.Application.Tabs
 {
@@ -44,8 +44,10 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
                     foreach (NcaElement nca in info.Ncas)
                         selected.Add(nca.Nca);
 
-            Window window = new ExtractPickerWindow(selected);
-            window.Owner = Window.GetWindow(this);
+            Window window = new ExtractPickerWindow(selected)
+            {
+                Owner = Window.GetWindow(this)
+            };
             window.ShowDialog();
 
             /*
@@ -96,7 +98,7 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
 
             if (!IsMountable(baseTitle, selected))
             {
-                System.Windows.MessageBox.Show("The base game isn't available, so the patch cannot be mounted.");
+                MessageBox.Show("The base game isn't available, so the patch cannot be mounted.");
                 return;
             }
 
@@ -148,6 +150,15 @@ namespace HACGUI.Main.TitleManager.Application.Tabs
                     return nca;
             }
             return null;
+        }
+
+        private void CopyTitleIdClicked(object sender, RoutedEventArgs e)
+        {
+            MenuItem item = sender as MenuItem;
+            ContextMenu contextMenu = item.Parent as ContextMenu;
+            ListView listView = contextMenu.PlacementTarget as ListView;
+            if (listView.SelectedItem is TitleElement element)
+                Clipboard.SetText(string.Format("{0:x16}", element.TitleId));
         }
     }
 }

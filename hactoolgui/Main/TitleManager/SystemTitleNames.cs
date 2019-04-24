@@ -12,6 +12,8 @@ namespace HACGUI.Main.TitleManager
         public static string GetName(Title title)
         {
             ulong id = title.Id;
+            if (title.MainNca == null)
+                return "Unknown";
             id -= 0x0100000000000000;
             switch (id)
             {
@@ -228,6 +230,8 @@ namespace HACGUI.Main.TitleManager
                     return "RebootlessSystemUpdateVersion";
                 case 0x827:
                     return "ContentActionTable";
+                case 0x828:
+                    return "FunctionBlackList";
 
                 // System Applets
                 case 0x1000:

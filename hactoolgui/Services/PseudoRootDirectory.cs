@@ -27,14 +27,14 @@ namespace HACGUI.Services
 
         public IEnumerable<DirectoryEntry> Read()
         {
-            foreach(KeyValuePair<string, IAttributeFileSystem> kv in (ParentFileSystem as PseudoFileSystem).FileDict)
+            foreach(KeyValuePair<string, Tuple<string, IAttributeFileSystem>> kv in (ParentFileSystem as PseudoFileSystem).FileDict)
             {
-                IAttributeFileSystem fs = kv.Value;
+                IAttributeFileSystem fs = kv.Value.Item2;
                 string fullPath = kv.Key;
                 int split = fullPath.LastIndexOf('/');
                 string path = fullPath.Substring(0, split);
                 string name = kv.Key.Substring(split);
-                yield return new DirectoryEntry(name, fullPath, DirectoryEntryType.File, fs.GetFileSize(fullPath));
+                yield return new DirectoryEntry(name, fullPath, DirectoryEntryType.File, fs.GetFileSize(kv.Value.Item1));
             }
         }
     }

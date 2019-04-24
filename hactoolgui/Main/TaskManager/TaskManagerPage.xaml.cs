@@ -87,11 +87,11 @@ namespace HACGUI.Main.TaskManager
             ProgressView view = new ProgressView(tasks);
             NavigationWindow window = new NavigationWindow
             {
-                ShowsNavigationUI = false // get rid of the t r a s h
+                ShowsNavigationUI = false, // get rid of the t r a s h
+                Owner = Window.GetWindow(this)
             };
 
             window.Navigate(view);
-            window.Owner = Window.GetWindow(this);
             window.ShowDialog();
         }
     }

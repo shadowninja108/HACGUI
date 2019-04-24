@@ -1,22 +1,16 @@
-﻿using HACGUI.Utilities;
-using LibHac;
+﻿using LibHac;
 using LibHac.IO;
 using LibHac.IO.Save;
-using LibHac.Nand;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Media;
-using System.Windows.Navigation;
 
 namespace HACGUI.Extensions
 {
@@ -79,15 +73,15 @@ namespace HACGUI.Extensions
             int b = 0;
             long beginning = source.Position;
             b = source.ReadByte();
-            while(b != -1 && (source.Position - beginning) <= length)
+            while (b != -1 && (source.Position - beginning) <= length)
             {
-                destination.WriteByte((byte) b);
+                destination.WriteByte((byte)b);
                 b = source.ReadByte();
             }
         }
 
         // as efficient as hashing shit everywhere will get
-        public static Dictionary<byte[], byte[]> FindKeyViaHash(this Stream source, List<HashSearchEntry> searches, HashAlgorithm crypto, int dataLength, long length = -1)
+        public static Dictionary<byte[], byte[]> FindKeysViaHash(this Stream source, List<HashSearchEntry> searches, HashAlgorithm crypto, int dataLength, long length = -1)
         {
             Dictionary<byte[], byte[]> dict = new Dictionary<byte[], byte[]>();
             long beginning = source.Position;
@@ -106,7 +100,7 @@ namespace HACGUI.Extensions
                         if (crypto.Hash.SequenceEqual(search.Hash))
                         {
                             dict[search.Hash] = new byte[dataLength];
-                            Array.Copy(buffer, dict[search.Hash], dataLength);
+                            Array.Copy(buffer, search.Setter(), dataLength);
                         }
                 if (searches.Count == dict.Count)
                     break; // found all the keys
@@ -137,11 +131,13 @@ namespace HACGUI.Extensions
         {
             public byte[] Hash;
             public long DataLength;
+            public Func<byte[]> Setter;
 
-            public HashSearchEntry(byte[] hash, long dataLength)
+            public HashSearchEntry(byte[] hash, Func<byte[]> setter, long dataLength)
             {
                 Hash = hash;
                 DataLength = dataLength;
+                Setter = setter;
             }
         }
 
@@ -158,7 +154,7 @@ namespace HACGUI.Extensions
                 {
                     source.Add(item.Key, item.Value);
                 }
-                else if(!silent)
+                else if (!silent)
                 {
                     throw new Exception($"Duplicate key {item.Key}!");
                 }

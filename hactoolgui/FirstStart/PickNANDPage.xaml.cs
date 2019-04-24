@@ -1,26 +1,26 @@
-﻿using HACGUI.Extensions;
+﻿using CertNX;
+using HACGUI.Extensions;
+using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Services;
+using HACGUI.Utilities;
 using LibHac;
+using LibHac.IO;
+using LibHac.IO.NcaUtils;
+using LibHac.IO.Save;
 using LibHac.Nand;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
 using System.Windows;
 using System.Windows.Navigation;
+using static CertNX.RSAUtils;
 using static HACGUI.Extensions.Extensions;
 using static LibHac.Nso;
-using static CertNX.RSAUtils;
-using CertNX;
-using HACGUI.Utilities;
-using LibHac.IO;
-using LibHac.IO.Save;
-using System.Security.Principal;
-using System.Diagnostics;
-using HACGUI.Main.TaskManager.Tasks;
-using LibHac.IO.NcaUtils;
 
 namespace HACGUI.FirstStart
 {
@@ -110,58 +110,60 @@ namespace HACGUI.FirstStart
         {
             Nand nand = NANDService.NAND;
 
-            FileStream pkg2file = HACGUIKeyset.TempPkg2FileInfo.Create();
-            IStorage pkg2nand = nand.OpenPackage2(0);
-            byte[] pkg2raw = new byte[0x7FC000];
+            // stream package2 to memory
+            IStorage pkg2nand = nand.OpenPackage2(0); // 0 -> BCPKG2-1-Normal-Main
+            byte[] pkg2raw = new byte[0x7FC000]; // maximum size of pkg2
             pkg2nand.Read(pkg2raw, 0x4000);
+
             MemoryStorage pkg2memory = new MemoryStorage(pkg2raw);
-            pkg2memory.CopyToStream(pkg2file);
+
+            // copy to file for end user
+            using (FileStream pkg2file = HACGUIKeyset.TempPkg2FileInfo.Create())
+                pkg2memory.CopyToStream(pkg2file);
 
             Package2 pkg2 = new Package2(HACGUIKeyset.Keyset, pkg2memory);
-            HACGUIKeyset.RootTempPkg2FolderInfo.Create();
-            FileStream kernelstream = HACGUIKeyset.TempKernelFileInfo.Create();
-            FileStream INI1stream = HACGUIKeyset.TempINI1FileInfo.Create();
-            pkg2.OpenKernel().CopyToStream(kernelstream);
-            pkg2.OpenIni1().CopyToStream(INI1stream);
-            kernelstream.Close();
-            INI1stream.Close();
+            HACGUIKeyset.RootTempPkg2FolderInfo.Create(); // make sure it exists
+            using (FileStream kernelstream = HACGUIKeyset.TempKernelFileInfo.Create())
+                pkg2.OpenKernel().CopyToStream(kernelstream);
+            using (FileStream INI1stream = HACGUIKeyset.TempINI1FileInfo.Create())
+                pkg2.OpenIni1().CopyToStream(INI1stream);
 
             Ini1 INI1 = new Ini1(pkg2.OpenIni1());
             List<HashSearchEntry> hashes = new List<HashSearchEntry>();
-            Dictionary<byte[], byte[]> keys = new Dictionary<byte[], byte[]>();
-            HACGUIKeyset.RootTempINI1Folder.Create();
+            HACGUIKeyset.RootTempINI1FolderInfo.Create();
             foreach (Kip kip in INI1.Kips)
             {
-                Stream rodatastream, datastream;
+                Stream rodatastream;
                 switch (kip.Header.Name)
                 {
                     case "FS":
-                        hashes.Add(new HashSearchEntry(NintendoKeys.KeyAreaKeyApplicationSourceHash, 0x10));
-                        hashes.Add(new HashSearchEntry(NintendoKeys.KeyAreaKeyOceanSourceHash, 0x10));
-                        hashes.Add(new HashSearchEntry(NintendoKeys.KeyAreaKeySystemSourceHash, 0x10));
-                        hashes.Add(new HashSearchEntry(NintendoKeys.HeaderKekSourceHash, 0x10));
-                        hashes.Add(new HashSearchEntry(NintendoKeys.SaveMacKekSourceHash, 0x10));
-                        hashes.Add(new HashSearchEntry(NintendoKeys.SaveMacKeySourceHash, 0x10));
+                        hashes.Add(new HashSearchEntry(
+                            NintendoKeys.KeyAreaKeyApplicationSourceHash, () => HACGUIKeyset.Keyset.KeyAreaKeyApplicationSource,
+                            0x10));
+                        hashes.Add(new HashSearchEntry(NintendoKeys.KeyAreaKeyOceanSourceHash, () => HACGUIKeyset.Keyset.KeyAreaKeyOceanSource,
+                            0x10));
+                        hashes.Add(new HashSearchEntry(NintendoKeys.KeyAreaKeySystemSourceHash, () => HACGUIKeyset.Keyset.KeyAreaKeySystemSource,
+                            0x10));
+                        hashes.Add(new HashSearchEntry(NintendoKeys.HeaderKekSourceHash, () => HACGUIKeyset.Keyset.HeaderKekSource,
+                            0x10));
+                        hashes.Add(new HashSearchEntry(NintendoKeys.SaveMacKekSourceHash, () => HACGUIKeyset.Keyset.SaveMacKekSource,
+                            0x10));
+                        hashes.Add(new HashSearchEntry(NintendoKeys.SaveMacKeySourceHash, () => HACGUIKeyset.Keyset.SaveMacKeySource,
+                            0x10));
 
                         rodatastream = new MemoryStream(kip.DecompressSection(1));
-                        keys = rodatastream.FindKeyViaHash(hashes, new SHA256Managed(), 0x10);
-                        Array.Copy(keys[NintendoKeys.KeyAreaKeyApplicationSourceHash], HACGUIKeyset.Keyset.KeyAreaKeyApplicationSource, 0x10);
-                        Array.Copy(keys[NintendoKeys.KeyAreaKeyOceanSourceHash], HACGUIKeyset.Keyset.KeyAreaKeyOceanSource, 0x10);
-                        Array.Copy(keys[NintendoKeys.KeyAreaKeySystemSourceHash], HACGUIKeyset.Keyset.KeyAreaKeySystemSource, 0x10);
-                        Array.Copy(keys[NintendoKeys.HeaderKekSourceHash], HACGUIKeyset.Keyset.HeaderKekSource, 0x10);
-                        Array.Copy(keys[NintendoKeys.SaveMacKekSourceHash], HACGUIKeyset.Keyset.SaveMacKekSource, 0x10);
-                        Array.Copy(keys[NintendoKeys.SaveMacKeySourceHash], HACGUIKeyset.Keyset.SaveMacKeySource, 0x10);
+                        rodatastream.FindKeysViaHash(hashes, new SHA256Managed(), 0x10);
 
                         hashes.Clear();
                         rodatastream.Seek(0, SeekOrigin.Begin);
 
                         bool sdWarn = false;
 
-                        hashes.Add(new HashSearchEntry(NintendoKeys.SDCardKekSourceHash, 0x10));
+                        hashes.Add(new HashSearchEntry(NintendoKeys.SDCardKekSourceHash, () => HACGUIKeyset.Keyset.SdCardKekSource,
+                            0x10));
                         try
                         {
-                            keys = rodatastream.FindKeyViaHash(hashes, new SHA256Managed(), 0x10);
-                            Array.Copy(keys[NintendoKeys.SDCardKekSourceHash], HACGUIKeyset.Keyset.SdCardKekSource, 0x10);
+                            rodatastream.FindKeysViaHash(hashes, new SHA256Managed(), 0x10);
                         }
                         catch (EndOfStreamException)
                         {
@@ -173,44 +175,39 @@ namespace HACGUI.FirstStart
                         {
                             hashes.Clear();
                             rodatastream.Seek(0, SeekOrigin.Begin);
-                            hashes.Add(new HashSearchEntry(NintendoKeys.SDCardSaveKeySourceHash, 0x20));
-                            hashes.Add(new HashSearchEntry(NintendoKeys.SDCardNcaKeySourceHash, 0x20));
-                            keys = rodatastream.FindKeyViaHash(hashes, new SHA256Managed(), 0x20);
-                            Array.Copy(keys[NintendoKeys.SDCardSaveKeySourceHash], HACGUIKeyset.Keyset.SdCardKeySources[0], 0x20);
-                            Array.Copy(keys[NintendoKeys.SDCardNcaKeySourceHash], HACGUIKeyset.Keyset.SdCardKeySources[1], 0x20);
+                            hashes.Add(new HashSearchEntry(NintendoKeys.SDCardSaveKeySourceHash, () => HACGUIKeyset.Keyset.SdCardKeySources[0],
+                                0x20));
+                            hashes.Add(new HashSearchEntry(NintendoKeys.SDCardNcaKeySourceHash, () => HACGUIKeyset.Keyset.SdCardKeySources[1],
+                                0x20));
+                            rodatastream.FindKeysViaHash(hashes, new SHA256Managed(), 0x20);
                         }
 
                         hashes.Clear();
                         rodatastream.Close();
 
-                        hashes.Add(new HashSearchEntry(NintendoKeys.HeaderKeySourceHash, 0x20));
-                        datastream = new MemoryStream(kip.DecompressSection(2));
-                        keys = datastream.FindKeyViaHash(hashes, new SHA256Managed(), 0x20);
-                        Array.Copy(keys[NintendoKeys.HeaderKeySourceHash], HACGUIKeyset.Keyset.HeaderKeySource, 0x20);
+                        hashes.Add(new HashSearchEntry(NintendoKeys.HeaderKeySourceHash, () => HACGUIKeyset.Keyset.HeaderKeySource,
+                            0x20));
 
-                        datastream.Close();
+                        using (Stream datastream = new MemoryStream(kip.DecompressSection(2)))
+                            datastream.FindKeysViaHash(hashes, new SHA256Managed(), 0x20);
+
                         hashes.Clear();
 
                         break;
                     case "spl":
-                        hashes.Add(new HashSearchEntry(NintendoKeys.AesKeyGenerationSourceHash, 0x10));
-
-                        rodatastream = new MemoryStream(kip.DecompressSection(1));
-                        keys = rodatastream.FindKeyViaHash(hashes, new SHA256Managed(), 0x10);
-                        Array.Copy(keys[NintendoKeys.AesKeyGenerationSourceHash], HACGUIKeyset.Keyset.AesKeyGenerationSource, 0x10);
-
-                        rodatastream.Close();
                         hashes.Clear();
+
+                        hashes.Add(new HashSearchEntry(NintendoKeys.AesKeyGenerationSourceHash, () => HACGUIKeyset.Keyset.AesKeyGenerationSource,
+                            0x10));
+
+                        using (rodatastream = new MemoryStream(kip.DecompressSection(1)))
+                            rodatastream.FindKeysViaHash(hashes, new SHA256Managed(), 0x10);
                         break;
                 }
 
-                FileStream kipstream = HACGUIKeyset.RootTempINI1Folder.GetFile(kip.Header.Name + ".kip").Create();
-                kip.OpenRawFile().CopyToStream(kipstream);
-                kipstream.Close();
+                using (FileStream kipstream = HACGUIKeyset.RootTempINI1FolderInfo.GetFile(kip.Header.Name + ".kip").Create())
+                    kip.OpenRawFile().CopyToStream(kipstream);
             }
-
-            pkg2file.Close();
-            INI1stream.Close();
 
             HACGUIKeyset.Keyset.DeriveKeys();
 
@@ -218,7 +215,7 @@ namespace HACGUI.FirstStart
 
             foreach (Nca nca in fs.Ncas.Values)
             {
-                if(nca.CanOpenSection(0)) // mainly a check if the NCA can be decrypted
+                if (nca.CanOpenSection(0)) // mainly a check if the NCA can be decrypted
                     switch (nca.Header.TitleId)
                     {
                         case 0x0100000000000033: // es
@@ -232,13 +229,17 @@ namespace HACGUI.FirstStart
                                     Stream data = new MemoryStream(section.DecompressSection());
                                     hashes.Clear();
 
-                                    hashes.Add(new HashSearchEntry(NintendoKeys.EticketRsaKekSourceHash, 0x10));
-                                    hashes.Add(new HashSearchEntry(NintendoKeys.EticketRsaKekekSourceHash, 0x10));
-                                    keys = data.FindKeyViaHash(hashes, new SHA256Managed(), 0x10, data.Length);
                                     byte[] EticketRsaKekSource = new byte[0x10];
                                     byte[] EticketRsaKekekSource = new byte[0x10];
-                                    Array.Copy(keys[NintendoKeys.EticketRsaKekSourceHash], EticketRsaKekSource, 0x10);
-                                    Array.Copy(keys[NintendoKeys.EticketRsaKekekSourceHash], EticketRsaKekekSource, 0x10);
+                                    hashes.Add(new HashSearchEntry(
+                                        NintendoKeys.EticketRsaKekSourceHash,
+                                        () => EticketRsaKekSource,
+                                        0x10));
+                                    hashes.Add(new HashSearchEntry(
+                                        NintendoKeys.EticketRsaKekekSourceHash,
+                                        () => EticketRsaKekekSource,
+                                        0x10));
+                                    data.FindKeysViaHash(hashes, new SHA256Managed(), 0x10, data.Length);
 
                                     byte[] RsaOaepKekGenerationSource;
                                     XOR(NintendoKeys.KekMasks[0], NintendoKeys.KekSeeds[3], out RsaOaepKekGenerationSource);
@@ -262,13 +263,17 @@ namespace HACGUI.FirstStart
                                     Stream data = new MemoryStream(section.DecompressSection());
                                     hashes.Clear();
 
-                                    hashes.Add(new HashSearchEntry(NintendoKeys.SslAesKeyXHash, 0x10));
-                                    hashes.Add(new HashSearchEntry(NintendoKeys.SslRsaKeyYHash, 0x10));
-                                    keys = data.FindKeyViaHash(hashes, new SHA256Managed(), 0x10, data.Length);
                                     byte[] SslAesKeyX = new byte[0x10];
                                     byte[] SslRsaKeyY = new byte[0x10];
-                                    Array.Copy(keys[NintendoKeys.SslAesKeyXHash], SslAesKeyX, 0x10);
-                                    Array.Copy(keys[NintendoKeys.SslRsaKeyYHash], SslRsaKeyY, 0x10);
+                                    hashes.Add(new HashSearchEntry(
+                                        NintendoKeys.SslAesKeyXHash,
+                                        () => SslAesKeyX,
+                                        0x10));
+                                    hashes.Add(new HashSearchEntry(
+                                        NintendoKeys.SslRsaKeyYHash,
+                                        () => SslRsaKeyY,
+                                        0x10));
+                                    data.FindKeysViaHash(hashes, new SHA256Managed(), 0x10, data.Length);
 
                                     byte[] RsaPrivateKekGenerationSource;
                                     XOR(NintendoKeys.KekMasks[0], NintendoKeys.KekSeeds[1], out RsaPrivateKekGenerationSource);
@@ -304,7 +309,7 @@ namespace HACGUI.FirstStart
 
                 certBytes = new byte[certLength];
                 prodinfoFile.Seek(0x0AE0, SeekOrigin.Begin); // seek to cert (should be redundant?)
-                prodinfoFile.Read(certBytes, 0, (int) certLength); // read actual cert
+                prodinfoFile.Read(certBytes, 0, (int)certLength); // read actual cert
             }
 
             byte[] counter = cal0.SslExtKey.Take(0x10).ToArray();
@@ -341,8 +346,8 @@ namespace HACGUI.FirstStart
             }
 
             IStorage nsAppmanStorage = new FileStorage(system.OpenFile("save\\8000000000000043", OpenMode.Read));
-            SaveDataFileSystem save = new SaveDataFileSystem(HACGUIKeyset.Keyset, nsAppmanStorage, IntegrityCheckLevel.ErrorOnInvalid, false);
-            IStorage privateStorage = new FileStorage(save.OpenFile("/private", OpenMode.Read));
+            SaveDataFileSystem nsAppmanSave = new SaveDataFileSystem(HACGUIKeyset.Keyset, nsAppmanStorage, IntegrityCheckLevel.ErrorOnInvalid, false);
+            IStorage privateStorage = new FileStorage(nsAppmanSave.OpenFile("/private", OpenMode.Read));
             byte[] sdIdenitifyer = new byte[0x10];
             byte[] sdSeed = new byte[0x10];
             privateStorage.Read(sdIdenitifyer, 0); // stored on SD and NAND, used to uniquely idenitfy the SD card
@@ -360,9 +365,8 @@ namespace HACGUI.FirstStart
 
             DirectoryInfo oldKeysDirectory = HACGUIKeyset.RootFolderInfo.GetDirectory("keys");
             if (oldKeysDirectory.Exists)
-            {
                 oldKeysDirectory.Delete(true); // fix old versions after restructure of directory
-            }
+            
 
             // write all keys to file
             new SaveKeysetTask(PickConsolePage.ConsoleName).CreateTask().RunSynchronously();
@@ -398,7 +402,8 @@ namespace HACGUI.FirstStart
             {
                 proc.Start();
                 System.Windows.Application.Current.Shutdown();
-            } catch(System.ComponentModel.Win32Exception)
+            }
+            catch (System.ComponentModel.Win32Exception)
             {
             }
         }
