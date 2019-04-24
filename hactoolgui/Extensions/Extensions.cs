@@ -279,6 +279,8 @@ namespace HACGUI.Extensions
                 int ie = sub.IndexOf(ce);
                 sub = sub.Substring(ie);
                 int s = sub.IndexOf(Environment.NewLine);
+                if (s == -1)
+                    s = sub.IndexOf("\n");
                 retstr += sub.Substring(0, s);
                 sub = sub.Substring(s);
             }

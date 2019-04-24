@@ -26,7 +26,8 @@ namespace HACGUI.Utilities
         public static string GetLoggedInUser()
         {
             ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT UserName FROM Win32_ComputerSystem");
-            IEnumerable<ComputerSystemInfo> infos = searcher.Get().Cast<ManagementObject>().Select(i => new ComputerSystemInfo(i));
+            IEnumerable<ComputerSystemInfo> infos = searcher.Get().Cast<ManagementObject>()
+                .Select(i => new ComputerSystemInfo(i));
             string user = infos.FirstOrDefault()?.UserName;
             if (user == null)
                 return "";
