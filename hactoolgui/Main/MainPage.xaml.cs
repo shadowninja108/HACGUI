@@ -18,6 +18,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Linq;
 using LibHac.IO.NcaUtils;
+using System.ComponentModel;
 
 namespace HACGUI.Main
 {
@@ -109,7 +110,7 @@ namespace HACGUI.Main
                 proc.Start();
                 System.Windows.Application.Current.Shutdown();
             }
-            catch (System.ComponentModel.Win32Exception)
+            catch (Win32Exception)
             {
             }
         }

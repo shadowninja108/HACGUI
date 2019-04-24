@@ -43,29 +43,34 @@ namespace HACGUI.Main.TitleManager
         {
             FatFileSystemProvider partition = null;
             string partitionName = "";
+            string formatName = "";
             switch (ComboBox.SelectedValue)
             {
                 case NANDMountType.PRODINFOF:
                     partition = NANDService.NAND.OpenProdInfoF();
                     partitionName = "PRODINFOF";
+                    formatName = "FAT12";
                     break;
                 case NANDMountType.SAFE:
                     partition = NANDService.NAND.OpenSafePartition();
                     partitionName = "SAFE";
+                    formatName = "FAT32";
                     break;
                 case NANDMountType.SYSTEM:
                     partition = NANDService.NAND.OpenSystemPartition();
                     partitionName = "SYSTEM";
+                    formatName = "FAT32";
                     break;
                 case NANDMountType.USER:
                     partition = NANDService.NAND.OpenUserPartition();
                     partitionName = "USER";
+                    formatName = "FAT32";
                     break;
                 default:
                     return;
             }
 
-            MountService.Mount(new MountableFileSystem(partition, $"NAND ({partitionName})", "FAT32", OpenMode.Read));
+            MountService.Mount(new MountableFileSystem(partition, $"NAND ({partitionName})", formatName, OpenMode.Read));
         }
     }
 }
