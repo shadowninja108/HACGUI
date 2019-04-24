@@ -275,6 +275,7 @@ namespace HACGUI.Extensions
             while (true)
             {
                 if (string.IsNullOrWhiteSpace(sub.Replace(Environment.NewLine, ""))) break;
+                if (string.IsNullOrWhiteSpace(sub.Replace("\n", ""))) break;
                 char ce = sub.Where(c => !char.IsWhiteSpace(c)).FirstOrDefault();
                 int ie = sub.IndexOf(ce);
                 sub = sub.Substring(ie);
