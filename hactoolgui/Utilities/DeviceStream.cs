@@ -30,18 +30,18 @@ namespace NandReaderGui
             int nNumberOfBytesToRead,        // number of bytes to read
             ref int lpNumberOfBytesRead,    // number of bytes read
             IntPtr lpOverlapped
-            //
-            // ref OVERLAPPED lpOverlapped        // overlapped buffer
+        //
+        // ref OVERLAPPED lpOverlapped        // overlapped buffer
         );
 
         [DllImport("kernel32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool WriteFile(
-            IntPtr hFile, 
+            IntPtr hFile,
             byte[] lpBuffer,
-            uint nNumberOfBytesToWrite, 
+            uint nNumberOfBytesToWrite,
             out uint lpNumberOfBytesWritten
-            //[In] ref System.Threading.NativeOverlapped lpOverlapped
+        //[In] ref System.Threading.NativeOverlapped lpOverlapped
         );
 
         private SafeFileHandle _handleValue;
@@ -79,11 +79,13 @@ namespace NandReaderGui
             }
         }
 
+        public bool ShouldWrite { get; set; } = false;
+
         public override bool CanRead { get; } = true;
 
         public override bool CanSeek => true;
 
-        public override bool CanWrite => false;
+        public override bool CanWrite => ShouldWrite;
 
         public override void Flush() { }
 
@@ -134,12 +136,17 @@ namespace NandReaderGui
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            var lpBuffer = new byte[count];
-            Array.Copy(buffer, offset, lpBuffer, 0, count);
-            if(!WriteFile(_handleValue.DangerousGetHandle(), lpBuffer, (uint) count, out uint bytesWitten))
+            if (ShouldWrite)
             {
-                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                var lpBuffer = new byte[count];
+                Array.Copy(buffer, offset, lpBuffer, 0, count);
+                if (!WriteFile(_handleValue.DangerousGetHandle(), lpBuffer, (uint)count, out uint bytesWitten))
+                {
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
             }
+            else
+                throw new NotSupportedException();
         }
 
         public override void Close()
