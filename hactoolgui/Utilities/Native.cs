@@ -1,4 +1,6 @@
-﻿using LibHac;
+﻿using HACGUI.Extensions;
+using LibHac;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
@@ -62,9 +64,9 @@ namespace HACGUI.Utilities
                 Name = (string)disk.GetPropertyValue("Caption");
                 Model = (string)disk.GetPropertyValue("Model");
                 //todo Why is Windows returning small sizes? https://stackoverflow.com/questions/15051660
-                Length = (long)((ulong)disk.GetPropertyValue("Size"));
-                SectorSize = (int)((uint)disk.GetPropertyValue("BytesPerSector"));
-                DisplaySize = Util.GetBytesReadable((long)((ulong)disk.GetPropertyValue("Size")));
+                Length = (long)disk.GetUlong("Size");
+                SectorSize = disk.GetInt("BytesPerSector");
+                DisplaySize = Util.GetBytesReadable(Length);
                 Partitions = (uint)disk.GetPropertyValue("Partitions");
                 Index = (uint)disk.GetPropertyValue("Index");
             }

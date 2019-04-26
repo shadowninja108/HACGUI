@@ -59,7 +59,7 @@ namespace HACGUI.Main.TitleManager
 
             if (element != null)
             {
-                Application.ApplicationWindow window = new Application.ApplicationWindow(element)
+                ApplicationWindow.ApplicationWindow window = new ApplicationWindow.ApplicationWindow(element)
                 {
                     Owner = Window.GetWindow(this),
                     Icon = new WriteableBitmap(element.Icon as BitmapSource)

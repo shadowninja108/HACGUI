@@ -1,4 +1,4 @@
-﻿using HACGUI.Main.TitleManager.Application.Tabs.Extracts.Extractors;
+﻿using HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors;
 using LibHac;
 using LibHac.IO.NcaUtils;
 using System;

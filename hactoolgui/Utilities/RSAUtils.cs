@@ -69,14 +69,6 @@ namespace CertNX
             obj.PrivateKey = provider; // assign certificate it's new private key
         }
 
-        private static byte[] CopyAndReverse(byte[] data)
-        {
-            byte[] reversed = new byte[data.Length];
-            Array.Copy(data, 0, reversed, 0, data.Length);
-            Array.Reverse(reversed);
-            return reversed;
-        }
-
         public static RSAParameters RecoverRSAParameters(BigInteger n, BigInteger e, BigInteger d, int length)
         {
             using (RandomNumberGenerator rng = RandomNumberGenerator.Create())

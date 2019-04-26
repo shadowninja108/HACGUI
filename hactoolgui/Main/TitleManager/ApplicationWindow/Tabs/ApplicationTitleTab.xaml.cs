@@ -1,4 +1,4 @@
-﻿using HACGUI.Main.TitleManager.Application.Tabs.Extracts.Extractors;
+﻿using HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors;
 using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
 using LibHac.IO;
@@ -12,7 +12,7 @@ using System.Windows.Controls;
 using UserControl = System.Windows.Controls.UserControl;
 using static LibHac.Util;
 
-namespace HACGUI.Main.TitleManager.Application.Tabs
+namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
 {
     /// <summary>
     /// Interaction logic for ApplicationTitleTab.xaml

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
+using HACGUI.Utilities;
 using static HACGUI.Utilities.Native;
 
 namespace HACGUI.Services

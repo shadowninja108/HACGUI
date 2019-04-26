@@ -1,5 +1,6 @@
 ﻿using HACGUI.Extensions;
 using HACGUI.Services;
+using HACGUI.Utilities;
 using LibHac;
 using LibHac.IO;
 using System;

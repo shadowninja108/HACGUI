@@ -1,5 +1,4 @@
 ﻿using HACGUI.Extensions;
-using HACGUI.Utilities;
 using LibHac;
 using System;
 using System.Collections.Generic;
@@ -8,7 +7,7 @@ using System.Linq;
 using static HACGUI.Utilities.Native;
 using static LibHac.ExternalKeys;
 
-namespace HACGUI
+namespace HACGUI.Utilities
 {
     public class HACGUIKeyset : Keyset
     {
@@ -41,7 +40,8 @@ namespace HACGUI
             ClientCertificateFileName = "nx_tls_client_cert.pfx",
             TicketFolderName = "tickets",
             CrashZipFileName = "crash.zip",
-            AccountsFolderName = "accounts";
+            AccountsFolderName = "accounts",
+            IncompleteFlagFileName = "incomplete";
 
         public static DirectoryInfo RootUserDirectory
         {
@@ -155,6 +155,22 @@ namespace HACGUI
             return RootTempFolderInfo.GetFile(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + CrashZipFileName);
         }
 
+        public static FileInfo GetIncompleteFlagFile(string name) => GetConsoleFolderInfo(name).GetFile(IncompleteFlagFileName);
+
+        public static bool IsIncompleteConsoleDirectory(string name)
+        {
+            return GetIncompleteFlagFile(name).Exists;
+        }
+
+        public static void SetConsoleDirectoryAsIncomplete(string name, bool isIncomplete)
+        {
+            FileInfo flag = GetIncompleteFlagFile(name);
+            if (isIncomplete && !flag.Exists)
+                flag.CreateAndClose();
+            else if(flag.Exists)
+                flag.Delete();
+        }
+
         public static void SetConsole(string name)
         {
 
@@ -188,6 +204,9 @@ namespace HACGUI
                         {
                             string consoleName = consoleDir.Name;
 
+                            if (IsIncompleteConsoleDirectory(consoleName))
+                                continue; // directory is not complete, and therefore shouldn't be acknowleged. This is to prevent incomplete setups from preventing a user from using the program.
+
                             if (!GetClientCertificateByName(consoleName).Exists)
                                 return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a client certificate.");
 
@@ -210,6 +229,25 @@ namespace HACGUI
                     return new Tuple<bool, string>(false, "~/.switch/HACGUI does not exist.");
             }
             return new Tuple<bool, string>(false, "~/.switch folder does not exist.");
+        }
+
+        public static void Cleanup()
+        {
+            if (UserSwitchDirectoryInfo.Exists) // Check if ~/.switch exists
+            {
+                if (RootFolderInfo.Exists) // Check if ~/.switch/HACGUI exists
+                {
+                    if (RootConsoleFolderInfo.Exists) // check if ~/.switch/HACGUI/console exists
+                    {
+                        foreach (DirectoryInfo consoleDir in RootConsoleFolderInfo.GetDirectories())
+                        {
+                            string consoleName = consoleDir.Name;
+                            if (IsIncompleteConsoleDirectory(consoleName))
+                                consoleDir.DeleteRecursively();
+                        }
+                    }
+                }
+            }
         }
 
         public static string[] HactoolNonFriendlyKeys = new string[]

@@ -5,9 +5,9 @@ using LibHac.Nand;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static HACGUI.Extensions.Extensions;
 using System.IO;
 using HACGUI.Utilities;
+using static HACGUI.Extensions.Extensions;
 
 namespace HACGUI.Main.TaskManager.Tasks
 {

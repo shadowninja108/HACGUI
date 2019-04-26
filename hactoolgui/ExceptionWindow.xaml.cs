@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using HACGUI.Main.TaskManager;
+using HACGUI.Utilities;
 
 namespace HACGUI
 {

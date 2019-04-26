@@ -1,4 +1,5 @@
 ﻿using HACGUI.Extensions;
+using HACGUI.Utilities;
 using LibHac;
 using System.Diagnostics;
 using System.Windows;
@@ -24,6 +25,7 @@ namespace HACGUI.FirstStart
                 TextArea.Text += "--------------------------------------------------------------\n";
                 TextArea.Text += ExternalKeys.PrintTitleKeys(HACGUIKeyset.Keyset);
             };
+            HACGUIKeyset.SetConsoleDirectoryAsIncomplete(PickConsolePage.ConsoleName, false);
         }
 
         private void OpenKeysClicked(object sender, RoutedEventArgs e)

@@ -15,7 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace HACGUI.Main.TitleManager.Application.Tabs.Extracts.Extractors
+namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 {
     /// <summary>
     /// Interaction logic for ExtractWindow.xaml

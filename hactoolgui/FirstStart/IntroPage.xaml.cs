@@ -1,4 +1,5 @@
 ﻿using HACGUI.Extensions;
+using HACGUI.Utilities;
 using System.Windows;
 using System.Windows.Navigation;
 

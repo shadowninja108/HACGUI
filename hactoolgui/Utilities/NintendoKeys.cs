@@ -1,6 +1,6 @@
 ﻿using LibHac;
 
-namespace HACGUI
+namespace HACGUI.Utilities
 {
     // https://gist.github.com/roblabla/d8358ab058bbe3b00614740dcba4f208
     // hashes came from here
