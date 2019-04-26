@@ -15,7 +15,7 @@ namespace HACGUI.Main.SaveManager
     /// </summary>
     public partial class SaveManagerPage : UserControl
     {
-        private ulong TitleID;
+        private readonly ulong TitleID;
 
         public SaveManagerPage(ulong titleId)
         {
@@ -27,8 +27,9 @@ namespace HACGUI.Main.SaveManager
             DeviceService.Start();
 
             GridView grid = ListView.View as GridView;
-            if (titleId == 0)
+            if (titleId == 0) // Context is SaveManager
             {
+                // System saves have an owner which is useful information, so it's worth displaying
                 grid.Columns.Insert(0, new GridViewColumn()
                 {
                     DisplayMemberBinding = new Binding("Owner"),
@@ -36,8 +37,9 @@ namespace HACGUI.Main.SaveManager
                     Width = double.NaN
                 });
             }
-            else
+            else // Context is ApplicationWindow
             {
+                // The title ID is already known, so it's pointless showing the user
                 GridViewColumn column = grid.Columns.Where((c) => c.Header as string == "Name/ID").FirstOrDefault();
                 if (column != null)
                     grid.Columns.Remove(column);

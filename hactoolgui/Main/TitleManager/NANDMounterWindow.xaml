@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HACGUI.Main.TitleManager"
         mc:Ignorable="d"
-        Title="NAND Mounter" Height="70" Width="250">
+        Title="NAND Mounter" Height="70" Width="270">
     <Grid>
         <DockPanel>
             <Button DockPanel.Dock="Right" Click="MountClicked">Mount</Button>

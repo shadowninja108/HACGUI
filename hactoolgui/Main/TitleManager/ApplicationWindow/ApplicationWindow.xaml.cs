@@ -1,22 +1,8 @@
-﻿using HACGUI.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using LibHac;
 using Application = LibHac.Application;
 
-namespace HACGUI.Main.TitleManager.Application
+namespace HACGUI.Main.TitleManager.ApplicationWindow
 {
     /// <summary>
     /// Interaction logic for ApplicationView.xaml
@@ -26,7 +12,7 @@ namespace HACGUI.Main.TitleManager.Application
         public static ApplicationWindow Current;
 
         public ApplicationElement Element;
-        public Dictionary<ulong, LibHac.Application> Applications;
+        public Dictionary<ulong, Application> Applications;
 
         public ApplicationWindow(ApplicationElement element)
         {

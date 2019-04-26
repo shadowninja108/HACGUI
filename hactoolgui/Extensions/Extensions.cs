@@ -5,12 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Media;
+using HACGUI.Utilities;
 
 namespace HACGUI.Extensions
 {
@@ -70,9 +72,8 @@ namespace HACGUI.Extensions
 
         public static void CopyToNew(this Stream source, Stream destination, long length = long.MaxValue)
         {
-            int b = 0;
             long beginning = source.Position;
-            b = source.ReadByte();
+            int b = source.ReadByte();
             while (b != -1 && (source.Position - beginning) <= length)
             {
                 destination.WriteByte((byte)b);
@@ -83,7 +84,7 @@ namespace HACGUI.Extensions
         // as efficient as hashing shit everywhere will get
         public static void FindKeysViaHash(this Stream source, List<HashSearchEntry> searches, HashAlgorithm crypto, int dataLength, long length = -1)
         {
-            Dictionary<byte[], byte[]> dict = new Dictionary<byte[], byte[]>();
+            int count = 0;
             long beginning = source.Position;
             byte[] buffer = new byte[dataLength];
 
@@ -99,18 +100,16 @@ namespace HACGUI.Extensions
                     if (search.DataLength == dataLength)
                         if (crypto.Hash.SequenceEqual(search.Hash))
                         {
-                            dict[search.Hash] = new byte[dataLength];
-                            Array.Copy(buffer, dict[search.Hash], dataLength);
                             Array.Copy(buffer, search.Setter(), dataLength);
+                            count++;
                         }
-                if (searches.Count == dict.Count)
+                if (searches.Count == count)
                     break; // found all the keys
                 if (source.Position == length)
                     throw new EndOfStreamException("Not all keys were found in the stream!");
 
                 source.Position -= (dataLength - 1);
             }
-            //return dict;
         }
 
         public static bool VerifyViaHash(this byte[] data, byte[] expectedHash, HashAlgorithm crypto)
@@ -313,6 +312,30 @@ namespace HACGUI.Extensions
             }
 
             return tickets;
+        }
+
+        public static ulong GetUlong(this ManagementObject obj, string name)
+        {
+            object o = obj.GetPropertyValue(name) ?? 0;
+            ulong o1 = Convert.ToUInt64(o);
+            return o1;
+        }
+
+        public static int GetInt(this ManagementObject obj, string name)
+        {
+            object o = obj.GetPropertyValue(name) ?? 0;
+            int o1 = Convert.ToInt32(o);
+            return o1;
+        }
+
+        public static void DeleteRecursively(this DirectoryInfo obj)
+        {
+            foreach(DirectoryInfo directory in obj.EnumerateDirectories("*", SearchOption.AllDirectories))
+            {
+                foreach (FileInfo file in directory.EnumerateFiles())
+                    file.Delete();
+                directory.Delete();
+            }
         }
 
     }

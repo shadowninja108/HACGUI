@@ -1,4 +1,5 @@
 ﻿using HACGUI.Extensions;
+using HACGUI.Utilities;
 using LibHac;
 using System.IO;
 using System.Threading.Tasks;

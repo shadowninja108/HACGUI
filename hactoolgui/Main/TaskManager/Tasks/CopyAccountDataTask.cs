@@ -1,12 +1,10 @@
 ﻿using HACGUI.Services;
+using HACGUI.Utilities;
 using LibHac.IO;
 using LibHac.IO.Save;
 using LibHac.Nand;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using static HACGUI.Extensions.Extensions;
 
@@ -44,8 +42,6 @@ namespace HACGUI.Main.TaskManager.Tasks
                         using (Stream localStream = localFile.Open(FileMode.Create))
                             saveFile.AsStorage().CopyToStream(localStream, saveFile.GetSize());
                     }
-
-                    new Guid(new byte[] { });
 
                     ;
                 }

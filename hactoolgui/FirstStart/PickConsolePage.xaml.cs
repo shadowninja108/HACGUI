@@ -1,4 +1,5 @@
 ﻿using HACGUI.Extensions;
+using HACGUI.Utilities;
 using System;
 using System.IO;
 using System.Linq;
@@ -45,6 +46,8 @@ namespace HACGUI.FirstStart
             ConsoleName = ConsoleNameBox.Text;
             HACGUIKeyset.RootFolderInfo.Create();
             HACGUIKeyset.RootConsoleFolderInfo.Create();
+
+            HACGUIKeyset.SetConsoleDirectoryAsIncomplete(ConsoleName, true);
 
             // Navigate to next page
             NavigationWindow root = FindRoot();

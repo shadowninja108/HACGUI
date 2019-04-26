@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace HACGUI.Main.TitleManager.Application.Tabs
+namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
 {
     /// <summary>
     /// Interaction logic for ApplicationSaveTab.xaml
