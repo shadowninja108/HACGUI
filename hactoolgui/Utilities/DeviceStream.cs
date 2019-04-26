@@ -34,6 +34,16 @@ namespace NandReaderGui
             // ref OVERLAPPED lpOverlapped        // overlapped buffer
         );
 
+        [DllImport("kernel32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool WriteFile(
+            IntPtr hFile, 
+            byte[] lpBuffer,
+            uint nNumberOfBytesToWrite, 
+            out uint lpNumberOfBytesWritten
+            //[In] ref System.Threading.NativeOverlapped lpOverlapped
+        );
+
         private SafeFileHandle _handleValue;
         private FileStream _fs;
 
@@ -124,7 +134,12 @@ namespace NandReaderGui
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            throw new NotSupportedException();
+            var lpBuffer = new byte[count];
+            Array.Copy(buffer, offset, lpBuffer, 0, count);
+            if(!WriteFile(_handleValue.DangerousGetHandle(), lpBuffer, (uint) count, out uint bytesWitten))
+            {
+                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+            }
         }
 
         public override void Close()
