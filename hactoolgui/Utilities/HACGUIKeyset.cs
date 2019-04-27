@@ -92,7 +92,6 @@ namespace HACGUI.Utilities
                 Array.Copy(NintendoKeys.BisKeySources[i], BisKeySource[i], NintendoKeys.BisKeySources[i].Length);
             Array.Copy(NintendoKeys.BisKekSource, BisKekSource, 0x10);
             Array.Copy(NintendoKeys.PersonalizedAesKeySource, AesKeyGenerationSource, 0x10);
-            Array.Copy(NintendoKeys.PersonalizedAesKekSource, AesKekGenerationSource, 0x10);
             Array.Copy(NintendoKeys.RetailSpecificAesKeySource, RetailSpecificAesKeySource, 0x10);
             for(int i = 0; i < NintendoKeys.KeyblobSources.Length; i++)
                 Array.Copy(NintendoKeys.KeyblobSources[i], KeyblobKeySources[i], NintendoKeys.KeyblobSources[i].Length);
