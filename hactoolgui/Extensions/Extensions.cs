@@ -338,5 +338,14 @@ namespace HACGUI.Extensions
             }
         }
 
+        public static void XOR(this byte[] buffer1, byte[] buffer2, out byte[] output)
+        {
+            if (buffer1.Length != buffer2.Length)
+                throw new InvalidDataException("XOR buffer size must match!");
+            output = new byte[buffer1.Length];
+            for (int i = 0; i < buffer1.Length; i++)
+                output[i] = (byte)(buffer1[i] ^ buffer2[i]);
+        }
+
     }
 }

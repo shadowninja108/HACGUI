@@ -242,7 +242,7 @@ namespace HACGUI.FirstStart
                                     data.FindKeysViaHash(hashes, new SHA256Managed(), 0x10, data.Length);
 
                                     byte[] RsaOaepKekGenerationSource;
-                                    XOR(NintendoKeys.KekMasks[0], NintendoKeys.KekSeeds[3], out RsaOaepKekGenerationSource);
+                                    NintendoKeys.KekSeeds[3].XOR(NintendoKeys.KekMasks[0], out RsaOaepKekGenerationSource);
 
                                     byte[] key1 = new byte[0x10];
                                     Crypto.DecryptEcb(HACGUIKeyset.Keyset.MasterKeys[0], RsaOaepKekGenerationSource, key1, 0x10);
@@ -276,7 +276,7 @@ namespace HACGUI.FirstStart
                                     data.FindKeysViaHash(hashes, new SHA256Managed(), 0x10, data.Length);
 
                                     byte[] RsaPrivateKekGenerationSource;
-                                    XOR(NintendoKeys.KekMasks[0], NintendoKeys.KekSeeds[1], out RsaPrivateKekGenerationSource);
+                                    NintendoKeys.KekSeeds[1].XOR(NintendoKeys.KekMasks[0], out RsaPrivateKekGenerationSource);
 
                                     byte[] key1 = new byte[0x10];
                                     Crypto.DecryptEcb(HACGUIKeyset.Keyset.MasterKeys[0], RsaPrivateKekGenerationSource, key1, 0x10);
@@ -378,15 +378,6 @@ namespace HACGUI.FirstStart
         public override void OnBack()
         {
             NANDService.Stop();
-        }
-
-        public void XOR(byte[] buffer1, byte[] buffer2, out byte[] output)
-        {
-            if (buffer1.Length != buffer2.Length)
-                throw new InvalidDataException("XOR buffer size must match!");
-            output = new byte[buffer1.Length];
-            for (int i = 0; i < buffer1.Length; i++)
-                output[i] = (byte)(buffer1[i] ^ buffer2[i]);
         }
 
         private void RestartAsAdminButtonClick(object sender, RoutedEventArgs e)

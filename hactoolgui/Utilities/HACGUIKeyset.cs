@@ -100,8 +100,10 @@ namespace HACGUI.Utilities
             for (int i = 0; i < NintendoKeys.MasterKekSources.Length; i++)
                 Array.Copy(NintendoKeys.MasterKekSources[i], MasterKekSources[i], 0x10);
             Array.Copy(NintendoKeys.Pkg2KeySource, Package2KeySource, 0x10);
-            Array.Copy(NintendoKeys.TitleKekSource, TitleKekSource, 0x10);
-            Array.Copy(NintendoKeys.KekMasks[0], AesKekGenerationSource, 0x10);
+            NintendoKeys.KekSeeds[0].XOR(NintendoKeys.KekMasks[0], out byte[] aesKekGenerationSource);
+            Array.Copy(aesKekGenerationSource, AesKekGenerationSource, 0x10);
+            NintendoKeys.KekSeeds[2].XOR(NintendoKeys.KekMasks[0], out byte[] titleKekSource);
+            Array.Copy(titleKekSource, TitleKekSource, 0x10);
         }
 
         public void LoadCommon()
