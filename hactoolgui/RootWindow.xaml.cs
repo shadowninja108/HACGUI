@@ -1,11 +1,13 @@
 ﻿using HACGUI.Extensions;
 using HACGUI.FirstStart;
 using HACGUI.Main;
+using HACGUI.Services;
 using HACGUI.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Threading;
+using static HACGUI.Utilities.Native;
 
 namespace HACGUI
 {
@@ -96,6 +99,9 @@ namespace HACGUI
                 HACGUIKeyset.Keyset.LoadCommon(); // only loads what exists, so safe to call
                 Tuple<bool, string> result = HACGUIKeyset.IsValidInstall();
                 Page nextPage;
+
+                InjectService.Start();
+
                 if (result.Item1)
                 {
                     nextPage = new MainPage();

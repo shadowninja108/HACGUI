@@ -13,10 +13,13 @@ namespace HACGUI.Main.TaskManager.Tasks
 {
     public class DecryptTicketsTask : ProgressTask
     {
-        public DecryptTicketsTask() : base("Decrypting new tickets...")
+        private string ConsoleName;
+
+        public DecryptTicketsTask(string consoleName) : base("Decrypting new tickets...")
         {
             Indeterminate = true;
             Blocking = true;
+            ConsoleName = consoleName;
         }
 
         public override Task CreateTask()
@@ -38,14 +41,14 @@ namespace HACGUI.Main.TaskManager.Tasks
                 {
                     IFile e1File = system.OpenFile(e1FileName, OpenMode.Read);
                     IStorage e1Storage = new FileStorage(e1File);
-                    tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e1Storage, Preferences.Current.DefaultConsoleName));
+                    tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e1Storage, ConsoleName));
                 }
 
                 if (system.FileExists(e2FileName))
                 {
                     IFile e2File = system.OpenFile(e2FileName, OpenMode.Read);
                     IStorage e2Storage = new FileStorage(e2File);
-                    tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e2Storage, Preferences.Current.DefaultConsoleName));
+                    tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e2Storage, ConsoleName));
                 }
 
                 foreach (Ticket ticket in tickets)

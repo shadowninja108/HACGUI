@@ -1,11 +1,8 @@
 ﻿using LibHac.IO;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace HACGUI.Services
+namespace HACGUI.Utilities
 {
     public class PseudoRootDirectory : IDirectory
     {

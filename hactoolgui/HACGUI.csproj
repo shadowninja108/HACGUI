@@ -93,6 +93,9 @@
     <Reference Include="Microsoft.WindowsAPICodePack.ShellExtensions, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAPICodePack.1.1.0\lib\Microsoft.WindowsAPICodePack.ShellExtensions.dll</HintPath>
     </Reference>
+    <Reference Include="Octokit, Version=0.32.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Octokit.0.32.0\lib\net45\Octokit.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.0\lib\netstandard1.1\System.Buffers.dll</HintPath>
@@ -147,8 +150,9 @@
     <Compile Include="Main\TitleManager\NANDMounterWindow.xaml.cs">
       <DependentUpon>NANDMounterWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Services\PseudoFileSystem.cs" />
-    <Compile Include="Services\PseudoRootDirectory.cs" />
+    <Compile Include="Services\InjectService.cs" />
+    <Compile Include="Utilities\PseudoFileSystem.cs" />
+    <Compile Include="Utilities\PseudoRootDirectory.cs" />
     <Compile Include="Utilities\LabelBoxFrame.xaml.cs">
       <DependentUpon>LabelBoxFrame.xaml</DependentUpon>
     </Compile>

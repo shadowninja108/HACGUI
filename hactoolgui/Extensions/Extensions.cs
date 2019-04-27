@@ -330,12 +330,17 @@ namespace HACGUI.Extensions
 
         public static void DeleteRecursively(this DirectoryInfo obj)
         {
-            foreach(DirectoryInfo directory in obj.EnumerateDirectories("*", SearchOption.AllDirectories))
+            foreach (FileInfo file in obj.EnumerateFiles())
+                file.Delete();
+
+            foreach (DirectoryInfo directory in obj.EnumerateDirectories("*", SearchOption.AllDirectories))
             {
                 foreach (FileInfo file in directory.EnumerateFiles())
                     file.Delete();
                 directory.Delete();
             }
+
+            obj.Delete();
         }
 
         public static void XOR(this byte[] buffer1, byte[] buffer2, out byte[] output)

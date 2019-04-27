@@ -1,5 +1,7 @@
-﻿using HACGUI.Main.TaskManager;
+﻿using HACGUI.Extensions;
+using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
+using HACGUI.Utilities;
 using LibHac;
 using LibHac.IO.NcaUtils;
 using LibHac.IO.Save;
@@ -30,17 +32,44 @@ namespace HACGUI.Main.TitleManager
             }
         }
 
-        public Dictionary<ulong, Title> Titles => Filesystems.SelectMany(f => f.Titles).ToDictionary(k => k.Key, v => v.Value);
-        public Dictionary<ulong, LibHac.Application> Applications
+        public Dictionary<ulong, Title> Titles
         {
             get
             {
-                Dictionary<ulong, LibHac.Application> apps = new Dictionary<ulong, LibHac.Application>();
+                Dictionary<ulong, Title> titles = new Dictionary<ulong, Title>();
+                foreach(KeyValuePair<ulong, Title> kv in Filesystems.SelectMany(f => f.Titles))
+                {
+                    ulong titleId = kv.Key;
+                    Title currentTitle = kv.Value;
+                    if (titles.ContainsKey(titleId))
+                    {
+                        Title existingTitle = titles[titleId];
+                        Title decidedTitle = existingTitle;
+                        if(existingTitle.Version.Major < currentTitle.Version.Major)
+                            decidedTitle = currentTitle;
+                        if (existingTitle.Version.Minor < currentTitle.Version.Minor)
+                            decidedTitle = currentTitle;
+                        if (existingTitle.Version.Patch < currentTitle.Version.Patch)
+                            decidedTitle = currentTitle;
+                        titles.Remove(titleId); // remove old title
+                        titles.Add(titleId, decidedTitle);
+                    }
+                    else
+                        titles[titleId] = currentTitle;
+                }
+                return titles;
+            }
+        } 
+        public Dictionary<ulong, Application> Applications
+        {
+            get
+            {
+                Dictionary<ulong, Application> apps = new Dictionary<ulong, Application>();
                 foreach (SwitchFs fs in Filesystems)
                 {
-                    foreach (KeyValuePair<ulong, LibHac.Application> kv in fs.Applications) {
+                    foreach (KeyValuePair<ulong, Application> kv in fs.Applications) {
                         ulong titleid = kv.Key;
-                        LibHac.Application app = kv.Value;
+                        Application app = kv.Value;
                         if (apps.ContainsKey(titleid))
                         {
                             if (app.Main != null)

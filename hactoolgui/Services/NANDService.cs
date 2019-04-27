@@ -23,7 +23,7 @@ namespace HACGUI.Services
         public static IStorage NANDSource;
         public static Nand NAND;
 
-        private static ManagementEventWatcher CreateWatcher, DeleteWatcher;
+        private static readonly ManagementEventWatcher CreateWatcher, DeleteWatcher;
         private static bool Started = false;
 
         private static readonly Func<IStorage, bool> DefaultValidator = 

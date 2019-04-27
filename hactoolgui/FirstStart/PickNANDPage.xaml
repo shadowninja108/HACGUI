@@ -33,8 +33,8 @@
                 <Grid Grid.Column="1">
                     <GroupBox Header="Memloader">
                         <Grid>
-                            <Label Name="MemloaderDescriptionLabel" Content="HACGUI is not running as admin&#xD;&#xA; and won't be able to detect a &#xD;&#xA;Switch running memloader." Margin="0,20,0,0" FontSize="20" HorizontalAlignment="Center" HorizontalContentAlignment="Center"/>
-                            <Button Name="RestartAsAdminButton" Content="Restart as admin" HorizontalAlignment="Center" VerticalAlignment="Center" Height="60" FontSize="25" Click="RestartAsAdminButtonClick"/>
+                            <TextBlock Name="MemloaderDescriptionLabel" Text="HACGUI is not running as admin and won't be able to detect a Switch running memloader." Margin="0,20,0,0" FontSize="20" HorizontalAlignment="Center" Width="300" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <Button Name="RestartAsAdminButton" Content="Restart as admin" HorizontalAlignment="Center" VerticalAlignment="Center" Height="60" Width="200" FontSize="25" Click="RestartAsAdminButtonClick"/>
                         </Grid>
                     </GroupBox>
                 </Grid>

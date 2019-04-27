@@ -41,7 +41,9 @@ namespace HACGUI.Utilities
             TicketFolderName = "tickets",
             CrashZipFileName = "crash.zip",
             AccountsFolderName = "accounts",
-            IncompleteFlagFileName = "incomplete";
+            IncompleteFlagFileName = "incomplete",
+            TempQmkExecutableFileName = "qmk.exe",
+            TempQmkDevicesFileName = "devices.txt";
 
         public static DirectoryInfo RootUserDirectory
         {
@@ -81,8 +83,9 @@ namespace HACGUI.Utilities
         public static FileInfo TempKernelFileInfo => RootTempPkg2FolderInfo.GetFile(TempKernelFileName);
         public static FileInfo TempINI1FileInfo => RootTempPkg2FolderInfo.GetFile(TempINI1FileName);
         public static FileInfo TempPRODINFOFileInfo => RootTempFolderInfo.GetFile(TempPRODINFOFileName);
-
         public static FileInfo PreferencesFileInfo => RootFolderInfo.GetFile(PreferencesFileName);
+        public static FileInfo TempQmkExecutableFileInfo => RootTempFolderInfo.GetFile(TempQmkExecutableFileName);
+        public static FileInfo TempQmkDevicesFileInfo => RootTempFolderInfo.GetFile(TempQmkDevicesFileName);
 
         public HACGUIKeyset()
         {

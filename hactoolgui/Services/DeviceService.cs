@@ -77,7 +77,7 @@ namespace HACGUI.Services
                 {
                     FsView.LoadFileSystemAsync("Opening NAND user filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenUserPartition()), TitleSource.NAND, false);
                     FsView.LoadFileSystemAsync("Opening NAND system filesystem...", () => SwitchFs.OpenNandPartition(HACGUIKeyset.Keyset, NANDService.NAND.OpenSystemPartition()), TitleSource.NAND, true);
-                    TaskManagerPage.Current.Queue.Submit(new DecryptTicketsTask());
+                    TaskManagerPage.Current.Queue.Submit(new DecryptTicketsTask(Preferences.Current.DefaultConsoleName));
                     TaskManagerPage.Current.Queue.Submit(new SaveKeysetTask(Preferences.Current.DefaultConsoleName)); // TODO
                     TaskManagerPage.Current.Queue.Submit(new CopyAccountDataTask());
 

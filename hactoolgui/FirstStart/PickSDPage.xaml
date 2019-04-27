@@ -17,11 +17,20 @@
 
     <Grid>
         <DockPanel>
-            <StatusBar DockPanel.Dock="Bottom" Name="StatusBar" Height="20"/>
             <Label DockPanel.Dock="Top" Content="Instructions" HorizontalAlignment="Center" Height="60" VerticalAlignment="Top" Width="200" FontSize="36" Margin="0,50,0,0"/>
-            <Button DockPanel.Dock="Bottom" Content="Next" Name="NextButton" Margin="0,0,90,50" Click="NextButtonClick" Height="30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="180" IsEnabled="False"/>
-            <Label DockPanel.Dock="Bottom" Content="1. Run hekate on your Switch&#xA;2. Navigate to Console info... -&gt; Print fuse info and press power to dump&#xA;3. Navigate to Console info... -&gt; Print TSEC keys and press power to dump&#xA;4. Navigate to Tools... -&gt;Backup... -&gt; Backup eMMC BOOT0/1&#xA;5. Take out the SD card and insert it into your PC." Height="160" VerticalAlignment="Center" FontSize="22" HorizontalAlignment="Center" Width="730"  />
+            <Button DockPanel.Dock="Bottom" Content="Next" Name="NextButton" Margin="0,0,90,50" Click="NextButtonClick" Height="30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="140" IsEnabled="False"/>
+            <TextBlock DockPanel.Dock="Bottom" Height="160" VerticalAlignment="Center" FontSize="25" HorizontalAlignment="Center" Width="730" LineHeight="50">
+                <Run Text="1. Run Lockpick_RCM on your console (download "/>
+                <Hyperlink NavigateUri="https://github.com/shchmue/Lockpick_RCM/releases" RequestNavigate="HyperlinkClicked">
+                    <Run Text="here"/>
+                </Hyperlink>
+                <Run Text=")"/>
+                <LineBreak/>
+                <Run Text="2. Follow the onscreen instructions (rebooting to sept if necessary)"/>
+                <LineBreak/>
+                <Run Text="3. Take out the SD card and insert it into your PC."/>
+            </TextBlock>
         </DockPanel>
-        <Button Content="..." Width="40" Height="40" Margin="10,0,0,35" VerticalAlignment="Bottom" HorizontalAlignment="Left" Click="ManualPickerButtonClick"/>
+        <Button Content="..." Width="40" Height="30" Margin="0,0,240,50" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="ManualPickerButtonClick"/>
     </Grid>
 </views:PageExtension>
