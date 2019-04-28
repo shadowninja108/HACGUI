@@ -36,25 +36,41 @@ namespace HACGUI.Main
             InitializeComponent();
             Loaded += (_, __) =>
             {
+                void rcmRefresh(bool b)
+                {
+                    foreach (MenuItem item in
+                        RCMContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresRCM"))
+                        item.IsEnabled = b;
+                };
+                rcmRefresh(InjectService.Device != null);
+
+                void nandRefresh(bool b)
+                {
+                    foreach (MenuItem item in
+                        NANDContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresNAND"))
+                        item.IsEnabled = b;
+                };
+                nandRefresh(false);
+
+                InjectService.DeviceInserted += () =>
+                {
+                    Dispatcher.Invoke(() => rcmRefresh(true));
+                };
+
+                InjectService.DeviceRemoved += () =>
+                {
+                    Dispatcher.Invoke(() => rcmRefresh(false));
+
+                };
+
                 NANDService.OnNANDPluggedIn += () => 
                 {
-                    Dispatcher.Invoke(() => 
-                    {
-                        foreach (MenuItem item in
-                            NANDContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresNAND"))
-                            item.IsEnabled = true;
-                    });
-
+                    Dispatcher.Invoke(() => nandRefresh(true));
                 };
 
                 NANDService.OnNANDRemoved += () =>
                 {
-                    Dispatcher.Invoke(() =>
-                    {
-                        foreach (MenuItem item in
-                            NANDContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresNAND"))
-                            item.IsEnabled = false;
-                    });
+                    Dispatcher.Invoke(() => nandRefresh(false));
                 };
 
                 // init this first as other pages may request tasks on init
@@ -229,6 +245,13 @@ namespace HACGUI.Main
 
             foreach (SwitchFs fs in switchFilesystems)
                 DeviceService.FsView.LoadFileSystem(() => fs, FSView.TitleSource.Imported);
+        }
+
+        private void InjectPayloadClicked(object sender, RoutedEventArgs e)
+        {
+            FileInfo file = RequestOpenFileFromUser(".bin", "RCM payloads (.bin)|*.bin", "Select a payload");
+            if (file != null)
+                InjectService.SendPayload(file);
         }
     }
 }

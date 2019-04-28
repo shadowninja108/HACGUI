@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Security.Principal;
+using System.Threading.Tasks;
 
 namespace HACGUI.Utilities
 {
@@ -114,6 +115,7 @@ namespace HACGUI.Utilities
             public string Manufacturer { get; set; }
             public string CreationClassName { get; set; }
             public string Service { get; set; }
+            public string ClassGuid { get; set; }
             public string[] CompatibleID { get; set; }
             public string[] HardwareID { get; set; }
 
@@ -126,12 +128,13 @@ namespace HACGUI.Utilities
                 Manufacturer = (string)device.GetPropertyValue("Manufacturer");
                 CreationClassName = (string)device.GetPropertyValue("CreationClassName");
                 Service = (string)device.GetPropertyValue("Service");
+                ClassGuid = (string)device.GetPropertyValue("ClassGuid");
                 CompatibleID = (string[])device.GetPropertyValue("CompatibleID");
                 HardwareID = (string[])device.GetPropertyValue("HardwareID");
             }
 
         }
-        public static void LaunchProgram(string fileName, Action callback, string args = "", bool asAdmin = false)
+        public static void LaunchProgram(string fileName, Action callback, string args = "", bool asAdmin = false, string workingDirectory = "")
         {
             Process proc = new Process();
             proc.StartInfo.FileName = fileName;
@@ -139,10 +142,15 @@ namespace HACGUI.Utilities
             if (asAdmin)
                 proc.StartInfo.Verb = "runas";
             proc.StartInfo.Arguments = args;
+            proc.StartInfo.WorkingDirectory = workingDirectory;
             try
             {
                 proc.Start();
-                callback();
+                Task.Run(() =>
+                {
+                    proc.WaitForExit();
+                    callback();
+                });
             }
             catch (System.ComponentModel.Win32Exception)
             {

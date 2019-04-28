@@ -17,7 +17,7 @@ namespace HACGUI.Main.TitleManager
 {
     public class ApplicationElement
     {
-        public static readonly ImageSource UnknownIcon = new BitmapImage(new Uri("pack://application:,,,/Resources/UnknownTitle.jpg", UriKind.RelativeOrAbsolute));
+        public static readonly ImageSource UnknownIcon = new BitmapImage(new Uri("pack://application:,,,/Resources/Img/UnknownTitle.jpg", UriKind.RelativeOrAbsolute));
 
         static readonly List<TitleType> Priority = new List<TitleType>() { TitleType.Application, TitleType.Patch, TitleType.AddOnContent };
 

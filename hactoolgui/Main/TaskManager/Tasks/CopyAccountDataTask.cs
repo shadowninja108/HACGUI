@@ -42,8 +42,6 @@ namespace HACGUI.Main.TaskManager.Tasks
                         using (Stream localStream = localFile.Open(FileMode.Create))
                             saveFile.AsStorage().CopyToStream(localStream, saveFile.GetSize());
                     }
-
-                    ;
                 }
             });
         }

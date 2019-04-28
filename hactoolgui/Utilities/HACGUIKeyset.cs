@@ -42,8 +42,7 @@ namespace HACGUI.Utilities
             CrashZipFileName = "crash.zip",
             AccountsFolderName = "accounts",
             IncompleteFlagFileName = "incomplete",
-            TempQmkExecutableFileName = "qmk.exe",
-            TempQmkDevicesFileName = "devices.txt";
+            ApxInstallerFolderPath = "Resources/Apx-Installer";
 
         public static DirectoryInfo RootUserDirectory
         {
@@ -67,6 +66,7 @@ namespace HACGUI.Utilities
         public static DirectoryInfo RootTempPkg2FolderInfo => RootTempFolderInfo.GetDirectory(TempPkg2FolderName);
         public static DirectoryInfo RootTempINI1FolderInfo => RootTempPkg2FolderInfo.GetDirectory(TempINI1FolderName);
         public static DirectoryInfo AccountsFolderInfo => RootFolderInfo.GetDirectory(AccountsFolderName);
+        public static DirectoryInfo ApxInstallerFolderInfo => WorkingDirectoryInfo.GetDirectory(ApxInstallerFolderPath);
 
 
         public static FileInfo ProductionKeysFileInfo => UserSwitchDirectoryInfo.GetFile(ProductionKeysFileName);
@@ -84,8 +84,6 @@ namespace HACGUI.Utilities
         public static FileInfo TempINI1FileInfo => RootTempPkg2FolderInfo.GetFile(TempINI1FileName);
         public static FileInfo TempPRODINFOFileInfo => RootTempFolderInfo.GetFile(TempPRODINFOFileName);
         public static FileInfo PreferencesFileInfo => RootFolderInfo.GetFile(PreferencesFileName);
-        public static FileInfo TempQmkExecutableFileInfo => RootTempFolderInfo.GetFile(TempQmkExecutableFileName);
-        public static FileInfo TempQmkDevicesFileInfo => RootTempFolderInfo.GetFile(TempQmkDevicesFileName);
 
         public HACGUIKeyset()
         {

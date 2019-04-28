@@ -40,7 +40,7 @@ namespace HACGUI.Extensions
 
         public static DirectoryInfo GetDirectory(this DirectoryInfo obj, string foldername)
         {
-            return new DirectoryInfo($"{obj.FullName}{Path.DirectorySeparatorChar}{foldername}");
+            return new DirectoryInfo($"{obj.FullName}{Path.DirectorySeparatorChar}{foldername.Replace('/', Path.DirectorySeparatorChar)}");
         }
 
 

@@ -62,8 +62,6 @@ namespace HACGUI.FirstStart
             SDService.ResetHandlers();
             SDService.Stop();
 
-            StatusService.Stop();
-
             root.Navigate(new DerivingPage((page) => 
             {
                 // setup key derivation task and execute it asynchronously on the next page

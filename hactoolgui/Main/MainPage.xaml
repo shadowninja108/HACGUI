@@ -26,11 +26,10 @@
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>
-                    <ext:DropdownButton Content="Utilities">
+                    <ext:DropdownButton Content="RCM">
                         <ext:DropdownButton.DropdownMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Restart as admin" Name="AdminButton" Click="RestartAsAdminButtonClick"/>
-                                <MenuItem Header="Open keys folder" Click="OpenUserSwitchClick"/>
+                            <ContextMenu Name="RCMContextMenu">
+                                <MenuItem Tag="RequiresRCM" Header="Inject payload" Click="InjectPayloadClicked"/>
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>
@@ -40,6 +39,14 @@
                                 <MenuItem Header="Pick NAND" Click="PickNANDButtonClick"/>
                                 <MenuItem Tag="RequiresNAND" Header="Mount NAND partitions" Click="MountPartition" IsEnabled="False"/>
                                 <MenuItem Tag="RequiresNAND" Header="Dump NAND to file" Click="DumpNANDToFile" IsEnabled="False"/>
+                            </ContextMenu>
+                        </ext:DropdownButton.DropdownMenu>
+                    </ext:DropdownButton>
+                    <ext:DropdownButton Content="Misc.">
+                        <ext:DropdownButton.DropdownMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Restart as admin" Name="AdminButton" Click="RestartAsAdminButtonClick"/>
+                                <MenuItem Header="Open keys folder" Click="OpenUserSwitchClick"/>
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>
