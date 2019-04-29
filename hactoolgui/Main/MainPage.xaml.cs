@@ -42,7 +42,7 @@ namespace HACGUI.Main
                         RCMContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresRCM"))
                         item.IsEnabled = b;
                 };
-                rcmRefresh(InjectService.WMIDeviceInfo != null);
+                rcmRefresh(InjectService.LibusbKInstalled);
 
                 void nandRefresh(bool b)
                 {
@@ -92,21 +92,21 @@ namespace HACGUI.Main
 
                 StatusService.Start();
 
-                if (IsAdministrator)
+                if (Native.IsAdministrator)
                     AdminButton.IsEnabled = false;
             };
         }
 
         private void PickNANDButtonClick(object sender, RoutedEventArgs e)
         {
-            FileInfo[] files = RequestOpenFilesFromUser(".bin", "Raw NAND dump (.bin or .bin.*)|*.bin*", "Select raw NAND dump", "rawnand.bin");
+            FileInfo[] files = RequestOpenFilesFromUser(".bin", "Raw NAND dump (.bin or .bin.*)|*.bin*", "Select raw NAND dump...", "rawnand.bin");
 
             if (files != null)
             {
-                IList<IStorage> streams = new List<IStorage>();
+                IList<IStorage> storages = new List<IStorage>();
                 foreach (FileInfo file in files)
-                    streams.Add(file.OpenRead().AsStorage()); // Change to Open when write support is added
-                IStorage NANDSource = new ConcatenationStorage(streams, true);
+                    storages.Add(file.OpenRead().AsStorage()); // Change to Open when write support is added
+                IStorage NANDSource = new ConcatenationStorage(storages, true);
 
                 if (!NANDService.InsertNAND(NANDSource, false))
                 {
@@ -115,7 +115,7 @@ namespace HACGUI.Main
             }
         }
 
-        private void RestartAsAdminButtonClick(object sender, RoutedEventArgs e)
+        private void RestartAsAdminButtonClicked(object sender, RoutedEventArgs e)
         {
             Process proc = new Process();
             proc.StartInfo.FileName = AppDomain.CurrentDomain.FriendlyName;
@@ -132,10 +132,6 @@ namespace HACGUI.Main
             }
         }
 
-        public static bool IsAdministrator =>
-            new WindowsPrincipal(WindowsIdentity.GetCurrent())
-            .IsInRole(WindowsBuiltInRole.Administrator);
-
         private void MountPartition(object sender, RoutedEventArgs e)
         {
             Window window = new NANDMounterWindow()
@@ -145,12 +141,12 @@ namespace HACGUI.Main
             window.ShowDialog();
         }
 
-        private void OpenUserSwitchClick(object sender, RoutedEventArgs e)
+        private void OpenUserSwitchClicked(object sender, RoutedEventArgs e)
         {
             Process.Start(HACGUIKeyset.UserSwitchDirectoryInfo.FullName);
         }
 
-        private void DumpNANDToFile(object sender, RoutedEventArgs e)
+        private void DumpNANDToFileClicked(object sender, RoutedEventArgs e)
         {
             FileInfo info = RequestSaveFileFromUser("rawnand.bin", "NAND dump(.bin) | rawnand.bin");
             if (info != null) {
@@ -172,80 +168,82 @@ namespace HACGUI.Main
                 Nintendo Content Archive (*.nca)|*.nca|
                 Nintendo Installable Package (*.nsp)|*.nsp
             ".FilterMultilineString();
-            FileInfo[] files = RequestOpenFilesFromUser(".*", filter, "Select the game data");
+            FileInfo[] files = RequestOpenFilesFromUser(".*", filter, "Select game data...");
 
             if (files == null)
                 return;
 
-            IEnumerable<FileInfo> ncas = files.Where((f) =>
+            TaskManagerPage.Current.Queue.Submit(new RunTask("Process imported game data...", new Task(() =>
             {
-                try
+                IEnumerable<FileInfo> ncas = files.Where((f) =>
                 {
-                    new Nca(HACGUIKeyset.Keyset, new LocalFile(f.FullName, OpenMode.Read).AsStorage(), false);
-                    return true;
-                }
-                catch (Exception)
+                    try
+                    {
+                        new Nca(HACGUIKeyset.Keyset, new LocalFile(f.FullName, OpenMode.Read).AsStorage(), false);
+                        return true;
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                });
+                IEnumerable<FileInfo> xcis = files.Except(ncas).Where((f) =>
                 {
-                    return false;
-                }
-            });
-            IEnumerable<FileInfo> xcis = files.Except(ncas).Where((f) =>
-            {
-                try
+                    try
+                    {
+                        new Xci(HACGUIKeyset.Keyset, new LocalFile(f.FullName, OpenMode.Read).AsStorage());
+                        return true;
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                });
+                IEnumerable<FileInfo> nsp = files.Except(ncas).Except(xcis).Where((f) =>
                 {
-                    new Xci(HACGUIKeyset.Keyset, new LocalFile(f.FullName, OpenMode.Read).AsStorage());
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            });
-            IEnumerable<FileInfo> nsp = files.Except(ncas).Except(xcis).Where((f) =>
-            {
-                try
-                {
-                    new PartitionFileSystem(new LocalFile(f.FullName, OpenMode.Read).AsStorage());
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            });
+                    try
+                    {
+                        new PartitionFileSystem(new LocalFile(f.FullName, OpenMode.Read).AsStorage());
+                        return true;
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                });
 
-            List<SwitchFs> switchFilesystems = new List<SwitchFs>();
+                List<SwitchFs> switchFilesystems = new List<SwitchFs>();
 
-            PseudoFileSystem ncaFs = new PseudoFileSystem();
-            bool foundNcas = false;
-            foreach(FileInfo file in ncas)
-            {
-                LocalFileSystem fs = new LocalFileSystem(file.Directory.FullName);
-                
-                // clean up filename so it only ends with .nca, then map to actual name
-                string s = file.Name;
-                while (s.EndsWith(".nca"))
-                    s = s.Substring(0, s.IndexOf(".nca"));
-                ncaFs.Add($"/{s}.nca", $"/{file.Name}", fs);
-                foundNcas = true;
-            }
-            if(foundNcas)
-                switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, ncaFs));
+                PseudoFileSystem ncaFs = new PseudoFileSystem();
+                foreach (FileInfo file in ncas)
+                {
+                    LocalFileSystem fs = new LocalFileSystem(file.Directory.FullName);
 
-            foreach(FileInfo file in xcis)
-            {
-                Xci xci = new Xci(HACGUIKeyset.Keyset, new LocalFile(file.FullName, OpenMode.Read).AsStorage());
-                switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, xci.OpenPartition(XciPartitionType.Secure)));
-            }
+                    // clean up filename so it only ends with .nca, then map to actual name
+                    string s = file.Name;
+                    while (s.EndsWith(".nca"))
+                        s = s.Substring(0, s.IndexOf(".nca"));
+                    ncaFs.Add($"/{s}.nca", $"/{file.Name}", fs);
+                }
+                if (ncas.Any())
+                    switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, ncaFs));
 
-            foreach(FileInfo file in nsp)
-            {
-                PartitionFileSystem fs = new PartitionFileSystem(new LocalFile(file.FullName, OpenMode.Read).AsStorage());
-                switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, fs));
-            }
+                foreach (FileInfo file in xcis)
+                {
+                    Xci xci = new Xci(HACGUIKeyset.Keyset, new LocalFile(file.FullName, OpenMode.Read).AsStorage());
+                    switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, xci.OpenPartition(XciPartitionType.Secure)));
+                }
 
-            foreach (SwitchFs fs in switchFilesystems)
-                DeviceService.FsView.LoadFileSystem(() => fs, FSView.TitleSource.Imported);
+                foreach (FileInfo file in nsp)
+                {
+                    PartitionFileSystem fs = new PartitionFileSystem(new LocalFile(file.FullName, OpenMode.Read).AsStorage());
+                    switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, fs));
+                }
+
+                foreach (SwitchFs fs in switchFilesystems)
+                    DeviceService.FsView.LoadFileSystemAsync("Opening imported data...", () => fs, FSView.TitleSource.Imported, false);
+            })));
+            
         }
 
         private void InjectPayloadClicked(object sender, RoutedEventArgs e)

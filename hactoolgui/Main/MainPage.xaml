@@ -39,15 +39,15 @@
                             <ContextMenu Name="NANDContextMenu">
                                 <MenuItem Header="Pick NAND" Click="PickNANDButtonClick"/>
                                 <MenuItem Tag="RequiresNAND" Header="Mount NAND partitions" Click="MountPartition" IsEnabled="False"/>
-                                <MenuItem Tag="RequiresNAND" Header="Dump NAND to file" Click="DumpNANDToFile" IsEnabled="False"/>
+                                <MenuItem Tag="RequiresNAND" Header="Dump NAND to file" Click="DumpNANDToFileClicked" IsEnabled="False"/>
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>
                     <ext:DropdownButton Content="Misc.">
                         <ext:DropdownButton.DropdownMenu>
                             <ContextMenu>
-                                <MenuItem Header="Restart as admin" Name="AdminButton" Click="RestartAsAdminButtonClick"/>
-                                <MenuItem Header="Open keys folder" Click="OpenUserSwitchClick"/>
+                                <MenuItem Header="Restart as admin" Name="AdminButton" Click="RestartAsAdminButtonClicked"/>
+                                <MenuItem Header="Open keys folder" Click="OpenUserSwitchClicked"/>
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>
