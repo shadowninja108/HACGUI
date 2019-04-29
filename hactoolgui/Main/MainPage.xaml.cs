@@ -42,7 +42,7 @@ namespace HACGUI.Main
                         RCMContextMenu.Items.Cast<MenuItem>().Where(i => i.Tag as string == "RequiresRCM"))
                         item.IsEnabled = b;
                 };
-                rcmRefresh(InjectService.Device != null);
+                rcmRefresh(InjectService.WMIDeviceInfo != null);
 
                 void nandRefresh(bool b)
                 {

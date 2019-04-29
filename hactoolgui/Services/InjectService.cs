@@ -1,13 +1,14 @@
 ﻿using HACGUI.Extensions;
 using HACGUI.Utilities;
+using IniParser;
+using IniParser.Model;
 using libusbK;
-using Octokit;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Management;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -20,7 +21,8 @@ namespace HACGUI.Services
 
     public class InjectService
     {
-        public static UsbDeviceInfo Device;
+        public static UsbDeviceInfo WMIDeviceInfo;
+        public static UsbK Device;
 
         private static readonly byte[] Intermezzo =
 {
@@ -49,11 +51,10 @@ namespace HACGUI.Services
             0x00, 0x00, 0x01, 0x40  // ANDMI R0, R1, R0
         };
 
-        public static bool LibusbKInstalled => Device?.Service != null;
+        public static bool LibusbKInstalled => WMIDeviceInfo?.Service != null;
 
         private static readonly string VID = "0955";
         private static readonly string PID = "7321";
-        private static string InstallString => $"libusbk,APX,{VID},{PID},{Guid.NewGuid()}";
 
         private static readonly ManagementEventWatcher CreateWatcher, DeleteWatcher;
 
@@ -69,8 +70,8 @@ namespace HACGUI.Services
             WqlEventQuery createQuery = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'");
             CreateWatcher.EventArrived += new EventArrivedEventHandler((s, e) =>
             {
-                FindConsole();
-                if (Device != null)
+                Refresh();
+                if (WMIDeviceInfo != null)
                     DeviceInserted?.Invoke();
             });
             CreateWatcher.Query = createQuery;
@@ -79,9 +80,9 @@ namespace HACGUI.Services
             WqlEventQuery deleteQuery = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'");
             DeleteWatcher.EventArrived += new EventArrivedEventHandler((s, e) =>
             {
-                Device = null;
-                FindConsole();
-                if (Device == null)
+                WMIDeviceInfo = null;
+                Refresh();
+                if (WMIDeviceInfo == null)
                     DeviceRemoved?.Invoke();
             });
             DeleteWatcher.Query = deleteQuery;
@@ -93,7 +94,7 @@ namespace HACGUI.Services
                 {
                     MessageBoxResult result = MessageBox.Show("You have plugged in your console, but it lacks the libusbK driver. Want to install it? (You cannot inject anything until this is done)", "", MessageBoxButton.YesNo);
                     if(result == MessageBoxResult.Yes)
-                        Install();
+                        InstallDriver();
                 }
             };
 
@@ -108,8 +109,8 @@ namespace HACGUI.Services
             if (Started)
                 throw new Exception("Inject service is already started!");
 
-            FindConsole();
-            if (Device != null)
+            Refresh();
+            if (WMIDeviceInfo != null)
                 Task.Run(() => DeviceInserted?.Invoke());
 
             CreateWatcher.Start();
@@ -148,7 +149,7 @@ namespace HACGUI.Services
             }
         }
 
-        private static void WriteToUsb(UsbK wrt, byte[] payload)
+        private static void WritePayload(UsbK wrt, byte[] payload)
         {
             var buffer = new byte[0x1000];
 
@@ -161,22 +162,15 @@ namespace HACGUI.Services
 
         public static void SendPayload(FileInfo info)
         {
-            var patternMatch = new KLST_PATTERN_MATCH { ClassGUID = Device.ClassGuid };
-            var deviceList = new LstK(0, ref patternMatch);
-            deviceList.MoveNext(out KLST_DEVINFO_HANDLE deviceInfo);
-
-            UsbK deviceUsb =  new UsbK(deviceInfo);
-            deviceUsb.SetAltInterface(0, false, 0);
-
             byte[] payload = File.ReadAllBytes(info.FullName);
             var buf = new byte[0x10];
-            deviceUsb.ReadPipe(0x81, buf, 0x10, out _, IntPtr.Zero);
-            WriteToUsb(deviceUsb, SwizzlePayload(payload));
+            Device.ReadPipe(0x81, buf, 0x10, out _, IntPtr.Zero);
+            WritePayload(Device, SwizzlePayload(payload));
 
             if (Writes % 2 != 1)
             {
                 Console.WriteLine("Switching buffers...");
-                deviceUsb.WritePipe(1, new byte[0x1000], 0x1000, out _, IntPtr.Zero);
+                Device.WritePipe(1, new byte[0x1000], 0x1000, out _, IntPtr.Zero);
             }
 
             var setup = new WINUSB_SETUP_PACKET
@@ -188,24 +182,126 @@ namespace HACGUI.Services
                 Length = 0x7000
             };
 
-            var result = deviceUsb.ControlTransfer(setup, new byte[0x7000], 0x7000, out var b, IntPtr.Zero);
+            var result = Device.ControlTransfer(setup, new byte[0x7000], 0x7000, out var b, IntPtr.Zero);
 
             if (!result)
                 MessageBox.Show($"Your switch doesn't appear to be vulnerable. Stack smash: 0x{b:x}");
         }
 
-        public static void FindConsole()
+        public static void SendIni(FileInfo info)
         {
+            DirectoryInfo root = info.Directory;
+            FileIniDataParser parser = new FileIniDataParser();
+            IniData iniData = parser.ReadFile(info.FullName);
+
+            List<LoadData> AllLoadData = new List<LoadData>();
+            List<BootData> AllBootData = new List<BootData>();
+
+            foreach (SectionData entry in iniData.Sections)
+            {
+                string sectionName = entry.SectionName.Substring(entry.SectionName.IndexOf(":"));
+                switch (sectionName)
+                {
+                    case "load":
+                        LoadData loadData = new LoadData();
+                        foreach(KeyData key in entry.Keys)
+                            switch (key.KeyName)
+                            {
+                                case "if":
+                                    loadData.SourceFile = key.Value;
+                                    break;
+                                case "skip":
+                                    loadData.Skip = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                    break;
+                                case "count":
+                                    loadData.Count = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                    break;
+                                case "dst":
+                                    loadData.Dest = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                    break;
+                            }
+                        AllLoadData.Add(loadData);
+                        break;
+                    case "boot":
+                        BootData bootData = new BootData();
+                        foreach (KeyData key in entry.Keys)
+                            switch (key.KeyName)
+                            {
+                                case "pc":
+                                    bootData.PC = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                    break;
+                            }
+                        AllBootData.Add(bootData);
+                        break;
+                }
+            }
+
+            foreach(LoadData currData in AllLoadData)
+            {
+                FileInfo file = root.GetFile(currData.SourceFile);
+                byte[] data = File.ReadAllBytes(file.FullName);
+                byte[] address = currData.Dest.ToBytes(4);
+                byte[] size = data.Length.ToBytes(4);
+                byte[] bytesToSend = address.Concat(size).ToArray();
+                Device.WritePipe(0x81, bytesToSend, bytesToSend.Length, out int lengthTransfered, IntPtr.Zero);
+                Device.WritePipe(0x81, data, data.Length, out lengthTransfered, IntPtr.Zero);
+            }
+
+            foreach(BootData currData in AllBootData)
+            {
+                byte[] pc = currData.PC.ToBytes(4);
+                Device.WritePipe(0x81, pc, pc.Length, out int lengthTransfered, IntPtr.Zero);
+            }
+        }
+
+        public struct LoadData
+        {
+            public string
+                SourceFile;
+            public ulong 
+                Skip,
+                Count,
+                Dest;
+        }
+
+        public struct BootData
+        {
+            public ulong PC;
+        }
+
+        public static void WaitForReady()
+        {
+            byte[] expected = Encoding.ASCII.GetBytes("READY.\n");
+            byte[] totalBuffer = new byte[expected.Length];
+            int totalBytesRead = 0;
+            while (totalBuffer.Length > totalBytesRead)
+            {
+                byte[] buffer = new byte[expected.Length];
+                Device.ReadPipe(0x81, buffer, buffer.Length, out int bytesRead, IntPtr.Zero);
+                Array.Copy(buffer, 0, totalBuffer, totalBytesRead, bytesRead);
+                totalBytesRead += bytesRead;
+            }
+        }
+
+        public static void Refresh()
+        {
+            WMIDeviceInfo = null;
             Device = null;
             foreach (UsbDeviceInfo info in CreateUsbControllerDeviceInfos(GetUsbDevices()))
                 if (info.DeviceID.StartsWith($"USB\\VID_{VID}&PID_{PID}"))
                 {
-                    Device = info;
+                    WMIDeviceInfo = info;
+                    var patternMatch = new KLST_PATTERN_MATCH { ClassGUID = WMIDeviceInfo.ClassGuid };
+                    var deviceList = new LstK(0, ref patternMatch);
+                    deviceList.MoveNext(out KLST_DEVINFO_HANDLE deviceInfo);
+
+                    UsbK deviceUsb = new UsbK(deviceInfo);
+                    deviceUsb.SetAltInterface(0, false, 0);
                     break;
                 }
         }
 
-        public static void Install()
+        public static void InstallDriver()
         {
             DirectoryInfo workingDirectory = HACGUIKeyset.ApxInstallerFolderInfo;
             FileInfo catSignerFile = workingDirectory.GetFile("dpscat.exe");

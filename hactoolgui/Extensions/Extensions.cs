@@ -352,5 +352,21 @@ namespace HACGUI.Extensions
                 output[i] = (byte)(buffer1[i] ^ buffer2[i]);
         }
 
+        public static byte[] ToBytes(this ulong obj, int length)
+        {
+            byte[] buffer = BitConverter.GetBytes(obj);
+            byte[] outp = new byte[length];
+            Array.Copy(buffer, outp, length);
+            return outp;
+        }
+
+        public static byte[] ToBytes(this int obj, int length)
+        {
+            byte[] buffer = BitConverter.GetBytes(obj);
+            byte[] outp = new byte[length];
+            Array.Copy(buffer, outp, length);
+            return outp;
+        }
+
     }
 }
