@@ -88,12 +88,18 @@ namespace HACGUI.Services
 
             DeviceInserted += () =>
             {
+                StatusService.RCMStatus = StatusService.Status.OK;
                 if (!LibusbKInstalled)
                 {
                     MessageBoxResult result = MessageBox.Show("You have plugged in your console, but it lacks the libusbK driver. Want to install it? (You cannot inject anything until this is done)", "", MessageBoxButton.YesNo);
                     if(result == MessageBoxResult.Yes)
                         Install();
                 }
+            };
+
+            DeviceRemoved += () =>
+            {
+                StatusService.RCMStatus = StatusService.Status.Incorrect;
             };
         }
 

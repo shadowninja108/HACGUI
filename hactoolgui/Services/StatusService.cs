@@ -105,6 +105,7 @@ namespace HACGUI.Services
             {
                 { "SD" , Status.Incorrect },
                 { "NAND" , Status.Incorrect },
+                { "RCM" , Status.Incorrect },
             };
         }
 
@@ -118,6 +119,12 @@ namespace HACGUI.Services
         {
             get => Statuses["NAND"];
             set => Statuses["NAND"] = value;
+        }
+
+        public static Status RCMStatus
+        {
+            get => Statuses["RCM"];
+            set => Statuses["RCM"] = value;
         }
         public enum Status
         {
