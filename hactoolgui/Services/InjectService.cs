@@ -191,52 +191,10 @@ namespace HACGUI.Services
         public static void SendIni(FileInfo info)
         {
             DirectoryInfo root = info.Directory;
-            FileIniDataParser parser = new FileIniDataParser();
-            IniData iniData = parser.ReadFile(info.FullName);
 
-            List<LoadData> AllLoadData = new List<LoadData>();
-            List<BootData> AllBootData = new List<BootData>();
+            MemloaderIniData iniData = new MemloaderIniData(info);
 
-            foreach (SectionData entry in iniData.Sections)
-            {
-                string sectionName = entry.SectionName.Substring(entry.SectionName.IndexOf(":"));
-                switch (sectionName)
-                {
-                    case "load":
-                        LoadData loadData = new LoadData();
-                        foreach(KeyData key in entry.Keys)
-                            switch (key.KeyName)
-                            {
-                                case "if":
-                                    loadData.SourceFile = key.Value;
-                                    break;
-                                case "skip":
-                                    loadData.Skip = ulong.Parse(key.Value, NumberStyles.HexNumber);
-                                    break;
-                                case "count":
-                                    loadData.Count = ulong.Parse(key.Value, NumberStyles.HexNumber);
-                                    break;
-                                case "dst":
-                                    loadData.Dest = ulong.Parse(key.Value, NumberStyles.HexNumber);
-                                    break;
-                            }
-                        AllLoadData.Add(loadData);
-                        break;
-                    case "boot":
-                        BootData bootData = new BootData();
-                        foreach (KeyData key in entry.Keys)
-                            switch (key.KeyName)
-                            {
-                                case "pc":
-                                    bootData.PC = ulong.Parse(key.Value, NumberStyles.HexNumber);
-                                    break;
-                            }
-                        AllBootData.Add(bootData);
-                        break;
-                }
-            }
-
-            foreach(LoadData currData in AllLoadData)
+            foreach(LoadData currData in iniData.LoadData)
             {
                 Device.WritePipe(0x81, "RECV".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
 
@@ -249,7 +207,7 @@ namespace HACGUI.Services
                 Device.WritePipe(0x81, data, data.Length, out lengthTransfered, IntPtr.Zero);
             }
 
-            foreach(BootData currData in AllBootData)
+            foreach(BootData currData in iniData.BootData)
             {
                 Device.WritePipe(0x81, "BOOT".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
 
@@ -271,6 +229,57 @@ namespace HACGUI.Services
         public struct BootData
         {
             public ulong PC;
+        }
+
+        public class MemloaderIniData
+        {
+            public List<LoadData> LoadData = new List<LoadData>();
+            public List<BootData> BootData = new List<BootData>();
+
+            public MemloaderIniData(FileInfo info)
+            {
+                FileIniDataParser parser = new FileIniDataParser();
+                IniData iniData = parser.ReadFile(info.FullName);
+
+                foreach (SectionData entry in iniData.Sections)
+                {
+                    string sectionName = entry.SectionName.Substring(entry.SectionName.IndexOf(":"));
+                    switch (sectionName)
+                    {
+                        case "load":
+                            LoadData loadData = new LoadData();
+                            foreach (KeyData key in entry.Keys)
+                                switch (key.KeyName)
+                                {
+                                    case "if":
+                                        loadData.SourceFile = key.Value;
+                                        break;
+                                    case "skip":
+                                        loadData.Skip = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                        break;
+                                    case "count":
+                                        loadData.Count = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                        break;
+                                    case "dst":
+                                        loadData.Dest = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                        break;
+                                }
+                            LoadData.Add(loadData);
+                            break;
+                        case "boot":
+                            BootData bootData = new BootData();
+                            foreach (KeyData key in entry.Keys)
+                                switch (key.KeyName)
+                                {
+                                    case "pc":
+                                        bootData.PC = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                        break;
+                                }
+                            BootData.Add(bootData);
+                            break;
+                    }
+                }
+            }
         }
 
         public static void WaitForReady()
