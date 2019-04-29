@@ -54,7 +54,8 @@ namespace HACGUI.Main
 
                 InjectService.DeviceInserted += () =>
                 {
-                    Dispatcher.Invoke(() => rcmRefresh(true));
+                    if(InjectService.LibusbKInstalled)
+                        Dispatcher.Invoke(() => rcmRefresh(true));
                 };
 
                 InjectService.DeviceRemoved += () =>
@@ -249,9 +250,16 @@ namespace HACGUI.Main
 
         private void InjectPayloadClicked(object sender, RoutedEventArgs e)
         {
-            FileInfo file = RequestOpenFileFromUser(".bin", "RCM payloads (.bin)|*.bin", "Select a payload");
+            FileInfo file = RequestOpenFileFromUser(".bin", "RCM payloads (.bin)|*.bin", "Select a payload...");
             if (file != null)
                 InjectService.SendPayload(file);
+        }
+
+        private void SendMemloaderIniClicked(object sender, RoutedEventArgs e)
+        {
+            FileInfo file = RequestOpenFileFromUser(".ini", "Memloader ini (.ini)|*.ini", "Select a ini...");
+            if (file != null)
+                InjectService.SendIni(file);
         }
     }
 }

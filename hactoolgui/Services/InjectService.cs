@@ -284,7 +284,7 @@ namespace HACGUI.Services
 
         public static void WaitForReady()
         {
-            byte[] expected = Encoding.ASCII.GetBytes("READY.\n");
+            byte[] expected = "READY.\n".ToBytes();
             byte[] totalBuffer = new byte[expected.Length];
             int totalBytesRead = 0;
             while (totalBuffer.Length > totalBytesRead)
@@ -293,6 +293,11 @@ namespace HACGUI.Services
                 Device.ReadPipe(0x81, buffer, buffer.Length, out int bytesRead, IntPtr.Zero);
                 Array.Copy(buffer, 0, totalBuffer, totalBytesRead, bytesRead);
                 totalBytesRead += bytesRead;
+                if (!totalBuffer.SequenceEqual(expected))
+                {
+                    byte[] newBuffer = new byte[expected.Length];
+                    Array.Copy(totalBuffer, 1, newBuffer, 0, totalBuffer.Length - 1);
+                }
             }
         }
 

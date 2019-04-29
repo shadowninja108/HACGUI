@@ -30,6 +30,7 @@
                         <ext:DropdownButton.DropdownMenu>
                             <ContextMenu Name="RCMContextMenu">
                                 <MenuItem Tag="RequiresRCM" Header="Inject payload" Click="InjectPayloadClicked"/>
+                                <MenuItem Tag="RequiresRCM" Header="Send memloader ini" Click="SendMemloaderIniClicked"
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>
