@@ -368,5 +368,9 @@ namespace HACGUI.Extensions
             return outp;
         }
 
+        public static byte[] ToBytes(this string obj)
+        {
+            return Encoding.ASCII.GetBytes(obj);
+        }
     }
 }

@@ -238,19 +238,23 @@ namespace HACGUI.Services
 
             foreach(LoadData currData in AllLoadData)
             {
+                Device.WritePipe(0x81, "RECV".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
+
                 FileInfo file = root.GetFile(currData.SourceFile);
                 byte[] data = File.ReadAllBytes(file.FullName);
                 byte[] address = currData.Dest.ToBytes(4);
                 byte[] size = data.Length.ToBytes(4);
                 byte[] bytesToSend = address.Concat(size).ToArray();
-                Device.WritePipe(0x81, bytesToSend, bytesToSend.Length, out int lengthTransfered, IntPtr.Zero);
+                Device.WritePipe(0x81, bytesToSend, bytesToSend.Length, out lengthTransfered, IntPtr.Zero);
                 Device.WritePipe(0x81, data, data.Length, out lengthTransfered, IntPtr.Zero);
             }
 
             foreach(BootData currData in AllBootData)
             {
+                Device.WritePipe(0x81, "BOOT".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
+
                 byte[] pc = currData.PC.ToBytes(4);
-                Device.WritePipe(0x81, pc, pc.Length, out int lengthTransfered, IntPtr.Zero);
+                Device.WritePipe(0x81, pc, pc.Length, out lengthTransfered, IntPtr.Zero);
             }
         }
 
