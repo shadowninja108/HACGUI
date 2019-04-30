@@ -42,7 +42,13 @@ namespace HACGUI.Utilities
             CrashZipFileName = "crash.zip",
             AccountsFolderName = "accounts",
             IncompleteFlagFileName = "incomplete",
-            ApxInstallerFolderPath = "Resources/Apx-Installer";
+            ResourcesFolderName = "Resources",
+            ApxInstallerFolderName = "Apx-Installer",
+            MemloaderFolderName = "memloader",
+            MemloaderPayloadFileName = "memloader.bin",
+            MemloaderSampleFolderName = "sample",
+            TempLockpickPayloadFileName = "Lockpick.bin";
+
 
         public static DirectoryInfo RootUserDirectory
         {
@@ -66,7 +72,10 @@ namespace HACGUI.Utilities
         public static DirectoryInfo RootTempPkg2FolderInfo => RootTempFolderInfo.GetDirectory(TempPkg2FolderName);
         public static DirectoryInfo RootTempINI1FolderInfo => RootTempPkg2FolderInfo.GetDirectory(TempINI1FolderName);
         public static DirectoryInfo AccountsFolderInfo => RootFolderInfo.GetDirectory(AccountsFolderName);
-        public static DirectoryInfo ApxInstallerFolderInfo => WorkingDirectoryInfo.GetDirectory(ApxInstallerFolderPath);
+        public static DirectoryInfo ResourcesFolderInfo => WorkingDirectoryInfo.GetDirectory(ResourcesFolderName);
+        public static DirectoryInfo ApxInstallerFolderInfo => ResourcesFolderInfo.GetDirectory(ApxInstallerFolderName);
+        public static DirectoryInfo MemloaderFolderInfo => ResourcesFolderInfo.GetDirectory(MemloaderFolderName);
+        public static DirectoryInfo MemloaderSampleFolderInfo => MemloaderFolderInfo.GetDirectory(MemloaderSampleFolderName);
 
 
         public static FileInfo ProductionKeysFileInfo => UserSwitchDirectoryInfo.GetFile(ProductionKeysFileName);
@@ -84,6 +93,8 @@ namespace HACGUI.Utilities
         public static FileInfo TempINI1FileInfo => RootTempPkg2FolderInfo.GetFile(TempINI1FileName);
         public static FileInfo TempPRODINFOFileInfo => RootTempFolderInfo.GetFile(TempPRODINFOFileName);
         public static FileInfo PreferencesFileInfo => RootFolderInfo.GetFile(PreferencesFileName);
+        public static FileInfo MemloaderPayloadFileInfo => MemloaderFolderInfo.GetFile(MemloaderPayloadFileName);
+        public static FileInfo TempLockpickPayloadFileInfo => RootTempFolderInfo.GetFile(TempLockpickPayloadFileName);
 
         public HACGUIKeyset()
         {

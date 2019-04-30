@@ -17,20 +17,28 @@
 
     <Grid>
         <DockPanel>
-            <Label DockPanel.Dock="Top" Content="Instructions" HorizontalAlignment="Center" Height="60" VerticalAlignment="Top" Width="200" FontSize="36" Margin="0,50,0,0"/>
-            <Button DockPanel.Dock="Bottom" Content="Next" Name="NextButton" Margin="0,0,90,50" Click="NextButtonClick" Height="30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="140" IsEnabled="False"/>
-            <TextBlock DockPanel.Dock="Bottom" Height="160" VerticalAlignment="Center" FontSize="25" HorizontalAlignment="Center" Width="730" LineHeight="50">
-                <Run Text="1. Run Lockpick_RCM on your console (download "/>
-                <Hyperlink NavigateUri="https://github.com/shchmue/Lockpick_RCM/releases" RequestNavigate="HyperlinkClicked">
+            <Label DockPanel.Dock="Top" Content="Instructions" HorizontalAlignment="Center" Height="60" VerticalAlignment="Top" Width="200" FontSize="36" Margin="0,30,0,0"/>
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,0,0,50" Height="40">
+                <Button Content="Send Lockpick" Margin="60,0,40,0"  Name="SendLockpickButton" Click="SendLockpickButtonClicked" VerticalAlignment="Stretch" Width="100" IsEnabled="False"/>
+                <Button Content="Mount SD" Name="MountSDButton" Margin="0,0,200,0" Click="MountSDButtonClicked"  VerticalAlignment="Stretch" Width="100" IsEnabled="False"/>
+                <Button Content="..." Width="40" Margin="0,0,20,0" VerticalAlignment="Stretch" Click="ManualPickerButtonClick"/>
+                <Button DockPanel.Dock="Bottom" Content="Next" Name="NextButton" Click="NextButtonClick" VerticalAlignment="Stretch" Width="140" IsEnabled="False"/>
+            </StackPanel>
+            <TextBlock Height="200" VerticalAlignment="Center" FontSize="20" HorizontalAlignment="Center" Width="730" LineHeight="40">
+                <Run Text="1. Plug in your console running RCM"/>
+                <LineBreak/>
+                <Run Text="2. Click the &quot;Send Lockpick&quot; button (or can be downloaded from"/>
+                <Hyperlink NavigateUri="https://github.com/shchmue/Lockpick_RCM/releases">
                     <Run Text="here"/>
                 </Hyperlink>
                 <Run Text=")"/>
                 <LineBreak/>
-                <Run Text="2. Follow the onscreen instructions (rebooting to sept if necessary)"/>
+                <Run Text="3. Follow the onscreen instructions (rebooting to sept if necessary)"/>
                 <LineBreak/>
-                <Run Text="3. Take out the SD card and insert it into your PC."/>
+                <Run Text="4. Reboot the console and click the &quot;Mount SD&quot; button"/>
+                <LineBreak/>
+                <Run Text="         (or plug it into your PC manually)"/>
             </TextBlock>
         </DockPanel>
-        <Button Content="..." Width="40" Height="30" Margin="0,0,240,50" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="ManualPickerButtonClick"/>
     </Grid>
 </views:PageExtension>

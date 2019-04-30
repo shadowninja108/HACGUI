@@ -60,11 +60,16 @@ namespace HACGUI.Services
 
         private static bool Started = false;
         private static int Writes;
+        private static object WaitForReadyLock = new object();
 
         public static event Action DeviceInserted, DeviceRemoved;
 
         static InjectService()
         {
+            if (HACGUIKeyset.TempLockpickPayloadFileInfo.Exists)
+                HACGUIKeyset.TempLockpickPayloadFileInfo.Delete();
+
+
             // Create event handlers to detect when a device is added or removed
             CreateWatcher = new ManagementEventWatcher();
             WqlEventQuery createQuery = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'");
@@ -162,6 +167,7 @@ namespace HACGUI.Services
 
         public static void SendPayload(FileInfo info)
         {
+            Writes = 0;
             byte[] payload = File.ReadAllBytes(info.FullName);
             var buf = new byte[0x10];
             Device.ReadPipe(0x81, buf, 0x10, out _, IntPtr.Zero);
@@ -182,44 +188,63 @@ namespace HACGUI.Services
                 Length = 0x7000
             };
 
-            var result = Device.ControlTransfer(setup, new byte[0x7000], 0x7000, out var b, IntPtr.Zero);
-
-            if (!result)
-                MessageBox.Show($"Your switch doesn't appear to be vulnerable. Stack smash: 0x{b:x}");
+            Task.Run(() => Device.ControlTransfer(setup, new byte[0x7000], 0x7000, out var b, IntPtr.Zero));
         }
 
         public static void SendIni(FileInfo info)
         {
-            DirectoryInfo root = info.Directory;
-
-            MemloaderIniData iniData = new MemloaderIniData(info);
-
-            WaitForReady();
-
-            foreach(LoadData currData in iniData.LoadData)
+            Task.Run(() =>
             {
-                Device.WritePipe(1, "RECV".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
+                bool attemptInject()
+                {
+                    DirectoryInfo root = info.Directory;
 
-                FileInfo file = root.GetFile(currData.SourceFile);
-                IEnumerable<byte> data = File.ReadAllBytes(file.FullName);
-                int skip = (int)currData.Skip;
-                int dataLength = data.Count() - skip;
-                if(currData.Count > 0)
-                    dataLength = Math.Min(dataLength, (int)currData.Count);
-                IEnumerable<byte> address = currData.Dest.ToBytes(4).Reverse();
-                IEnumerable<byte> size = dataLength.ToBytes(4).Reverse();
-                byte[] bytesToSend = address.Concat(size).ToArray();
-                Device.WritePipe(1, bytesToSend, bytesToSend.Length, out lengthTransfered, IntPtr.Zero);
-                Device.WritePipe(1, data.Skip(skip).Take(dataLength).ToArray(), dataLength, out lengthTransfered, IntPtr.Zero);
-            }
+                    MemloaderIniData iniData = new MemloaderIniData(info);
 
-            foreach(BootData currData in iniData.BootData)
-            {
-                Device.WritePipe(1, "BOOT".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
+                    foreach (LoadData currData in iniData.LoadData)
+                    {
+                        Device.WritePipe(1, "RECV".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
+                        if (lengthTransfered != 4)
+                            return false;
 
-                IEnumerable<byte> pc = currData.PC.ToBytes(4).Reverse();
-                Device.WritePipe(1, pc.ToArray(), 4, out lengthTransfered, IntPtr.Zero);
-            }
+                        FileInfo file = root.GetFile(currData.SourceFile);
+                        IEnumerable<byte> data = File.ReadAllBytes(file.FullName);
+                        int skip = (int)currData.Skip;
+                        int dataLength = data.Count() - skip;
+                        if (currData.Count > 0)
+                            dataLength = Math.Min(dataLength, (int)currData.Count);
+                        IEnumerable<byte> address = currData.Dest.ToBytes(4).Reverse();
+                        IEnumerable<byte> size = dataLength.ToBytes(4).Reverse();
+                        byte[] bytesToSend = address.Concat(size).ToArray();
+
+                        Device.WritePipe(1, bytesToSend, bytesToSend.Length, out lengthTransfered, IntPtr.Zero);
+                        if (lengthTransfered != bytesToSend.Length)
+                            return false;
+
+                        Device.WritePipe(1, data.Skip(skip).Take(dataLength).ToArray(), dataLength, out lengthTransfered, IntPtr.Zero);
+                        if (lengthTransfered != dataLength)
+                            return false;
+                    }
+
+                    foreach (BootData currData in iniData.BootData)
+                    {
+                        Device.WritePipe(1, "BOOT".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
+                        if (lengthTransfered != 4)
+                            return false;
+
+                        IEnumerable<byte> pc = currData.PC.ToBytes(4).Reverse();
+                        Device.WritePipe(1, pc.ToArray(), 4, out lengthTransfered, IntPtr.Zero);
+                        if (lengthTransfered != 4)
+                            return false;
+                    }
+                    return true;
+                };
+
+                WaitForReady();
+                while (!attemptInject())
+                    WaitForReady();
+
+            });
         }
 
         public struct LoadData
@@ -290,19 +315,22 @@ namespace HACGUI.Services
 
         public static void WaitForReady()
         {
-            byte[] expected = "READY.\n".ToBytes();
-            byte[] totalBuffer = new byte[expected.Length];
-            int totalBytesRead = 0;
-            while (totalBuffer.Length > totalBytesRead)
+            lock (WaitForReadyLock)
             {
-                byte[] buffer = new byte[expected.Length];
-                Device.ReadPipe(0x81, buffer, buffer.Length, out int bytesRead, IntPtr.Zero);
-                Array.Copy(buffer, 0, totalBuffer, totalBytesRead, bytesRead);
-                totalBytesRead += bytesRead;
-                if (!totalBuffer.SequenceEqual(expected))
+                byte[] expected = "READY.\n".ToBytes();
+                byte[] totalBuffer = new byte[expected.Length];
+                int totalBytesRead = 0;
+                while (!totalBuffer.SequenceEqual(expected))
                 {
-                    byte[] newBuffer = new byte[expected.Length];
-                    Array.Copy(totalBuffer, 1, newBuffer, 0, totalBuffer.Length - 1);
+                    byte[] buffer = new byte[expected.Length];
+                    Device.ReadPipe(0x81, buffer, buffer.Length, out int bytesRead, IntPtr.Zero);
+                    Array.Copy(buffer, 0, totalBuffer, totalBytesRead, bytesRead);
+                    totalBytesRead += bytesRead;
+                    if (totalBytesRead == expected.Length)
+                    {
+                        byte[] newBuffer = new byte[expected.Length];
+                        Array.Copy(totalBuffer, 1, newBuffer, 0, totalBuffer.Length - 1);
+                    }
                 }
             }
         }

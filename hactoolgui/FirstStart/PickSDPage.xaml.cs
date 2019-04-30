@@ -3,12 +3,14 @@ using HACGUI.Services;
 using HACGUI.Utilities;
 using LibHac;
 using LibHac.IO;
+using Octokit;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Controls;
@@ -48,6 +50,28 @@ namespace HACGUI.FirstStart
                     {
                         NextButton.IsEnabled = false;
                     }));
+                };
+
+                SendLockpickButton.IsEnabled = InjectService.LibusbKInstalled;
+                MountSDButton.IsEnabled = InjectService.LibusbKInstalled;
+
+                InjectService.DeviceInserted += () =>
+                {
+                    if(InjectService.LibusbKInstalled)
+                        Dispatcher.Invoke(() => 
+                        {
+                            SendLockpickButton.IsEnabled = true;
+                            MountSDButton.IsEnabled = true;
+                        });
+                };
+
+                InjectService.DeviceRemoved += () =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        SendLockpickButton.IsEnabled = false;
+                        MountSDButton.IsEnabled = false;
+                    });
                 };
 
                 RootWindow.Current.Submit(new System.Threading.Tasks.Task(() => SDService.Start()));
@@ -115,6 +139,36 @@ namespace HACGUI.FirstStart
         {
             DirectoryInfo switchFolder = info.GetDirectory("switch");
             return switchFolder.Exists ? switchFolder.GetFile("prod.keys").Exists : false;
+        }
+
+        private void SendLockpickButtonClicked(object sender, RoutedEventArgs e)
+        {
+            GitHubClient gitClient = new GitHubClient(new ProductHeaderValue("Github"));
+            if (!HACGUIKeyset.TempLockpickPayloadFileInfo.Exists)
+                gitClient.Repository.Release.GetAll("shchmue", "Lockpick_RCM")
+                    .ContinueWith(task =>
+                    {
+                        IReadOnlyList<Release> releases = task.Result;
+                        Release release = releases.FirstOrDefault();
+                        return release.Assets.FirstOrDefault(r => r.BrowserDownloadUrl.EndsWith(".bin"));
+                    }).ContinueWith(task =>
+                    {
+                        ReleaseAsset asset = task.Result;
+                        HttpClient httpClient = new HttpClient();
+                        httpClient.GetStreamAsync(asset.BrowserDownloadUrl).ContinueWith(streamTask =>
+                        {
+                            Stream src = streamTask.Result;
+                            using (Stream dest = HACGUIKeyset.TempLockpickPayloadFileInfo.OpenWrite())
+                                src.CopyTo(dest);
+                        }).Wait();
+                    }).Wait();
+            InjectService.SendPayload(HACGUIKeyset.TempLockpickPayloadFileInfo);
+        }
+
+        private void MountSDButtonClicked(object sender, RoutedEventArgs e)
+        {
+            InjectService.SendPayload(HACGUIKeyset.MemloaderPayloadFileInfo);
+            InjectService.SendIni(HACGUIKeyset.MemloaderSampleFolderInfo.GetFile("ums_sd.ini"));
         }
     }
 }

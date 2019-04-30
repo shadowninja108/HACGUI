@@ -30,7 +30,12 @@
                         <ext:DropdownButton.DropdownMenu>
                             <ContextMenu Name="RCMContextMenu">
                                 <MenuItem Tag="RequiresRCM" Header="Inject payload" Click="InjectPayloadClicked"/>
-                                <MenuItem Tag="RequiresRCM" Header="Send memloader ini" Click="SendMemloaderIniClicked"/>
+                                <MenuItem Header="Memloader" Tag="RequiresRCM" >
+                                    <MenuItem Tag="ums_emmc" Header="Mount eMMC" Click="InjectMemloaderPayload"/>
+                                    <MenuItem Tag="ums_sd" Header="Mount SD" Click="InjectMemloaderPayload"/>
+                                    <MenuItem Tag="ums_boot0" Header="Mount BOOT0" Click="InjectMemloaderPayload"/>
+                                    <MenuItem Tag="ums_boot1" Header="Mount BOOT1" Click="InjectMemloaderPayload"/>
+                                </MenuItem>
                             </ContextMenu>
                         </ext:DropdownButton.DropdownMenu>
                     </ext:DropdownButton>

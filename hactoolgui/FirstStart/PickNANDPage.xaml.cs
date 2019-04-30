@@ -38,13 +38,24 @@ namespace HACGUI.FirstStart
                 if (Native.IsAdministrator)
                 {
                     MemloaderDescriptionLabel.Text = "HACGUI is waiting for a Switch with memloader setup to be plugged in.";
-                    MemloaderDescriptionLabel.VerticalAlignment = VerticalAlignment.Center;
-                    MemloaderDescriptionLabel.Margin = new Thickness();
-                    RestartAsAdminButton.Visibility = Visibility.Hidden;
+
+                    RestartAsAdminButton.Content = "Inject for me";
+                    RestartAsAdminButton.IsEnabled = InjectService.LibusbKInstalled;
+                    InjectService.DeviceInserted += () => 
+                    {
+                        if(InjectService.LibusbKInstalled)
+                            Dispatcher.Invoke(() => RestartAsAdminButton.IsEnabled = true);
+                    };
+
+                    InjectService.DeviceRemoved += () =>
+                    {
+                        Dispatcher.Invoke(() => RestartAsAdminButton.IsEnabled = false);
+                    };
                 }
 
                 NANDService.OnNANDPluggedIn += () =>
                 {
+                    InjectService.Stop();
                     StartDeriving();
                 };
 
@@ -373,13 +384,20 @@ namespace HACGUI.FirstStart
 
         private void RestartAsAdminButtonClick(object sender, RoutedEventArgs e)
         {
-            new SaveKeysetTask(PickConsolePage.ConsoleName).CreateTask().RunSynchronously();
+            if (!Native.IsAdministrator)
+            {
+                new SaveKeysetTask(PickConsolePage.ConsoleName).CreateTask().RunSynchronously();
 
-            Native.LaunchProgram(
-                AppDomain.CurrentDomain.FriendlyName, 
-                () => System.Windows.Application.Current.Shutdown(),
-                $"continue \"{PickConsolePage.ConsoleName}\"",
-                true);
+                Native.LaunchProgram(
+                    AppDomain.CurrentDomain.FriendlyName,
+                    () => System.Windows.Application.Current.Shutdown(),
+                    $"continue \"{PickConsolePage.ConsoleName}\"",
+                    true);
+            } else
+            {
+                InjectService.SendPayload(HACGUIKeyset.MemloaderPayloadFileInfo);
+                InjectService.SendIni(HACGUIKeyset.MemloaderSampleFolderInfo.GetFile("ums_emmc.ini"));
+            }
         }
     }
 }

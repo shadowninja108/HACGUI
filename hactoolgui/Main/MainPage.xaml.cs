@@ -259,5 +259,13 @@ namespace HACGUI.Main
             if (file != null)
                 InjectService.SendIni(file);
         }
+
+        private void InjectMemloaderPayload(object sender, RoutedEventArgs e)
+        {
+            MenuItem item = sender as MenuItem;
+            string iniFile = item.Tag + ".ini";
+            InjectService.SendPayload(HACGUIKeyset.MemloaderPayloadFileInfo);
+            InjectService.SendIni(HACGUIKeyset.MemloaderSampleFolderInfo.GetFile(iniFile));
+        }
     }
 }

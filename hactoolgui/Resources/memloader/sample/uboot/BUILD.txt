@@ -1,0 +1,28 @@
+U-Boot source from https://github.com/fail0verflow/switch-u-boot.git (at the time, commit a2d885d448eacb72085f262f9b28951384a8e678 was the latest, which was used)
+After the clone, the following changes were made before build:
+  In arch/arm/dts/tegra210-nintendo-switch.dts: max-frequency = <200000000>; was added to the end of sdhci@700b0000 and sdhci@700b0600 sections (for stability)
+  After make nintendo-switch_defconfig, the resulting .config file was edited to have CONFIG_BOOTDELAY=0 , CONFIG_USE_BOOTCOMMAND=y and CONFIG_BOOTCOMMAND="source 80100000"
+  For compatibility/driver reasons, .config file was edited again to have CONFIG_USB_GADGET_VENDOR_NUM=0x10C4 and CONFIG_USB_GADGET_PRODUCT_NUM=0x8B01 
+  In make menuconfig, the following options were unselected to prevent partition/filesystem scanning (which adds delays and can fail) before the bootcommand is executed:
+    General setup:
+        Uncheck "Select defaults suitable for booting general purpose Linux distributions"
+    Command line interface -> Device access commands:
+        Uncheck "part"
+    Command line interface -> Filesystem commands:
+	Uncheck "ext2 commmand support"
+        Uncheck "ext4 commmand support"
+        Uncheck "FAT command support"
+        Uncheck "filesystem commands"
+    Partition types:
+        Uncheck "Enable MS Dos partition table"
+        Uncheck "Enable ISO partition table"
+        Uncheck "Enable EFI GPT partition table"
+    File systems:
+        Uncheck "Enable FAT filesystem support"
+  Then a make was issued which built the u-boot.elf, included in this binary release
+
+The *.scr.img files were built with the following commands:
+  ./tools/mkimage -A arm64 -T script -C none -n "eMMC ums mode" -d ums_emmc.scr ums_emmc.scr.img
+  ./tools/mkimage -A arm64 -T script -C none -n "eMMC boot0 ums mode" -d ums_emmc_boot0.scr ums_emmc_boot0.scr.img
+  ./tools/mkimage -A arm64 -T script -C none -n "eMMC boot1 ums mode" -d ums_emmc_boot1.scr ums_emmc_boot1.scr.img
+  ./tools/mkimage -A arm64 -T script -C none -n "sd ums mode" -d ums_sd.scr ums_sd.scr.img
