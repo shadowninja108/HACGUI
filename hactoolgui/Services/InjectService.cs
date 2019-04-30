@@ -194,25 +194,31 @@ namespace HACGUI.Services
 
             MemloaderIniData iniData = new MemloaderIniData(info);
 
+            WaitForReady();
+
             foreach(LoadData currData in iniData.LoadData)
             {
-                Device.WritePipe(0x81, "RECV".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
+                Device.WritePipe(1, "RECV".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
 
                 FileInfo file = root.GetFile(currData.SourceFile);
-                byte[] data = File.ReadAllBytes(file.FullName);
-                byte[] address = currData.Dest.ToBytes(4);
-                byte[] size = data.Length.ToBytes(4);
+                IEnumerable<byte> data = File.ReadAllBytes(file.FullName);
+                int skip = (int)currData.Skip;
+                int dataLength = data.Count() - skip;
+                if(currData.Count > 0)
+                    dataLength = Math.Min(dataLength, (int)currData.Count);
+                IEnumerable<byte> address = currData.Dest.ToBytes(4).Reverse();
+                IEnumerable<byte> size = dataLength.ToBytes(4).Reverse();
                 byte[] bytesToSend = address.Concat(size).ToArray();
-                Device.WritePipe(0x81, bytesToSend, bytesToSend.Length, out lengthTransfered, IntPtr.Zero);
-                Device.WritePipe(0x81, data, data.Length, out lengthTransfered, IntPtr.Zero);
+                Device.WritePipe(1, bytesToSend, bytesToSend.Length, out lengthTransfered, IntPtr.Zero);
+                Device.WritePipe(1, data.Skip(skip).Take(dataLength).ToArray(), dataLength, out lengthTransfered, IntPtr.Zero);
             }
 
             foreach(BootData currData in iniData.BootData)
             {
-                Device.WritePipe(0x81, "BOOT".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
+                Device.WritePipe(1, "BOOT".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
 
-                byte[] pc = currData.PC.ToBytes(4);
-                Device.WritePipe(0x81, pc, pc.Length, out lengthTransfered, IntPtr.Zero);
+                IEnumerable<byte> pc = currData.PC.ToBytes(4).Reverse();
+                Device.WritePipe(1, pc.ToArray(), 4, out lengthTransfered, IntPtr.Zero);
             }
         }
 
@@ -243,7 +249,7 @@ namespace HACGUI.Services
 
                 foreach (SectionData entry in iniData.Sections)
                 {
-                    string sectionName = entry.SectionName.Substring(entry.SectionName.IndexOf(":"));
+                    string sectionName = entry.SectionName.Substring(0, entry.SectionName.IndexOf(":"));
                     switch (sectionName)
                     {
                         case "load":
@@ -255,13 +261,13 @@ namespace HACGUI.Services
                                         loadData.SourceFile = key.Value;
                                         break;
                                     case "skip":
-                                        loadData.Skip = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                        loadData.Skip = Convert.ToUInt64(key.Value.Substring(2), 16);
                                         break;
                                     case "count":
-                                        loadData.Count = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                        loadData.Count = Convert.ToUInt64(key.Value.Substring(2), 16);
                                         break;
                                     case "dst":
-                                        loadData.Dest = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                        loadData.Dest = Convert.ToUInt64(key.Value.Substring(2), 16);
                                         break;
                                 }
                             LoadData.Add(loadData);
@@ -272,7 +278,7 @@ namespace HACGUI.Services
                                 switch (key.KeyName)
                                 {
                                     case "pc":
-                                        bootData.PC = ulong.Parse(key.Value, NumberStyles.HexNumber);
+                                        bootData.PC = Convert.ToUInt64(key.Value.Substring(2), 16);
                                         break;
                                 }
                             BootData.Add(bootData);
@@ -313,8 +319,8 @@ namespace HACGUI.Services
                     var deviceList = new LstK(0, ref patternMatch);
                     deviceList.MoveNext(out KLST_DEVINFO_HANDLE deviceInfo);
 
-                    UsbK deviceUsb = new UsbK(deviceInfo);
-                    deviceUsb.SetAltInterface(0, false, 0);
+                    Device = new UsbK(deviceInfo);
+                    Device.SetAltInterface(0, false, 0);
                     break;
                 }
         }
