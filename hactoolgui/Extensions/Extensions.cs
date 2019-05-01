@@ -10,9 +10,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Media;
 using HACGUI.Utilities;
+using System.Windows.Controls;
 
 namespace HACGUI.Extensions
 {
@@ -207,7 +207,7 @@ namespace HACGUI.Extensions
 
         public static FileInfo RequestOpenFileFromUser(string ext, string filter, string title = null, string fileName = null)
         {
-            OpenFileDialog dlg = new OpenFileDialog
+            System.Windows.Forms.OpenFileDialog dlg = new System.Windows.Forms.OpenFileDialog
             {
                 DefaultExt = ext,
                 Filter = filter
@@ -217,14 +217,14 @@ namespace HACGUI.Extensions
                 dlg.Title = title;
             dlg.FileName = fileName ?? "";
 
-            if (dlg.ShowDialog() == DialogResult.OK)
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 return new FileInfo(dlg.FileName);
             return null;
         }
 
         public static FileInfo[] RequestOpenFilesFromUser(string ext, string filter, string title = null, string fileName = null)
         {
-            OpenFileDialog dlg = new OpenFileDialog
+            System.Windows.Forms.OpenFileDialog dlg = new System.Windows.Forms.OpenFileDialog
             {
                 DefaultExt = ext,
                 Filter = filter,
@@ -235,7 +235,7 @@ namespace HACGUI.Extensions
                 dlg.Title = title;
             dlg.FileName = fileName ?? "";
 
-            if (dlg.ShowDialog() == DialogResult.OK)
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 FileInfo[] infos = new FileInfo[dlg.FileNames.Length];
                 for (int i = 0; i < infos.Length; i++)
@@ -247,7 +247,7 @@ namespace HACGUI.Extensions
 
         public static FileInfo RequestSaveFileFromUser(string ext, string filter, string title = null)
         {
-            SaveFileDialog dlg = new SaveFileDialog
+            System.Windows.Forms.SaveFileDialog dlg = new System.Windows.Forms.SaveFileDialog
             {
                 DefaultExt = ext,
                 Filter = filter
@@ -256,7 +256,7 @@ namespace HACGUI.Extensions
             if (title != null)
                 dlg.Title = title;
 
-            if (dlg.ShowDialog() == DialogResult.OK)
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 return new FileInfo(dlg.FileName);
             return null;
         }
@@ -371,6 +371,31 @@ namespace HACGUI.Extensions
         public static byte[] ToBytes(this string obj)
         {
             return Encoding.ASCII.GetBytes(obj);
+        }
+
+        public static IEnumerable<T> FindVisualChildren<T>(this DependencyObject depObj) where T : DependencyObject
+        {
+            if (depObj != null)
+            {
+                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
+                {
+                    DependencyObject child = VisualTreeHelper.GetChild(depObj, i);
+                    if (child != null && child is T)
+                    {
+                        yield return (T)child;
+                    }
+
+                    foreach (T childOfChild in FindVisualChildren<T>(child))
+                    {
+                        yield return childOfChild;
+                    }
+                }
+            }
+        }
+
+        public static ListViewItem GetContainerByItem(this ListView obj, object item)
+        {
+            return obj.ItemContainerGenerator.ContainerFromIndex(obj.Items.IndexOf(item)) as ListViewItem;
         }
     }
 }

@@ -31,7 +31,7 @@ namespace HACGUI.Main.TitleManager
 
                 foreach (ApplicationElement element in DeviceService.ApplicationElements)
                 {
-                    element.Load();
+                    element.Load(ListView);
                     ListView.Items.Add(element);
                 }
             }));
