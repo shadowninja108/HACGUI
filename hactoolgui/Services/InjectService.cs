@@ -60,7 +60,7 @@ namespace HACGUI.Services
 
         private static bool Started = false;
         private static int Writes;
-        private static object WaitForReadyLock = new object();
+        private static readonly object WaitForReadyLock = new object();
 
         public static event Action DeviceInserted, DeviceRemoved;
 
@@ -318,20 +318,9 @@ namespace HACGUI.Services
             lock (WaitForReadyLock)
             {
                 byte[] expected = "READY.\n".ToBytes();
-                byte[] totalBuffer = new byte[expected.Length];
-                int totalBytesRead = 0;
-                while (!totalBuffer.SequenceEqual(expected))
-                {
-                    byte[] buffer = new byte[expected.Length];
-                    Device.ReadPipe(0x81, buffer, buffer.Length, out int bytesRead, IntPtr.Zero);
-                    Array.Copy(buffer, 0, totalBuffer, totalBytesRead, bytesRead);
-                    totalBytesRead += bytesRead;
-                    if (totalBytesRead == expected.Length)
-                    {
-                        byte[] newBuffer = new byte[expected.Length];
-                        Array.Copy(totalBuffer, 1, newBuffer, 0, totalBuffer.Length - 1);
-                    }
-                }
+                byte[] buffer = new byte[expected.Length];
+                while (!buffer.SequenceEqual(expected))
+                    Device.ReadPipe(0x81, buffer, buffer.Length, out int bytesRead, IntPtr.Zero);   
             }
         }
 
