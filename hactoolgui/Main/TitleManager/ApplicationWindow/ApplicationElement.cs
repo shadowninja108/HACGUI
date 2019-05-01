@@ -140,13 +140,13 @@ namespace HACGUI.Main.TitleManager
             task.ContinueWith((source) => 
             {
                 Icon = source.Result;
-                ListViewItem container = view.GetContainerByItem(this) as ListViewItem; // find visual container for this element
-                container.Dispatcher.Invoke(() =>
-                {
-                    Image image = container.FindVisualChildren<Image>().First(); // find Image object for container
-                    BindingExpression binding = image.GetBindingExpression(Image.SourceProperty); // get binding
-                    binding.UpdateTarget(); // force refresh
-                });
+                if (view.GetContainerByItem(this) is ListViewItem container) // find visual container for this element
+                    container.Dispatcher.Invoke(() =>
+                    {
+                        Image image = container.FindVisualChildren<Image>().First(); // find Image object for container
+                        BindingExpression binding = image.GetBindingExpression(Image.SourceProperty); // get binding
+                        binding.UpdateTarget(); // force refresh
+                    });
             });
             TaskManagerPage.Current.Queue.Submit(new RunTask($"Decoding icon for {Name}...", task));
         }

@@ -111,7 +111,7 @@ namespace HACGUI.Main.SaveManager
             MountService.Mount(new MountableFileSystem(Element.Save, view.ToString("x16"), "Savefile", mode));
         }
 
-        private static bool IsWritable(SaveDataFileSystem save)
+        private static bool IsWritable(IFileSystem save)
         {
             // ok so FUCK nintendo
             // their filesystem interface doesn't define RW privileges

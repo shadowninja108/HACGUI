@@ -78,7 +78,7 @@ namespace HACGUI.Main.SaveManager
                     SaveElement element = new SaveElement(kv);
                     if (TitleID == 0)
                     {
-                        if ((element.SaveId & 0x8000000000000000) != 0 || !DeviceService.Titles.ContainsKey(element.SaveId))
+                        if ((element.SaveId & 0x8000000000000000) != 0 || !DeviceService.Titles.ContainsKey(element.SaveId)) // if a save is not represented in the title manager, it should be shown in the saves manager
                             ListView.Items.Add(element);
                     }
                     else
