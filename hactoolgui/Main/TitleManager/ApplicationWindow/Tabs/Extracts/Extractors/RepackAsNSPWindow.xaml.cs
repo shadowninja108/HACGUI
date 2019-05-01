@@ -2,13 +2,11 @@
 using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Utilities;
-using LibHac;
 using LibHac.IO;
 using LibHac.IO.NcaUtils;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Navigation;
 

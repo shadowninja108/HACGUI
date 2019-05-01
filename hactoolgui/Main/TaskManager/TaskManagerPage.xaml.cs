@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Navigation;
 
 namespace HACGUI.Main.TaskManager
@@ -66,10 +67,10 @@ namespace HACGUI.Main.TaskManager
         private void GetProgressBarBinding(object sender, RoutedEventArgs e)
         {
             ProgressBar bar = sender as ProgressBar;
-            (bar?.Tag as TaskElement).Binding = bar?.GetBindingExpression(ProgressBar.ValueProperty);
+            (bar?.Tag as TaskElement).Binding = bar?.GetBindingExpression(RangeBase.ValueProperty);
         }
 
-        private void StopButtonClicked(object sender, RoutedEventArgs e)
+        private void ViewButtonClicked(object sender, RoutedEventArgs e)
         {
             List<ProgressTask> tasks = new List<ProgressTask>();
             foreach(TaskElement element in List.SelectedItems)

@@ -2,18 +2,14 @@
 using HACGUI.Services;
 using HACGUI.Utilities;
 using LibHac;
-using LibHac.IO;
 using Octokit;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Management;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
 using static HACGUI.Extensions.Extensions;

@@ -1,19 +1,14 @@
-﻿using HACGUI.Services;
+﻿using HACGUI.Main.TaskManager;
+using HACGUI.Main.TaskManager.Tasks;
+using HACGUI.Services;
 using LibHac.IO;
 using LibHac.IO.NcaUtils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
 {
@@ -57,20 +52,23 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
             IEnumerable<Tuple<Nca, NcaSection>> list = Indexed[sectionType];
             if (mountType == MountType.Romfs && Indexed.ContainsKey(SectionType.Bktr))
                 list = list.Concat(Indexed[SectionType.Bktr]);
-            foreach (Tuple<Nca, NcaSection> t in list)
+            TaskManagerPage.Current.Queue.Submit(new RunTask("Opening filesystems to mount...", new Task(() => 
             {
-                Nca nca = t.Item1;
-                NcaSection section = t.Item2;
-                if (section.Header.Type == SectionType.Bktr)
-                    nca.SetBaseNca(MainNca);
-                filesystems.Add(nca.OpenFileSystem(section.SectionNum, IntegrityCheckLevel.ErrorOnInvalid));
-            }
-            filesystems.Reverse();
-            LayeredFileSystem fs = new LayeredFileSystem(filesystems);
-            string typeString = sectionType.ToString();
-            if (sectionType == SectionType.Bktr)
-                typeString = $"{mountType} ({typeString})";
-            MountService.Mount(new MountableFileSystem(fs, $"Mounted {mountType.ToString().ToLower()}", typeString, OpenMode.Read));
+                foreach (Tuple<Nca, NcaSection> t in list)
+                {
+                    Nca nca = t.Item1;
+                    NcaSection section = t.Item2;
+                    if (section.Header.Type == SectionType.Bktr)
+                        nca.SetBaseNca(MainNca);
+                    filesystems.Add(nca.OpenFileSystem(section.SectionNum, IntegrityCheckLevel.ErrorOnInvalid));
+                }
+                filesystems.Reverse();
+                LayeredFileSystem fs = new LayeredFileSystem(filesystems);
+                string typeString = sectionType.ToString();
+                if (sectionType == SectionType.Bktr)
+                    typeString = $"{mountType} ({typeString})";
+                MountService.Mount(new MountableFileSystem(fs, $"Mounted {mountType.ToString().ToLower()}", typeString, OpenMode.Read));
+            })));
         }
 
         public enum MountType

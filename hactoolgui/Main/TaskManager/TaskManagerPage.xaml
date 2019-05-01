@@ -14,7 +14,7 @@
         <System:Double x:Key="MinHeight">500</System:Double>
         <views:FileSizeConverter x:Key="fileSizeConverter" />
         <ContextMenu x:Key="TaskContextMenu">
-            <MenuItem Header="Stop" Click="StopButtonClicked" Tag="{Binding}"/>
+            <MenuItem Header="Stop" Click="ViewButtonClicked" Tag="{Binding}"/>
         </ContextMenu>
         <Style TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

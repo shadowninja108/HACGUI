@@ -5,7 +5,6 @@ using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
 using LibHac.IO;
 using LibHac.IO.NcaUtils;
-using LibHac.IO.RomFs;
 using System;
 using System.Collections.Generic;
 using System.Linq;

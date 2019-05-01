@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -55,7 +53,7 @@ namespace HACGUI.Main.TaskManager
                     task.InformStart();
                     Task stask = task.CreateTask();
                     stask.ContinueWith((t) => TaskCompleted(task));
-                    RootWindow.Current.Submit(stask);
+                    RootWindow.Current.Submit(stask); // wrap in an unhandled exception handler
                     task.HasStarted = true;
                     task.UnderlyingTask = stask;
                     if (task.Blocking)
