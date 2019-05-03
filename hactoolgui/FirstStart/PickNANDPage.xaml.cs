@@ -312,40 +312,23 @@ namespace HACGUI.FirstStart
             }
 
             // save PRODINFO to file, then derive eticket_ext_key_rsa
-            Calibration cal0;
-            byte[] certBytes;
-            using (Stream prodinfoFile = HACGUIKeyset.TempPRODINFOFileInfo.Create())
+            if(!AttemptDumpCert(nand: nand))
             {
-                // copy PRODINFO from NAND to local file
-                using (Stream prodinfo = nand.OpenProdInfo())
-                    prodinfo.CopyTo(prodinfoFile);
-
-                prodinfoFile.Seek(0, SeekOrigin.Begin);
-                cal0 = new Calibration(prodinfoFile);
-                //HACGUIKeyset.Keyset.EticketExtKeyRsa = Crypto.DecryptRsaKey(cal0.EticketExtKeyRsa, HACGUIKeyset.Keyset.EticketRsaKek);
-
-                prodinfoFile.Seek(0x0AD0, SeekOrigin.Begin);  // seek to certificate length
-                byte[] buffer = new byte[0x4];
-                prodinfoFile.Read(buffer, 0, buffer.Length); // read cert length
-                uint certLength = BitConverter.ToUInt32(buffer, 0);
-
-                certBytes = new byte[certLength];
-                prodinfoFile.Seek(0x0AE0, SeekOrigin.Begin); // seek to cert (should be redundant?)
-                prodinfoFile.Read(certBytes, 0, (int)certLength); // read actual cert
+                MessageBox.Show($"Failed to parse decrypted certificate. If you are using Incognito, select your PRODINFO backup now.");
+                while (true)
+                {
+                    FileInfo info = RequestOpenFileFromUser(".bin", "PRODINFO backup (.bin)|*.bin", "Select a valid PRODINFO backup", "PRODINFO.bin");
+                    if (info != null)
+                    {
+                        if (AttemptDumpCert(info))
+                            break;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to parse provided PRODINFO. You must have a valid PRODINFO backup.");
+                    }
+                }
             }
-
-            byte[] counter = cal0.SslExtKey.Take(0x10).ToArray();
-            byte[] key = cal0.SslExtKey.Skip(0x10).ToArray(); // bit strange structure but it works
-
-            new Aes128CtrTransform(HACGUIKeyset.Keyset.SslRsaKek, counter).TransformBlock(key); // decrypt private key
-
-            X509Certificate2 certificate = new X509Certificate2();
-            certificate.Import(certBytes);
-            certificate.ImportPrivateKey(key);
-
-            byte[] pfx = certificate.Export(X509ContentType.Pkcs12, "switch");
-            using (Stream pfxStream = HACGUIKeyset.GetClientCertificateByName(PickConsolePage.ConsoleName).Create())
-                pfxStream.Write(pfx, 0, pfx.Length);
 
             // get tickets
             new DecryptTicketsTask(PickConsolePage.ConsoleName).CreateTask().RunSynchronously();
@@ -373,6 +356,58 @@ namespace HACGUI.FirstStart
 
             Preferences.Current.DefaultConsoleName = PickConsolePage.ConsoleName;
             Preferences.Current.Write();
+        }
+
+        public bool AttemptDumpCert(FileInfo prodinfo = null, Nand nand = null)
+        {
+            try
+            {
+                Calibration cal0;
+                byte[] certBytes;
+                using (Stream prodinfoFile = HACGUIKeyset.TempPRODINFOFileInfo.Create())
+                {
+                    // copy PRODINFO from local file
+                    Stream prodinfoStream = null;
+
+                    if (prodinfo != null)
+                        prodinfoStream = prodinfo.OpenRead();
+                    else
+                        prodinfoStream = nand.OpenProdInfo();
+                    
+                    prodinfoStream.CopyTo(prodinfoFile);
+                    prodinfoStream.Close();
+
+                    prodinfoFile.Seek(0, SeekOrigin.Begin);
+                    cal0 = new Calibration(prodinfoFile);
+
+                    prodinfoFile.Seek(0x0AD0, SeekOrigin.Begin);  // seek to certificate length
+                    byte[] buffer = new byte[0x4];
+                    prodinfoFile.Read(buffer, 0, buffer.Length); // read cert length
+                    uint certLength = BitConverter.ToUInt32(buffer, 0);
+
+                    certBytes = new byte[certLength];
+                    prodinfoFile.Seek(0x0AE0, SeekOrigin.Begin); // seek to cert (should be redundant?)
+                    prodinfoFile.Read(certBytes, 0, (int)certLength); // read actual cert
+                }
+
+                byte[] counter = cal0.SslExtKey.Take(0x10).ToArray();
+                byte[] key = cal0.SslExtKey.Skip(0x10).ToArray(); // bit strange structure but it works
+
+                new Aes128CtrTransform(HACGUIKeyset.Keyset.SslRsaKek, counter).TransformBlock(key); // decrypt private key
+
+                X509Certificate2 certificate = new X509Certificate2();
+                certificate.Import(certBytes);
+                certificate.ImportPrivateKey(key);
+
+                byte[] pfx = certificate.Export(X509ContentType.Pkcs12, "switch");
+                using (Stream pfxStream = HACGUIKeyset.GetClientCertificateByName(PickConsolePage.ConsoleName).Create())
+                    pfxStream.Write(pfx, 0, pfx.Length);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public override void OnBack()
