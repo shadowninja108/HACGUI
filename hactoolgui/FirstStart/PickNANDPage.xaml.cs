@@ -315,19 +315,22 @@ namespace HACGUI.FirstStart
             if(!AttemptDumpCert(nand: nand))
             {
                 MessageBox.Show($"Failed to parse decrypted certificate. If you are using Incognito, select your PRODINFO backup now.");
-                while (true)
+                Dispatcher.Invoke(() => // dispatcher is required, otherwise a deadlock occurs. probably some threading issue
                 {
-                    FileInfo info = RequestOpenFileFromUser(".bin", "PRODINFO backup (.bin)|*.bin", "Select a valid PRODINFO backup", "PRODINFO.bin");
-                    if (info != null)
+                    while (true)
                     {
-                        if (AttemptDumpCert(info))
-                            break;
+                        FileInfo info = RequestOpenFileFromUser(".bin", "PRODINFO backup (.bin)|*.bin", "Select a valid PRODINFO backup...", "PRODINFO.bin");
+                        if (info != null)
+                        {
+                            if (AttemptDumpCert(info))
+                                break;
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to parse provided PRODINFO. You must have a valid PRODINFO backup.");
+                        }
                     }
-                    else
-                    {
-                        MessageBox.Show("Failed to parse provided PRODINFO. You must have a valid PRODINFO backup.");
-                    }
-                }
+                });
             }
 
             // get tickets
