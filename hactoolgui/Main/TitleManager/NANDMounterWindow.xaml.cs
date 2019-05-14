@@ -30,9 +30,9 @@ namespace HACGUI.Main.TitleManager
 
         private void MountClicked(object sender, RoutedEventArgs e)
         {
-            FatFileSystemProvider partition = null;
-            string partitionName = "";
-            string formatName = "";
+            FatFileSystemProvider partition;
+            string partitionName;
+            string formatName;
             switch (ComboBox.SelectedValue)
             {
                 case NANDMountType.PRODINFOF:
@@ -59,7 +59,7 @@ namespace HACGUI.Main.TitleManager
                     return;
             }
 
-            MountService.Mount(new MountableFileSystem(partition, $"NAND ({partitionName})", formatName, OpenMode.Read));
+            MountService.Mount(new MountableFileSystem(partition, $"NAND ({partitionName})", formatName, OpenMode.ReadWrite));
         }
     }
 }

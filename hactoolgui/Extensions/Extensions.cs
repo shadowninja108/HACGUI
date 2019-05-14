@@ -395,7 +395,10 @@ namespace HACGUI.Extensions
 
         public static ListViewItem GetContainerByItem(this ListView obj, object item)
         {
-            return obj.ItemContainerGenerator.ContainerFromIndex(obj.Items.IndexOf(item)) as ListViewItem;
+            int index = obj.Items.IndexOf(item);
+            if(index >= 0)
+                return obj.ItemContainerGenerator.ContainerFromIndex(index) as ListViewItem;
+            return null;
         }
     }
 }

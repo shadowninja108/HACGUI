@@ -22,7 +22,7 @@ namespace HACGUI.Main.SaveManager
     /// </summary>
     public partial class SaveInfoWindow : Window
     {
-        private SaveElement Element;
+        private readonly SaveElement Element;
 
         public string SaveName => Element.DisplayName;
         public string SaveOwner => Element.Owner;

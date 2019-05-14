@@ -94,7 +94,8 @@ namespace HACGUI.Services
                         // thx windows for ignoring the GPT backup AND reporting the size of the disk incorrectly...
                         long missingLength = (0x747BFFE00 - 0x727800000) + 0x200; // (start of GPT backup - end of USER) + length of GPT backup
                         length += missingLength;
-                        IStorage diskStorage = new CachedStorage(new DeviceStream(info.PhysicalName, length).AsStorage().AsReadOnly(), info.SectorSize * 100, 4, true);
+                        DeviceStream stream = new DeviceStream(info.PhysicalName, length);
+                        IStorage diskStorage = new CachedStorage(stream.AsStorage().AsReadOnly(), info.SectorSize * 100, 4, true);
                         if (InsertNAND(diskStorage, true))
                         {
                             CurrentDisk = info;
@@ -118,7 +119,7 @@ namespace HACGUI.Services
                 if (NAND != null && !raw)
                     if (!RequestSwitchSource())
                         return false;
-                NAND = new Nand(input.AsStream(FileAccess.Read), HACGUIKeyset.Keyset);
+                NAND = new Nand(input.AsStream(FileAccess.Read), HACGUIKeyset.Keyset, FileAccess.Read);
                 NANDSource = input;
                 OnNANDPluggedIn();
                 return true;

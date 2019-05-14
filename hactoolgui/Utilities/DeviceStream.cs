@@ -136,7 +136,7 @@ namespace NandReaderGui
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (ShouldWrite)
+            if (CanWrite)
             {
                 var lpBuffer = new byte[count];
                 Array.Copy(buffer, offset, lpBuffer, 0, count);

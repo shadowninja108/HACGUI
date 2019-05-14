@@ -29,7 +29,10 @@ namespace HACGUI.Services
                 char drive = GetAvailableDriveLetter();
                 Thread thread = new Thread(new ThreadStart(() => 
                 {
-                    Dokan.Mount(fs, $"{drive}:", DokanOptions.RemovableDrive | DokanOptions.WriteProtection);
+                    DokanOptions options = DokanOptions.RemovableDrive;
+                    if (fs.Mode != OpenMode.ReadWrite)
+                        options |= DokanOptions.WriteProtection;
+                    Dokan.Mount(fs, $"{drive}:", options);
                 }
                 ));
                 if (Mounted.ContainsKey(fs))
@@ -87,7 +90,7 @@ namespace HACGUI.Services
         private readonly IFileSystem Fs;
         private readonly Dictionary<string, FileStorage> OpenedFiles;
         private readonly object OpenedFileLock = new object();
-        private readonly OpenMode Mode;
+        public readonly OpenMode Mode;
 
         public MountableFileSystem(IFileSystem fs, string name, string fileSystemType, OpenMode mode)
         {
