@@ -412,15 +412,5 @@ namespace HACGUI.Extensions
             }
             throw new InvalidOperationException($"NCA is missing section type {type}");
         }
-
-        public static int GetFsHeaderIndex(this NcaHeader obj, NcaFormatType type)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (obj.GetFsHeader(i).FormatType == type)
-                    return i;
-            }
-            throw new InvalidOperationException($"NCA is missing section type {type}");
-        }
     }
 }

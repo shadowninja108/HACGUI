@@ -1,4 +1,5 @@
-﻿using HACGUI.Main.TaskManager;
+﻿using HACGUI.Extensions;
+using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Services;
 using LibHac;
@@ -66,9 +67,12 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
                 {
                     SwitchFsNca nca = t.Item1;
                     NcaFsHeader section = t.Item1.Nca.Header.GetFsHeader(t.Item2);
+                    int index = t.Item2;
+
                     if (section.IsPatchSection())
                         MainNca.BaseNca = nca.Nca;
-                    filesystems.Add(nca.OpenFileSystem(t.Item2, IntegrityCheckLevel.ErrorOnInvalid));
+
+                    filesystems.Add(nca.OpenFileSystem(index, IntegrityCheckLevel.ErrorOnInvalid));
                 }
                 filesystems.Reverse();
                 LayeredFileSystem fs = new LayeredFileSystem(filesystems);

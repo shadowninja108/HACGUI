@@ -194,8 +194,7 @@ namespace HACGUI.Main.TitleManager
         {
             if (title.ControlNca != null)
             {
-                int metaIndex = title.ControlNca.Nca.Header.GetFsHeaderIndex(NcaFormatType.Romfs);
-                IFileSystem controlFS = title.ControlNca.OpenFileSystem(metaIndex, IntegrityCheckLevel.ErrorOnInvalid);
+                IFileSystem controlFS = title.ControlNca.OpenFileSystem(NcaSectionType.Data, IntegrityCheckLevel.ErrorOnInvalid);
                 DirectoryEntry file = controlFS.EnumerateEntries("icon_*.dat").FirstOrDefault();
 
                 if (file != null)

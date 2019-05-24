@@ -259,7 +259,7 @@ namespace HACGUI.FirstStart
                 if (nca.Header.ContentType != ContentType.Program)
                     continue;
 
-                IFileSystem pfs = nca.OpenFileSystem(nca.Header.GetFsHeaderIndex(NcaFormatType.Pfs0), IntegrityCheckLevel.ErrorOnInvalid);
+                IFileSystem pfs = nca.OpenFileSystem(NcaSectionType.Code, IntegrityCheckLevel.ErrorOnInvalid);
                 Nso nso = new Nso(new FileStorage(pfs.OpenFile("main", OpenMode.Read)));
                 NsoSection section = nso.Sections[1];
                 Stream data = new MemoryStream(section.DecompressSection());
