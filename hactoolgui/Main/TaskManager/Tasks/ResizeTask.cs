@@ -1,4 +1,4 @@
-﻿using LibHac.IO;
+﻿using LibHac.Fs;
 using System.Threading.Tasks;
 
 namespace HACGUI.Main.TaskManager.Tasks

@@ -34,19 +34,14 @@ namespace HACGUI.FirstStart
                 SDService.OnSDPluggedIn += (drive) =>
                 {
                     KeysetFile = drive.RootDirectory.GetDirectory("switch").GetFile("prod.keys");
-                    Dispatcher.BeginInvoke(new Action(() => // Update on the UI thread
-                    {
-                        NextButton.IsEnabled = true;
-                    }));
+                    Dispatcher.Invoke(() => NextButton.IsEnabled = true); // update on UI thread
+
                 };
                 SDService.OnSDRemoved += (drive) =>
                 {
                     HACGUIKeyset.Keyset = new HACGUIKeyset();
                     HACGUIKeyset.Keyset.LoadCommon();
-                    Dispatcher.BeginInvoke(new Action(() => // Update on the UI thread
-                    {
-                        NextButton.IsEnabled = false;
-                    }));
+                    Dispatcher.Invoke(() => NextButton.IsEnabled = false); // update on UI thread
                 };
 
                 SendLockpickButton.IsEnabled = InjectService.LibusbKInstalled;
@@ -77,7 +72,7 @@ namespace HACGUI.FirstStart
 
         private void NextButtonClick(object sender, RoutedEventArgs e)
         {
-            NavigationWindow root = FindRoot();
+            NavigationWindow root = FindNavigationWindow();
 
             // Reset SDService so that it's ready for later
             SDService.ResetHandlers();
@@ -96,7 +91,7 @@ namespace HACGUI.FirstStart
                 page.Dispatcher.BeginInvoke(new Action(() => // move to UI thread
                 {
                     next = new PickNANDPage();
-                    page.FindRoot().Navigate(next);
+                    page.FindNavigationWindow().Navigate(next);
                 })).Wait(); // must wait, otherwise a race condition may occur
 
                 return next; // return the page we are navigating to
@@ -140,21 +135,22 @@ namespace HACGUI.FirstStart
 
         private void SendLockpickButtonClicked(object sender, RoutedEventArgs e)
         {
-            GitHubClient gitClient = new GitHubClient(new ProductHeaderValue("Github"));
             if (!HACGUIKeyset.TempLockpickPayloadFileInfo.Exists)
-                Task.Run(async () => 
+            {
+                GitHubClient gitClient = new GitHubClient(new ProductHeaderValue("Github"));
+                Task.Run(async () =>
                 {
-                    Release release = await gitClient.Repository.Release.GetLatest("shchmue", "Lockpick_RCM");
+                    Release release = await gitClient.Repository.Release.GetLatest("shchmue", "Lockpick_RCM"); // get latest release
 
-                    ReleaseAsset asset = release.Assets.FirstOrDefault(r => r.BrowserDownloadUrl.EndsWith(".bin"));
+                    ReleaseAsset asset = release.Assets.FirstOrDefault(r => r.BrowserDownloadUrl.EndsWith(".bin")); // get first asset that ends with .bin (the payload)
 
                     HttpClient httpClient = new HttpClient();
-                    Stream src = await httpClient.GetStreamAsync(asset.BrowserDownloadUrl);
+                    Stream src = await httpClient.GetStreamAsync(asset.BrowserDownloadUrl); // get stream of .bin file
 
                     using (Stream dest = HACGUIKeyset.TempLockpickPayloadFileInfo.OpenWrite())
-                        await src.CopyToAsync(dest);
+                        await src.CopyToAsync(dest); // stream payload to file
                 }).Wait();
-                
+            }
                     
             InjectService.SendPayload(HACGUIKeyset.TempLockpickPayloadFileInfo);
         }

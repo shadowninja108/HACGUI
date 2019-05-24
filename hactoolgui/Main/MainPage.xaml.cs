@@ -7,7 +7,7 @@ using HACGUI.Utilities;
 using HACGUI.Services;
 using static HACGUI.Extensions.Extensions;
 using LibHac;
-using LibHac.IO;
+using LibHac.Fs;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,8 +17,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Linq;
-using LibHac.IO.NcaUtils;
 using System.ComponentModel;
+using LibHac.Fs.NcaUtils;
 
 namespace HACGUI.Main
 {
@@ -179,7 +179,7 @@ namespace HACGUI.Main
                 {
                     try
                     {
-                        new Nca(HACGUIKeyset.Keyset, new LocalFile(f.FullName, OpenMode.Read).AsStorage(), false);
+                        new Nca(HACGUIKeyset.Keyset, new LocalFile(f.FullName, OpenMode.Read).AsStorage());
                         return true;
                     }
                     catch (Exception)

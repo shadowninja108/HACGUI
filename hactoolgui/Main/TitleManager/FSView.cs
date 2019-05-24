@@ -3,8 +3,7 @@ using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Utilities;
 using LibHac;
-using LibHac.IO.NcaUtils;
-using LibHac.IO.Save;
+using LibHac.Fs.Save;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +20,7 @@ namespace HACGUI.Main.TitleManager
         public Dictionary<TitleSource, List<SwitchFs>> IndexedFilesystems;
 
         public List<SwitchFs> Filesystems => IndexedFilesystems.Values.SelectMany(l => l).ToList();
-        public Dictionary<string, Nca> Ncas => Filesystems.SelectMany(f => f.Ncas).ToDictionary(k => k.Key, v => v.Value);
+        public Dictionary<string, SwitchFsNca> Ncas => Filesystems.SelectMany(f => f.Ncas).ToDictionary(k => k.Key, v => v.Value);
         public Dictionary<string, SaveDataFileSystem> Saves
         {
             get {

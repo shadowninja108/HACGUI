@@ -3,8 +3,8 @@ using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
-using LibHac.IO;
-using LibHac.IO.NcaUtils;
+using LibHac.Fs;
+using LibHac.Fs.NcaUtils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -194,8 +194,8 @@ namespace HACGUI.Main.TitleManager
         {
             if (title.ControlNca != null)
             {
-                NcaSection meta = title.ControlNca.Sections.FirstOrDefault(x => x?.Type == SectionType.Romfs);
-                IFileSystem controlFS = title.ControlNca.OpenFileSystem(meta.SectionNum, IntegrityCheckLevel.ErrorOnInvalid);
+                int metaIndex = title.ControlNca.Nca.Header.GetFsHeaderIndex(NcaFormatType.Romfs);
+                IFileSystem controlFS = title.ControlNca.OpenFileSystem(metaIndex, IntegrityCheckLevel.ErrorOnInvalid);
                 DirectoryEntry file = controlFS.EnumerateEntries("icon_*.dat").FirstOrDefault();
 
                 if (file != null)

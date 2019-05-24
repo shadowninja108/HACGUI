@@ -1,4 +1,4 @@
-﻿using LibHac.IO.NcaUtils;
+﻿using LibHac;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,9 +13,9 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
         public Dictionary<string, IExtractorWindow> Extractors { get; set; }
         public string Selected { get; set; }
 
-        protected List<Nca> SelectedTitles;
+        protected List<SwitchFsNca> SelectedTitles;
 
-        public ExtractPickerWindow(List<Nca> selected)
+        public ExtractPickerWindow(List<SwitchFsNca> selected)
         {
             InitializeComponent();
             Extractors = new Dictionary<string, IExtractorWindow>

@@ -1,4 +1,4 @@
-﻿using LibHac.IO;
+﻿using LibHac.Fs;
 using System.IO;
 using System.Threading.Tasks;
 

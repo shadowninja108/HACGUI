@@ -2,11 +2,13 @@
 using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Utilities;
-using LibHac.IO;
-using LibHac.IO.NcaUtils;
+using LibHac;
+using LibHac.Fs;
+using LibHac.Fs.NcaUtils;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Navigation;
 
@@ -17,7 +19,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
     /// </summary>
     public partial class RepackAsNSPWindow : IExtractorWindow
     {
-        public RepackAsNSPWindow(List<Nca> selected) : base(selected)
+        public RepackAsNSPWindow(List<SwitchFsNca> selected) : base(selected)
         {
             InitializeComponent();
         }
@@ -40,11 +42,11 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             {
                 DirectoryInfo ticketDir = HACGUIKeyset.GetTicketsDirectory(Preferences.Current.DefaultConsoleName); // TODO: load console name from continuous location
                 List<string> foundTickets = new List<string>();
-                foreach (Nca nca in SelectedNcas)
+                foreach (Nca nca in SelectedNcas.Select(n => n.Nca))
                 {
-                    if (nca.HasRightsId)
+                    if (nca.Header.HasRightsId)
                     {
-                        string rightsId = BitConverter.ToString(nca.Header.RightsId).Replace("-", "").ToLower();
+                        string rightsId = BitConverter.ToString(nca.Header.RightsId.ToArray()).Replace("-", "").ToLower();
                         string ticketFileName = rightsId + ".tik";
                         FileInfo sourceTikFileInfo = ticketDir.GetFile(ticketFileName);
                         if (sourceTikFileInfo.Exists && !foundTickets.Contains(rightsId))
@@ -57,8 +59,8 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                 }
             }
 
-            foreach (Nca nca in SelectedNcas)
-                builder.AddFile(nca.Filename, nca.GetStorage().AsFile(OpenMode.Read));
+            foreach (SwitchFsNca nca in SelectedNcas)
+                builder.AddFile(nca.Filename, nca.Nca.BaseStorage.AsFile(OpenMode.Read));
             
 
             NavigationWindow window = new NavigationWindow

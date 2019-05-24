@@ -102,26 +102,24 @@ namespace HACGUI
 
                 InjectService.Start();
 
-                if (result.Item1)
+                string[] args = App.Args.Args;
+                nextPage = new IntroPage();
+
+                if (args.Length == 2)
+                {
+                    if (args[0] == "continue")
+                    {
+                        PickConsolePage.ConsoleName = args[1];
+                        HACGUIKeyset.Keyset.LoadPersonal(PickConsolePage.ConsoleName);
+                        HACGUIKeyset.Keyset.DeriveKeys();
+
+                        nextPage = new PickNANDPage();
+                    }
+                }
+                else if (result.Item1)
                 {
                     nextPage = new MainPage();
                     HACGUIKeyset.Cleanup();
-                }
-                else
-                {
-                    string[] args = App.Args.Args;
-                    nextPage = new IntroPage();
-                    if (args.Length == 2)
-                    {
-                        if (args[0] == "continue")
-                        {
-                            PickConsolePage.ConsoleName = args[1];
-                            HACGUIKeyset.Keyset.LoadPersonal(PickConsolePage.ConsoleName);
-                            HACGUIKeyset.Keyset.DeriveKeys();
-
-                            nextPage = new PickNANDPage();
-                        }
-                    }
                 }
                 Navigate(nextPage);
 
@@ -131,7 +129,7 @@ namespace HACGUI
 
 
                 // Called whenever a transition has finished
-                Navigated += (_3, args) =>
+                Navigated += (_3, _76) =>
                 {
                     Page page = Content as Page;
 

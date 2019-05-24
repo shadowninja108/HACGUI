@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Navigation;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using LibHac.IO;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TaskManager;
-using LibHac.IO.NcaUtils;
+using LibHac;
+using LibHac.Fs;
+using System.Linq;
+using LibHac.Fs.NcaUtils;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 {
@@ -19,7 +21,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
     /// </summary>
     public partial class ExtractAsNCAs : IExtractorWindow
     {
-        public ExtractAsNCAs(List<Nca> selected) : base(selected)
+        public ExtractAsNCAs(List<SwitchFsNca> selected) : base(selected)
         {
             InitializeComponent();
         }
@@ -46,11 +48,11 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             {
                 DirectoryInfo ticketDir = HACGUIKeyset.GetTicketsDirectory(Preferences.Current.DefaultConsoleName); // TODO: load console name from continuous location
                 List<string> foundTickets = new List<string>();
-                foreach (Nca nca in SelectedNcas)
+                foreach (Nca nca in SelectedNcas.Select(n => n.Nca))
                 {
-                    if (nca.HasRightsId)
+                    if (nca.Header.HasRightsId)
                     {
-                        string rightsId = BitConverter.ToString(nca.Header.RightsId).Replace("-", "").ToLower();
+                        string rightsId = nca.Header.RightsId.ToHexString();
                         string ticketFileName = rightsId + ".tik";
                         FileInfo sourceTikFileInfo = ticketDir.GetFile(ticketFileName);
                         if (sourceTikFileInfo.Exists)
@@ -70,12 +72,12 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                 }
             }
 
-            foreach (Nca nca in SelectedNcas)
+            foreach (SwitchFsNca nca in SelectedNcas)
             {
                 FileInfo destinationNcaFileInfo = root.GetFile(nca.Filename);
                 destinationNcaFileInfo.CreateAndClose();
                 LocalFile destinationNcaFile = new LocalFile(destinationNcaFileInfo.FullName, OpenMode.Write);
-                IStorage source = nca.GetStorage();
+                IStorage source = nca.Nca.BaseStorage;
                 tasks.Add(new RunTask($"Allocating space for {nca.Filename}...", new Task(() => 
                 {
                     destinationNcaFile.SetSize(source.GetSize());

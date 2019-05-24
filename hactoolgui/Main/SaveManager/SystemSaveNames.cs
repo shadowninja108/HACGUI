@@ -1,4 +1,4 @@
-﻿using LibHac.IO.Save;
+﻿using LibHac.Fs.Save;
 
 namespace HACGUI.Main.SaveManager
 {

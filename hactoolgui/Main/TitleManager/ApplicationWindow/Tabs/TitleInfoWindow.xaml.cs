@@ -1,5 +1,5 @@
 ﻿using HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors;
-using LibHac.IO.NcaUtils;
+using LibHac;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,7 +21,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
 
         private void ExtractClicked(object sender, RoutedEventArgs e)
         {
-            List<Nca> selected = new List<Nca>();
+            List<SwitchFsNca> selected = new List<SwitchFsNca>();
             foreach (NcaElement info in ListView.Items)
                 if (info.Selected)
                     selected.Add(info.Nca);

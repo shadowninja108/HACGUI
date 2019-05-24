@@ -19,7 +19,7 @@ namespace HACGUI.FirstStart
 
         private void StartButtonPressed(object sender, RoutedEventArgs e)
         {
-            NavigationWindow root = FindRoot();
+            NavigationWindow root = FindNavigationWindow();
             root.Navigate(new PickConsolePage());
         }
     }

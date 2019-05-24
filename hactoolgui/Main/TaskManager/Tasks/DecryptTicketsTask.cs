@@ -1,6 +1,5 @@
 ﻿using HACGUI.Services;
 using LibHac;
-using LibHac.IO;
 using LibHac.Nand;
 using System;
 using System.Collections.Generic;
@@ -8,6 +7,7 @@ using System.Threading.Tasks;
 using System.IO;
 using HACGUI.Utilities;
 using static HACGUI.Extensions.Extensions;
+using LibHac.Fs;
 
 namespace HACGUI.Main.TaskManager.Tasks
 {

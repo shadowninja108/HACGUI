@@ -1,8 +1,9 @@
 ﻿using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Services;
-using LibHac.IO;
-using LibHac.IO.NcaUtils;
+using LibHac;
+using LibHac.Fs;
+using LibHac.Fs.NcaUtils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,18 +18,29 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
     /// </summary>
     public partial class TitleMountDialog : Window
     {
-        private Dictionary<SectionType, List<Tuple<Nca, NcaSection>>> Indexed;
-        private Nca MainNca;
+        private Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>> Indexed;
+        private readonly SwitchFsNca MainNca;
 
-        public TitleMountDialog(Dictionary<SectionType, List<Tuple<Nca, NcaSection>>> indexed, Nca mainNca)
+        public TitleMountDialog(Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>> indexed, SwitchFsNca mainNca)
         {
             InitializeComponent();
             Indexed = indexed;
             MainNca = mainNca;
 
-            if (Indexed.ContainsKey(SectionType.Romfs) | Indexed.ContainsKey(SectionType.Bktr))
+            bool hasPatch = false;
+            foreach (Tuple<SwitchFsNca, int> t in Indexed.Values.SelectMany(i => i))
+            {
+                NcaFsHeader section = t.Item1.Nca.Header.GetFsHeader(t.Item2);
+                if(section.IsPatchSection())
+                {
+                    hasPatch = true;
+                    break;
+                }
+            }
+
+            if (Indexed.ContainsKey(NcaFormatType.Romfs) || hasPatch)
                 ComboBox.Items.Add(MountType.Romfs);
-            if (Indexed.ContainsKey(SectionType.Pfs0))
+            if (Indexed.ContainsKey(NcaFormatType.Pfs0))
                 ComboBox.Items.Add(MountType.Exefs);
         }
 
@@ -36,37 +48,31 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
         private void MountClicked(object sender, RoutedEventArgs e)
         {
             MountType mountType = (MountType) ComboBox.SelectedItem;
-            SectionType sectionType = SectionType.Romfs;
+            NcaFormatType sectionType = NcaFormatType.Romfs;
             switch (mountType)
             {
                 case MountType.Exefs:
-                    sectionType = SectionType.Pfs0;
+                    sectionType = NcaFormatType.Pfs0;
                     break;
                 case MountType.Romfs:
-                    sectionType = SectionType.Romfs;
-                    if (!Indexed.ContainsKey(sectionType))
-                        sectionType = SectionType.Bktr;
+                    sectionType = NcaFormatType.Romfs;
                     break;
             }
             List<IFileSystem> filesystems = new List<IFileSystem>();
-            IEnumerable<Tuple<Nca, NcaSection>> list = Indexed[sectionType];
-            if (mountType == MountType.Romfs && Indexed.ContainsKey(SectionType.Bktr))
-                list = list.Concat(Indexed[SectionType.Bktr]);
+            IEnumerable<Tuple<SwitchFsNca, int>> list = Indexed[sectionType];
             TaskManagerPage.Current.Queue.Submit(new RunTask("Opening filesystems to mount...", new Task(() => 
             {
-                foreach (Tuple<Nca, NcaSection> t in list)
+                foreach (Tuple<SwitchFsNca, int> t in list)
                 {
-                    Nca nca = t.Item1;
-                    NcaSection section = t.Item2;
-                    if (section.Header.Type == SectionType.Bktr)
-                        nca.SetBaseNca(MainNca);
-                    filesystems.Add(nca.OpenFileSystem(section.SectionNum, IntegrityCheckLevel.ErrorOnInvalid));
+                    SwitchFsNca nca = t.Item1;
+                    NcaFsHeader section = t.Item1.Nca.Header.GetFsHeader(t.Item2);
+                    if (section.IsPatchSection())
+                        MainNca.BaseNca = nca.Nca;
+                    filesystems.Add(nca.OpenFileSystem(t.Item2, IntegrityCheckLevel.ErrorOnInvalid));
                 }
                 filesystems.Reverse();
                 LayeredFileSystem fs = new LayeredFileSystem(filesystems);
                 string typeString = sectionType.ToString();
-                if (sectionType == SectionType.Bktr)
-                    typeString = $"{mountType} ({typeString})";
                 MountService.Mount(new MountableFileSystem(fs, $"Mounted {mountType.ToString().ToLower()}", typeString, OpenMode.Read));
             })));
         }

@@ -50,7 +50,7 @@ namespace HACGUI.FirstStart
             HACGUIKeyset.SetConsoleDirectoryAsIncomplete(ConsoleName, true);
 
             // Navigate to next page
-            NavigationWindow root = FindRoot();
+            NavigationWindow root = FindNavigationWindow();
             root.Navigate(new PickSDPage());
         }
 

@@ -1,6 +1,4 @@
 ﻿using LibHac;
-using LibHac.IO;
-using LibHac.IO.Save;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +11,9 @@ using System.Windows;
 using System.Windows.Media;
 using HACGUI.Utilities;
 using System.Windows.Controls;
+using LibHac.Fs.NcaUtils;
+using LibHac.Fs.Save;
+using LibHac.Fs;
 
 namespace HACGUI.Extensions
 {
@@ -399,6 +400,27 @@ namespace HACGUI.Extensions
             if(index >= 0)
                 return obj.ItemContainerGenerator.ContainerFromIndex(index) as ListViewItem;
             return null;
+        }
+
+        public static NcaFsHeader GetFsHeader(this NcaHeader obj, NcaFormatType type)
+        {
+            for(int i = 0; i < 4; i++)
+            {
+                NcaFsHeader header = obj.GetFsHeader(i);
+                if (header.FormatType == type)
+                    return header;
+            }
+            throw new InvalidOperationException($"NCA is missing section type {type}");
+        }
+
+        public static int GetFsHeaderIndex(this NcaHeader obj, NcaFormatType type)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (obj.GetFsHeader(i).FormatType == type)
+                    return i;
+            }
+            throw new InvalidOperationException($"NCA is missing section type {type}");
         }
     }
 }

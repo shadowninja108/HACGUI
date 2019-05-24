@@ -10,7 +10,7 @@ namespace HACGUI.Extensions
 
             Loaded += (owner, args) =>
             {
-                NavigationWindow root = FindRoot();
+                NavigationWindow root = FindNavigationWindow();
 
                 root.Title = (string)Resources["Title"] ?? GetType().Name;
                 root.MinWidth = (double)(Resources["MinWidth"] ?? 0D);
@@ -24,9 +24,14 @@ namespace HACGUI.Extensions
 
         }
 
-        public NavigationWindow FindRoot()
+        public NavigationWindow FindNavigationWindow()
         {
             return Extensions.FindParent<NavigationWindow>(this);
+        }
+
+        public RootWindow FindRootWindow()
+        {
+            return Extensions.FindParent<RootWindow>(this);
         }
     }
 }

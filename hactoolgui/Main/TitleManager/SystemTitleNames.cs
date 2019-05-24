@@ -111,7 +111,7 @@ namespace HACGUI.Main.TitleManager
                 case 0x30:
                     return "eupld";
                 case 0x31:
-                    if (title.MainNca.CryptoType == 0)
+                    if (title.MainNca.Nca.Header.KeyAreaKeyIndex == 0)
                         return "arp"; // 1.0.0
                     else
                         return "glue"; // 2.0.0 +

@@ -1,4 +1,4 @@
-﻿using LibHac.IO.Save;
+﻿using LibHac.Fs.Save;
 using System.Collections.Generic;
 
 namespace HACGUI.Main.SaveManager

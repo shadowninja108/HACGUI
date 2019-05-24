@@ -1,7 +1,7 @@
 ﻿using HACGUI.Services;
 using HACGUI.Utilities;
-using LibHac.IO;
-using LibHac.IO.Save;
+using LibHac.Fs;
+using LibHac.Fs.Save;
 using LibHac.Nand;
 using System.IO;
 using System.Linq;

@@ -1,5 +1,5 @@
 ﻿using HACGUI.Services;
-using LibHac.IO;
+using LibHac.Fs;
 using LibHac.Nand;
 using System.Windows;
 using System.Windows.Controls;

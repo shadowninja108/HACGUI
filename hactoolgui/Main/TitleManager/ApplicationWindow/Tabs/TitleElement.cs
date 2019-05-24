@@ -1,5 +1,4 @@
 ﻿using LibHac;
-using LibHac.IO.NcaUtils;
 using System.Collections.Generic;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
@@ -17,7 +16,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
             get
             {
                 List<NcaElement> ncas = new List<NcaElement>();
-                foreach (Nca nca in Title.Ncas)
+                foreach (SwitchFsNca nca in Title.Ncas)
                     ncas.Add(new NcaElement() { Nca = nca });
                 return ncas;
             }

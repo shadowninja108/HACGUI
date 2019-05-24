@@ -28,7 +28,7 @@
                 <Run Text="1. Plug in your console running RCM"/>
                 <LineBreak/>
                 <Run Text="2. Click the &quot;Send Lockpick&quot; button (or can be downloaded from"/>
-                <Hyperlink NavigateUri="https://github.com/shchmue/Lockpick_RCM/releases">
+                <Hyperlink NavigateUri="https://github.com/shchmue/Lockpick_RCM/releases" RequestNavigate="HyperlinkClicked">
                     <Run Text="here"/>
                 </Hyperlink>
                 <Run Text=")"/>

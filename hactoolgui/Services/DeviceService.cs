@@ -9,8 +9,8 @@ using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager;
 using HACGUI.Utilities;
 using LibHac;
-using LibHac.IO;
-using LibHac.IO.Save;
+using LibHac.Fs;
+using LibHac.Fs.Save;
 using static HACGUI.Main.TitleManager.FSView;
 
 namespace HACGUI.Services

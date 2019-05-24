@@ -49,11 +49,11 @@ namespace HACGUI
                 }
                 catch (Exception e2)
                 {
-                    TextBox.Dispatcher.BeginInvoke(new Action(() => 
+                    TextBox.Dispatcher.Invoke(() => 
                     {
                         TextBox.Text += "Crash packer has also encountered an error...\n";
                         TextBox.Text += e2.ToString();
-                    }));
+                    });
 
                 }
             });   

@@ -1,4 +1,4 @@
-﻿using LibHac.IO;
+﻿using LibHac.Fs;
 using LibHac.Nand;
 using NandReaderGui;
 using System;

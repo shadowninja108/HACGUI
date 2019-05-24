@@ -10,8 +10,7 @@ namespace HACGUI.Main.TaskManager.Tasks
     public class WaitTask : ProgressTask
     {
         private readonly int Length, Count;
-        private Timer Timer;
-        private AutoResetEvent Event;
+        private readonly AutoResetEvent Event;
 
         public WaitTask(int length, int count) : base($"Pointlessly waiting for {length / 1000} seconds {count} time(s)")
         {
@@ -23,7 +22,7 @@ namespace HACGUI.Main.TaskManager.Tasks
 
         public override Task CreateTask()
         {
-            Timer = new Timer((state) => Event.Set(), Event, Length, Length);
+            new Timer((state) => Event.Set(), Event, Length, Length);
             return new Task(() => Wait());
         }
 

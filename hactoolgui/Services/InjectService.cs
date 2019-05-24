@@ -198,6 +198,9 @@ namespace HACGUI.Services
             {
                 bool attemptInject()
                 {
+                    Device.AbortPipe(1);
+                    Device.AbortPipe(0x81);
+
                     DirectoryInfo root = info.Directory;
 
                     MemloaderIniData iniData = new MemloaderIniData(info);

@@ -4,9 +4,9 @@ using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Services;
 using HACGUI.Utilities;
 using LibHac;
-using LibHac.IO;
-using LibHac.IO.NcaUtils;
-using LibHac.IO.Save;
+using LibHac.Fs;
+using LibHac.Fs.NcaUtils;
+using LibHac.Fs.Save;
 using LibHac.Nand;
 using System;
 using System.Collections.Generic;
@@ -94,7 +94,7 @@ namespace HACGUI.FirstStart
         {
             Dispatcher.BeginInvoke(new Action(() => // move to UI thread
             {
-                NavigationWindow root = FindRoot();
+                NavigationWindow root = FindNavigationWindow();
                 root.Navigate(new DerivingPage((page) =>
                 {
                     OnNandFound();
@@ -104,7 +104,7 @@ namespace HACGUI.FirstStart
                     page.Dispatcher.BeginInvoke(new Action(() => // move to UI thread again...
                     {
                         next = new FinishPage();
-                        page.FindRoot().Navigate(next);
+                        page.FindNavigationWindow().Navigate(next);
                     })).Wait(); // must wait, otherwise a race condition may occur
 
                     return next;
@@ -125,6 +125,8 @@ namespace HACGUI.FirstStart
             pkg2nand.Read(pkg2raw, 0x4000);
 
             MemoryStorage pkg2memory = new MemoryStorage(pkg2raw);
+
+            HACGUIKeyset.RootTempFolderInfo.Create();
 
             // copy to file for end user
             using (FileStream pkg2file = HACGUIKeyset.TempPkg2FileInfo.Create())
@@ -240,7 +242,7 @@ namespace HACGUI.FirstStart
 
             NintendoKeys.KekSeeds[3].XOR(NintendoKeys.KekMasks[0], out byte[] RsaOaepKekGenerationSource);
 
-            foreach (Nca nca in fs.Ncas.Values)
+            foreach (Nca nca in fs.Ncas.Values.Select(n => n.Nca))
             {
                  // mainly a check if the NCA can be decrypted
                 ulong titleId = nca.Header.TitleId;
@@ -257,8 +259,7 @@ namespace HACGUI.FirstStart
                 if (nca.Header.ContentType != ContentType.Program)
                     continue;
 
-                NcaSection exefsSection = nca.Sections.FirstOrDefault(x => x?.Type == SectionType.Pfs0);
-                IFileSystem pfs = nca.OpenFileSystem(exefsSection.SectionNum, IntegrityCheckLevel.ErrorOnInvalid);
+                IFileSystem pfs = nca.OpenFileSystem(nca.Header.GetFsHeaderIndex(NcaFormatType.Pfs0), IntegrityCheckLevel.ErrorOnInvalid);
                 Nso nso = new Nso(new FileStorage(pfs.OpenFile("main", OpenMode.Read)));
                 NsoSection section = nso.Sections[1];
                 Stream data = new MemoryStream(section.DecompressSection());

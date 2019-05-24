@@ -1,4 +1,4 @@
-﻿using LibHac.IO;
+﻿using LibHac.Fs;
 using System;
 using System.Collections.Generic;
 
@@ -27,6 +27,11 @@ namespace HACGUI.Utilities
             }*/
         }
 
+        public void CleanDirectoryRecursively(string path)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Commit()
         {
             throw new NotImplementedException();
@@ -43,6 +48,11 @@ namespace HACGUI.Utilities
         }
 
         public void DeleteDirectory(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DeleteDirectoryRecursively(string path)
         {
             throw new NotImplementedException();
         }
@@ -83,6 +93,21 @@ namespace HACGUI.Utilities
             return t.Item2.GetFileSize(t.Item1);
         }
 
+        public FileTimeStampRaw GetFileTimeStampRaw(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public long GetFreeSpaceSize(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public long GetTotalSpaceSize(string path)
+        {
+            throw new NotImplementedException();
+        }
+
         public IDirectory OpenDirectory(string path, OpenDirectoryMode mode)
         {
             if (path == "/")
@@ -95,6 +120,11 @@ namespace HACGUI.Utilities
         {
             Tuple<string, IAttributeFileSystem> t = FileDict[path];
             return t.Item2.OpenFile(t.Item1, mode);
+        }
+
+        public void QueryEntry(Span<byte> outBuffer, ReadOnlySpan<byte> inBuffer, string path, QueryId queryId)
+        {
+            throw new NotImplementedException();
         }
 
         public void RenameDirectory(string srcPath, string dstPath)
