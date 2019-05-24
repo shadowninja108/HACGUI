@@ -8,6 +8,7 @@ using System.Linq;
 using System.Management;
 using HACGUI.Utilities;
 using static HACGUI.Utilities.Native;
+using System.Windows;
 
 namespace HACGUI.Services
 {
@@ -82,11 +83,14 @@ namespace HACGUI.Services
         {
             foreach (DiskInfo info in CreateDiskInfos(GetDisks()))
             {
-                if (info.Model == "Linux UMS disk 0 USB Device") // probably a bad way of filtering?
+                if (info.Model == "Linux UMS disk 0 USB Device" && info.Partitions > 1) // probably a bad way of filtering?
                 {
                     try
                     {
-                        IEnumerable<PartitionInfo> partitions = CreatePartitionInfos(GetPartitions()).Where((p) => info.Index == p.DiskIndex).OrderBy((p) => p.Index);
+                        IEnumerable<PartitionInfo> partitions = 
+                            CreatePartitionInfos(GetPartitions())
+                            .Where((p) => info.Index == p.DiskIndex)
+                            .OrderBy((p) => p.Index);
                         if (!partitions.Any())
                             continue; // obv the NAND should have *some* partitions
                         PartitionInfo lastPartition = partitions.Last();
@@ -104,7 +108,7 @@ namespace HACGUI.Services
                     }
                     catch (UnauthorizedAccessException)
                     {
-                        Console.WriteLine("Cannot direct access drive due to lack of permissions.");
+                        MessageBox.Show("Cannot get direct access drive due to lack of permissions.\nReopen HACGUI as administrator to use the plugged in NAND.");
                     }
                 }
             }

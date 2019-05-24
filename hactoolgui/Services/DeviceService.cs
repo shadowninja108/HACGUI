@@ -93,8 +93,6 @@ namespace HACGUI.Services
 
                 SDService.Start();
                 NANDService.Start();
-
-                Update();
             }
         }
 

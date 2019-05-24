@@ -426,7 +426,7 @@ namespace HACGUI.FirstStart
 
                 Native.LaunchProgram(
                     AppDomain.CurrentDomain.FriendlyName,
-                    () => System.Windows.Application.Current.Shutdown(),
+                    () => Dispatcher.Invoke(() => System.Windows.Application.Current.Shutdown()),
                     $"continue \"{PickConsolePage.ConsoleName}\"",
                     true);
             } else

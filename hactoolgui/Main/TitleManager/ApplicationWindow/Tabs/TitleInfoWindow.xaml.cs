@@ -33,7 +33,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
             window.ShowDialog();
         }
 
-        private void CopyTitleIdClicked(object sender, RoutedEventArgs e)
+        private void CopyNameClicked(object sender, RoutedEventArgs e)
         {
             MenuItem item = sender as MenuItem;
             ContextMenu contextMenu = item.Parent as ContextMenu;

@@ -29,10 +29,10 @@ namespace HACGUI.Services
 
         public static string CurrentTask
         {
-            get => CurrentTaskBlock.Dispatcher.Invoke(() => CurrentTaskBlock.Text) as string;
+            get => CurrentTaskBlock.Dispatcher.Invoke(() => CurrentTaskBlock.Text).TrimEnd();
             set
             {
-                CurrentTaskBlock.Dispatcher.Invoke(() => CurrentTaskBlock.Text = value);
+                CurrentTaskBlock.Dispatcher.Invoke(() => CurrentTaskBlock.Text = value + "  ");
             }
         }
 

@@ -23,6 +23,7 @@ namespace HACGUI.Services
     {
         public static UsbDeviceInfo WMIDeviceInfo;
         public static UsbK Device;
+        public static UsbKWrapper DeviceWrapper;
 
         private static readonly byte[] Intermezzo =
 {
@@ -201,10 +202,13 @@ namespace HACGUI.Services
 
                     MemloaderIniData iniData = new MemloaderIniData(info);
 
+                    Task<bool> task;
+
                     foreach (LoadData currData in iniData.LoadData)
                     {
-                        Device.WritePipe(1, "RECV".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
-                        if (lengthTransfered != 4)
+                        task = DeviceWrapper.WriteAsync("RECV".ToBytes(), 2000);
+                        task.Wait();
+                        if (!task.Result)
                             return false;
 
                         FileInfo file = root.GetFile(currData.SourceFile);
@@ -213,16 +217,19 @@ namespace HACGUI.Services
                         int dataLength = data.Count() - skip;
                         if (currData.Count > 0)
                             dataLength = Math.Min(dataLength, (int)currData.Count);
+
                         IEnumerable<byte> address = currData.Dest.ToBytes(4).Reverse();
                         IEnumerable<byte> size = dataLength.ToBytes(4).Reverse();
                         byte[] bytesToSend = address.Concat(size).ToArray();
 
-                        Device.WritePipe(1, bytesToSend, bytesToSend.Length, out lengthTransfered, IntPtr.Zero);
-                        if (lengthTransfered != bytesToSend.Length)
+                        task = DeviceWrapper.WriteAsync(bytesToSend, 2000);
+                        task.Wait();
+                        if (!task.Result)
                             return false;
 
-                        Device.WritePipe(1, data.Skip(skip).Take(dataLength).ToArray(), dataLength, out lengthTransfered, IntPtr.Zero);
-                        if (lengthTransfered != dataLength)
+                        task = DeviceWrapper.WriteAsync(data.Skip(skip).Take(dataLength).ToArray(), 2000);
+                        task.Wait();
+                        if (!task.Result)
                             return false;
                     }
 
@@ -233,8 +240,9 @@ namespace HACGUI.Services
                             return false;
 
                         IEnumerable<byte> pc = currData.PC.ToBytes(4).Reverse();
-                        Device.WritePipe(1, pc.ToArray(), 4, out lengthTransfered, IntPtr.Zero);
-                        if (lengthTransfered != 4)
+                        task = DeviceWrapper.WriteAsync(pc.ToArray(), 2000);
+                        task.Wait();
+                        if (!task.Result)
                             return false;
                     }
                     return true;
@@ -243,7 +251,7 @@ namespace HACGUI.Services
                 WaitForReady();
                 while (!attemptInject())
                     WaitForReady();
-
+                ;
             });
         }
 
@@ -313,14 +321,89 @@ namespace HACGUI.Services
             }
         }
 
+        public class UsbKWrapper
+        {
+            private readonly UsbK Device;
+            public UsbKWrapper(UsbK device)
+            {
+                Device = device;
+            }
+
+            public async Task<byte[]> ReadAsync(int timeout)
+            {
+                return await Task.Run(async () =>
+                {
+
+                    Task<byte[]> readTask = new Task<byte[]>(() => Read());
+                    readTask.Start();
+
+                    Task runTimeout = Task.Run(async () => 
+                    {
+                        await Task.Delay(timeout);
+
+                        while (!readTask.IsCompleted)
+                            Device.AbortPipe(0x81);
+                        
+                    });
+
+                    return await readTask;
+                });
+            }
+
+            public byte[] Read()
+            {
+                byte[] buffer = new byte[0x1000];
+                if (Device.ReadPipe(0x81, buffer, buffer.Length, out int length, IntPtr.Zero))
+                {
+                    byte[] data = new byte[length];
+                    Array.Copy(buffer, data, length);
+                    return data;
+                }
+                return null;
+            }
+
+            public bool Write(byte[] data)
+            {
+                bool result = Device.WritePipe(1, data, data.Length, out int bytesTransfered, IntPtr.Zero);
+                if (!result)
+                    return false;
+                if (bytesTransfered != data.Length)
+                    return false;
+                return true;
+            }
+
+            public async Task<bool> WriteAsync(byte[] data, int timeout)
+            {
+                return await Task.Run(async () =>
+                {
+
+                    Task<bool> writeTask = new Task<bool>(() => Write(data));
+                    writeTask.Start();
+
+                    Task runTimeout = Task.Run(async () =>
+                    {
+                        await Task.Delay(timeout);
+
+                        while(!writeTask.IsCompleted)
+                            Device.AbortPipe(1);
+                    });
+
+                    return await writeTask;
+                });
+            }
+        }
         public static void WaitForReady()
         {
             lock (WaitForReadyLock)
             {
                 byte[] expected = "READY.\n".ToBytes();
                 byte[] buffer = new byte[expected.Length];
-                while (!buffer.SequenceEqual(expected))
-                    Device.ReadPipe(0x81, buffer, buffer.Length, out int bytesRead, IntPtr.Zero);   
+                while (buffer == null || !buffer.SequenceEqual(expected))
+                {
+                    Task<byte[]> readTask = DeviceWrapper.ReadAsync(2000);
+                    readTask.Wait();
+                    buffer = readTask.Result;
+                }
             }
         }
 
@@ -328,6 +411,7 @@ namespace HACGUI.Services
         {
             WMIDeviceInfo = null;
             Device = null;
+            DeviceWrapper = null;
             foreach (UsbDeviceInfo info in CreateUsbControllerDeviceInfos(GetUsbDevices()))
                 if (info.DeviceID.StartsWith($"USB\\VID_{VID}&PID_{PID}"))
                 {
@@ -338,6 +422,7 @@ namespace HACGUI.Services
 
                     Device = new UsbK(deviceInfo);
                     Device.SetAltInterface(0, false, 0);
+                    DeviceWrapper = new UsbKWrapper(Device);
                     break;
                 }
         }
@@ -350,7 +435,8 @@ namespace HACGUI.Services
                 catSignerFile.FullName,
                 () => { },
                 asAdmin: true,
-                workingDirectory: workingDirectory.FullName);
+                workingDirectory: workingDirectory.FullName,
+                wait: true);
 
             if (!workingDirectory.GetFile("nx.cat").Exists)
             {
@@ -368,7 +454,8 @@ namespace HACGUI.Services
             LaunchProgram(
                 workingDirectory.GetFile(fileName).FullName,
                 () => { },
-                asAdmin: true);
+                asAdmin: true,
+                wait: true);
         }
     }
 }

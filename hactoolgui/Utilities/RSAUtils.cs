@@ -57,8 +57,10 @@ namespace CertNX
 
         public static void ImportPrivateKey(this X509Certificate2 obj, byte[] key)
         {
-            CspParameters csp = new CspParameters();
-            csp.KeyContainerName = "KeyContainer"; // keeps key persistent
+            CspParameters csp = new CspParameters
+            {
+                KeyContainerName = "KeyContainer" // keeps key persistent
+            };
 
             RSACryptoServiceProvider provider = new RSACryptoServiceProvider(csp);
             RSAParameters publicKeyParams = obj.GetRSAPublicKey().ExportParameters(false);

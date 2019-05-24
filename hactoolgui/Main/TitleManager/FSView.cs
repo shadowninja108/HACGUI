@@ -47,9 +47,9 @@ namespace HACGUI.Main.TitleManager
                         Title decidedTitle = existingTitle;
                         if(existingTitle.Version.Major < currentTitle.Version.Major)
                             decidedTitle = currentTitle;
-                        if (existingTitle.Version.Minor < currentTitle.Version.Minor)
+                        else if (existingTitle.Version.Minor < currentTitle.Version.Minor)
                             decidedTitle = currentTitle;
-                        if (existingTitle.Version.Patch < currentTitle.Version.Patch)
+                        else if (existingTitle.Version.Patch < currentTitle.Version.Patch)
                             decidedTitle = currentTitle;
                         titles.Remove(titleId); // remove old title
                         titles.Add(titleId, decidedTitle);

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Navigation;
@@ -141,23 +142,20 @@ namespace HACGUI.FirstStart
         {
             GitHubClient gitClient = new GitHubClient(new ProductHeaderValue("Github"));
             if (!HACGUIKeyset.TempLockpickPayloadFileInfo.Exists)
-                gitClient.Repository.Release.GetAll("shchmue", "Lockpick_RCM")
-                    .ContinueWith(task =>
-                    {
-                        IReadOnlyList<Release> releases = task.Result;
-                        Release release = releases.FirstOrDefault();
-                        return release.Assets.FirstOrDefault(r => r.BrowserDownloadUrl.EndsWith(".bin"));
-                    }).ContinueWith(task =>
-                    {
-                        ReleaseAsset asset = task.Result;
-                        HttpClient httpClient = new HttpClient();
-                        httpClient.GetStreamAsync(asset.BrowserDownloadUrl).ContinueWith(streamTask =>
-                        {
-                            Stream src = streamTask.Result;
-                            using (Stream dest = HACGUIKeyset.TempLockpickPayloadFileInfo.OpenWrite())
-                                src.CopyTo(dest);
-                        }).Wait();
-                    }).Wait();
+                Task.Run(async () => 
+                {
+                    Release release = await gitClient.Repository.Release.GetLatest("shchmue", "Lockpick_RCM");
+
+                    ReleaseAsset asset = release.Assets.FirstOrDefault(r => r.BrowserDownloadUrl.EndsWith(".bin"));
+
+                    HttpClient httpClient = new HttpClient();
+                    Stream src = await httpClient.GetStreamAsync(asset.BrowserDownloadUrl);
+
+                    using (Stream dest = HACGUIKeyset.TempLockpickPayloadFileInfo.OpenWrite())
+                        await src.CopyToAsync(dest);
+                }).Wait();
+                
+                    
             InjectService.SendPayload(HACGUIKeyset.TempLockpickPayloadFileInfo);
         }
 

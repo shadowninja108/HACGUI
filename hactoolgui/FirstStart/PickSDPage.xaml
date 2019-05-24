@@ -35,7 +35,7 @@
                 <LineBreak/>
                 <Run Text="3. Follow the onscreen instructions (rebooting to sept if necessary)"/>
                 <LineBreak/>
-                <Run Text="4. Reboot the console and click the &quot;Mount SD&quot; button"/>
+                <Run Text="4. Reboot the console into RCM and click the &quot;Mount SD&quot; button"/>
                 <LineBreak/>
                 <Run Text="         (or plug it into your PC manually)"/>
             </TextBlock>

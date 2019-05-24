@@ -134,7 +134,7 @@ namespace HACGUI.Utilities
             }
 
         }
-        public static void LaunchProgram(string fileName, Action callback, string args = "", bool asAdmin = false, string workingDirectory = "")
+        public static void LaunchProgram(string fileName, Action callback, string args = "", bool asAdmin = false, string workingDirectory = "", bool wait = false)
         {
             Process proc = new Process();
             proc.StartInfo.FileName = fileName;
@@ -148,7 +148,8 @@ namespace HACGUI.Utilities
                 proc.Start();
                 Task.Run(() =>
                 {
-                    proc.WaitForExit();
+                    if(wait)
+                        proc.WaitForExit();
                     callback();
                 });
             }

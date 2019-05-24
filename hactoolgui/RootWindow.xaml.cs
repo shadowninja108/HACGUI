@@ -126,8 +126,8 @@ namespace HACGUI
                 Navigate(nextPage);
 
                 // Image may be needed at any time, and loading it every time would be dumb
-                Image arrowBlack = new Image() { Source = new BitmapImage(new Uri("/Resources/ArrowBlack.png", UriKind.Relative)) };
-                Image arrowWhite = new Image() { Source = new BitmapImage(new Uri("/Resources/ArrowWhite.png", UriKind.Relative)) };
+                Image arrowBlack = new Image() { Source = new BitmapImage(new Uri("pack://application:,,,/Resources/Img/ArrowBlack.png", UriKind.RelativeOrAbsolute)) };
+                Image arrowWhite = new Image() { Source = new BitmapImage(new Uri("pack://application:,,,/Resources/Img/ArrowWhite.png", UriKind.RelativeOrAbsolute)) };
 
 
                 // Called whenever a transition has finished

@@ -19,8 +19,12 @@
 
     <Grid>
         <DockPanel>
-            <Label DockPanel.Dock="Top" Content="Done! Your keys are saved and displayed here." HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontSize="35" HorizontalContentAlignment="Center" Grid.Row="0"/>
-            <Button DockPanel.Dock="Bottom" Content="Open keys folder" Width="100" Height="30" HorizontalAlignment="Right" Click="OpenKeysClicked"/>
+            <Label DockPanel.Dock="Top" Content="HACGUI is setup and ready for use." HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontSize="35" HorizontalContentAlignment="Center" Grid.Row="0"/>
+
+            <DockPanel DockPanel.Dock="Bottom">
+                <Label DockPanel.Dock="Left" FontSize="20">You can use the program after reopening.</Label>
+                <Button DockPanel.Dock="Right" Content="Open keys folder" Width="100" HorizontalAlignment="Right" Click="OpenKeysClicked"/>
+            </DockPanel>
             <TextBox x:Name="TextArea" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" IsReadOnly="True"/>
         </DockPanel>
     </Grid>

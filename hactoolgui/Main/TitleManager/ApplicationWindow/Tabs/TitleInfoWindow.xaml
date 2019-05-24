@@ -20,7 +20,7 @@
             <ListView Name="ListView">
                 <ListView.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Copy name" Click="CopyTitleIdClicked"/>
+                        <MenuItem Header="Copy name" Click="CopyNameClicked"/>
                     </ContextMenu>
                 </ListView.ContextMenu>
                 <ListView.View>
