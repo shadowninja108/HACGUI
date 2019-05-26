@@ -89,7 +89,7 @@ namespace HACGUI.Services
 
         private readonly IFileSystem Fs;
         private readonly Dictionary<string, FileStorage> OpenedFiles;
-        private readonly object OpenedFileLock = new object();
+        private readonly object IOLock = new object();
         public readonly OpenMode Mode;
 
         public MountableFileSystem(IFileSystem fs, string name, string fileSystemType, OpenMode mode)
@@ -103,6 +103,7 @@ namespace HACGUI.Services
 
         public void Cleanup(string fileName, DokanFileInfo info)
         {
+            fileName = FilterPath(fileName);
             if(!info.IsDirectory)
                 CloseFile(fileName, info);
             if (info.DeleteOnClose)
@@ -118,17 +119,19 @@ namespace HACGUI.Services
         {
             IFile file = GetFile(fileName);
             if (file != null)
-                CloseFile(fileName);
+                CloseFile(fileName, true);
         }
 
-        public void CloseFile(string fileName)
+        public void CloseFile(string fileName, bool commit)
         {
-            lock (OpenedFileLock)
+            lock (IOLock)
             {
                 if (OpenedFiles.ContainsKey(fileName))
                 {
                     OpenedFiles[fileName].Dispose();
                     OpenedFiles.Remove(fileName);
+                    if(commit)
+                        Fs.Commit();
                 }
             }
         }
@@ -136,7 +139,10 @@ namespace HACGUI.Services
         public void CloseAllFiles()
         {
             foreach (string fileName in new List<string>(OpenedFiles.Keys))
-                CloseFile(fileName);
+                CloseFile(fileName, false);
+
+            lock(IOLock)
+                Fs.Commit();
         }
 
         public NtStatus CreateFile(string fileName, DokanNet.FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, DokanFileInfo info)
@@ -153,14 +159,13 @@ namespace HACGUI.Services
                         return DokanResult.NotADirectory;
                     else if (Fs.DirectoryExists(fileName))
                         return DokanResult.Success;
+                    if (fileName == "/")
+                        return DokanResult.AlreadyExists;
                     Fs.CreateDirectory(fileName);
                 }
                 else
                 {
                     bool exists = Fs.FileExists(fileName);
-
-                    if (!exists)
-                        return DokanResult.FileNotFound;
 
                     if (mode == FileMode.Open && exists)
                         return DokanResult.Success; 
@@ -169,12 +174,19 @@ namespace HACGUI.Services
                     {
                         case FileMode.Create:
                         case FileMode.OpenOrCreate:
+                        case FileMode.CreateNew:
                             if (exists)
                                 return DokanResult.AlreadyExists;
-                            Fs.CreateFile(fileName, 0, CreateFileOptions.None);
+                            lock(IOLock)
+                                Fs.CreateFile(fileName, 0, CreateFileOptions.None);
+                            if (Fs.FileExists(fileName))
+                                return NtStatus.Success;
                             break;
                     }
-                    
+
+
+                    if (!exists)
+                        return DokanResult.FileNotFound;
                 }
                 return NtStatus.Success;
             }
@@ -238,15 +250,22 @@ namespace HACGUI.Services
         public NtStatus FlushFileBuffers(string fileName, DokanFileInfo info)
         {
             CloseAllFiles();
-            Fs.Commit();
             return NtStatus.Success;
         }
 
         public NtStatus GetDiskFreeSpace(out long freeBytesAvailable, out long totalNumberOfBytes, out long totalNumberOfFreeBytes, DokanFileInfo info)
         {
-            freeBytesAvailable = 0;
-            totalNumberOfBytes = 0;
-            totalNumberOfFreeBytes = 0;
+            try
+            {
+                freeBytesAvailable = Fs.GetFreeSpaceSize("/");
+                totalNumberOfBytes = Fs.GetTotalSpaceSize("/");
+                totalNumberOfFreeBytes = freeBytesAvailable;
+            } catch(NotImplementedException)
+            {
+                freeBytesAvailable = 0;
+                totalNumberOfBytes = 0;
+                totalNumberOfFreeBytes = 0;
+            }
             return NtStatus.Success;
         }
 
@@ -306,18 +325,21 @@ namespace HACGUI.Services
 
         public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, DokanFileInfo info)
         {
-            FileStorage storage = OpenFile(fileName);
-            long size = storage.GetSize() - offset;
-            if (size < 0)
+            lock (IOLock)
             {
-                bytesRead = 0;
-                return NtStatus.Unsuccessful;
-            }
-            size = Math.Min(size, buffer.Length);
+                FileStorage storage = OpenFile(fileName);
+                long size = storage.GetSize() - offset;
+                if (size < 0)
+                {
+                    bytesRead = 0;
+                    return NtStatus.Unsuccessful;
+                }
+                size = Math.Min(size, buffer.Length);
 
-            storage.Read(buffer, Math.Min(offset, storage.GetSize() - size), (int) size, 0);
-            bytesRead = (int)size; // TODO accuracy
-            return NtStatus.Success;
+                storage.Read(buffer, Math.Min(offset, storage.GetSize() - size), (int)size, 0);
+                bytesRead = (int)size; // TODO accuracy
+                return NtStatus.Success;
+            }
         }
 
         public NtStatus SetAllocationSize(string fileName, long length, DokanFileInfo info)
@@ -336,7 +358,8 @@ namespace HACGUI.Services
 
         public NtStatus SetEndOfFile(string fileName, long length, DokanFileInfo info)
         {
-            Fs.OpenFile(FilterPath(fileName), Mode).SetSize(length);
+            lock(IOLock)
+                Fs.OpenFile(FilterPath(fileName), Mode).SetSize(length);
             return NtStatus.Success;
         }
 
@@ -362,29 +385,27 @@ namespace HACGUI.Services
 
         public NtStatus Unmounted(DokanFileInfo info)
         {
-            lock (OpenedFileLock)
-            {
-                foreach (IStorage storage in OpenedFiles.Values)
-                    storage.Dispose();
-            }
-            OpenedFiles.Clear();
+            CloseAllFiles();
             return NtStatus.Success;
         }
 
         public NtStatus WriteFile(string fileName, byte[] buffer, out int bytesWritten, long offset, DokanFileInfo info)
         {
-            FileStorage storage = OpenFile(fileName);
-            long size = storage.GetSize() - offset;
-            if (size < 0)
+            lock (IOLock)
             {
-                bytesWritten = 0;
-                return NtStatus.Unsuccessful;
-            }
-            size = Math.Min(size, buffer.Length);
+                FileStorage storage = OpenFile(fileName);
+                long size = storage.GetSize() - offset;
+                if (size < 0)
+                {
+                    bytesWritten = 0;
+                    return NtStatus.Unsuccessful;
+                }
+                size = Math.Min(size, buffer.Length);
 
-            storage.Write(buffer, Math.Min(offset, storage.GetSize() - size), (int)size, 0);
-            bytesWritten = (int)size; // TODO accuracy
-            return NtStatus.Success;
+                storage.Write(buffer, Math.Min(offset, storage.GetSize() - size), (int)size, 0);
+                bytesWritten = (int)size; // TODO accuracy
+                return NtStatus.Success;
+            }
         }
 
         private FileInformation CreateInfo(DirectoryEntry entry, string path)
@@ -429,7 +450,7 @@ namespace HACGUI.Services
                 {
                     FileName = GetFileName(path),
                     Length = storage.GetSize(),
-                    Attributes = FileAttributes.ReadOnly
+                    Attributes = Mode == OpenMode.Read ? FileAttributes.ReadOnly : FileAttributes.Normal
                 };
             }
             else
