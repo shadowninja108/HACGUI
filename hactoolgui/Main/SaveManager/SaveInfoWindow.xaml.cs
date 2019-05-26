@@ -121,7 +121,7 @@ namespace HACGUI.Main.SaveManager
                 save.RenameDirectory("/tmp", "/temp");
                 save.DeleteDirectory("/temp");
                 save.CreateFile("/tmp.bin", 0, CreateFileOptions.None);
-                IFile temp = save.OpenFile("/tmp.bin", OpenMode.Write);
+                IFile temp = save.OpenFile("/tmp.bin", OpenMode.ReadWrite);
                 temp.SetSize(0x4);
                 byte[] testBytes = new byte[] { 0xBA, 0xDF, 0x00, 0xD };
                 temp.Write(testBytes, 0);
@@ -133,6 +133,10 @@ namespace HACGUI.Main.SaveManager
                     return false;
                 return true;
             } catch(NotImplementedException)
+            {
+                return false;
+            }
+            catch (NotSupportedException)
             {
                 return false;
             }
