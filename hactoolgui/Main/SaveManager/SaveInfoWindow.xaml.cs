@@ -104,7 +104,7 @@ namespace HACGUI.Main.SaveManager
             switch (type)
             {
                 case OpenType.Writable:
-                    //mode = OpenMode.ReadWrite; currently broken!
+                    mode = OpenMode.ReadWrite; 
                     break;
             }
 

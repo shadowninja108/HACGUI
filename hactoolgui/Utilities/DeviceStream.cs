@@ -82,7 +82,7 @@ namespace NandReaderGui
             }
         }
 
-        public bool ShouldWrite { get; set; } = false;
+        public bool ShouldWrite { get; set; } = true;
 
         public override bool CanRead { get; } = true;
 

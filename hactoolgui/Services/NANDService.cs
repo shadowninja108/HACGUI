@@ -99,7 +99,7 @@ namespace HACGUI.Services
                         long missingLength = (0x747BFFE00 - 0x727800000) + 0x200; // (start of GPT backup - end of USER) + length of GPT backup
                         length += missingLength;
                         DeviceStream stream = new DeviceStream(info.PhysicalName, length);
-                        IStorage diskStorage = new CachedStorage(stream.AsStorage().AsReadOnly(), info.SectorSize * 100, 4, true);
+                        IStorage diskStorage = new CachedStorage(stream.AsStorage(), info.SectorSize * 100, 4, true);
                         if (InsertNAND(diskStorage, true))
                         {
                             CurrentDisk = info;
