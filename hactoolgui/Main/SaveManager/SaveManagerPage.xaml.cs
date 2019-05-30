@@ -85,6 +85,8 @@ namespace HACGUI.Main.SaveManager
                     {
                         if (element.SaveId == TitleID)
                             ListView.Items.Add(element);
+                        if ((ulong)SystemSaveNames.GetOwner(element.Save) == TitleID)
+                            ListView.Items.Add(element);
                     }
                 }
 

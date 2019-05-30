@@ -11,20 +11,6 @@
         <Converters:FileSizeConverter x:Key="fileSizeConverter" />
     </UserControl.Resources>
     <Grid>
-        <ListView Name="ListView">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn>
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <CheckBox IsChecked="{Binding Selected}"/>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="User ID" DisplayMemberBinding="{Binding Path=UserId, StringFormat={}{0:x16}}"/>
-                    <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Path=Size, Converter={StaticResource fileSizeConverter}}"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
+        
     </Grid>
 </UserControl>

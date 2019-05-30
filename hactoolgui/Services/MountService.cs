@@ -119,10 +119,10 @@ namespace HACGUI.Services
         {
             IFile file = GetFile(fileName);
             if (file != null)
-                CloseFile(fileName, true);
+                CloseFile(fileName);
         }
 
-        public void CloseFile(string fileName, bool commit)
+        public void CloseFile(string fileName)
         {
             lock (IOLock)
             {
@@ -130,8 +130,6 @@ namespace HACGUI.Services
                 {
                     OpenedFiles[fileName].Dispose();
                     OpenedFiles.Remove(fileName);
-                    if(commit)
-                        Fs.Commit();
                 }
             }
         }
@@ -139,7 +137,7 @@ namespace HACGUI.Services
         public void CloseAllFiles()
         {
             foreach (string fileName in new List<string>(OpenedFiles.Keys))
-                CloseFile(fileName, false);
+                CloseFile(fileName);
 
             lock(IOLock)
                 Fs.Commit();
@@ -159,8 +157,6 @@ namespace HACGUI.Services
                         return DokanResult.NotADirectory;
                     else if (Fs.DirectoryExists(fileName))
                         return DokanResult.Success;
-                    if (fileName == "/")
-                        return DokanResult.AlreadyExists;
                     Fs.CreateDirectory(fileName);
                 }
                 else
@@ -238,7 +234,7 @@ namespace HACGUI.Services
             {
                 Console.WriteLine("Exception raised when iterating through directory:\n" + e.Message + "\n" + e.StackTrace);
             }
-                return NtStatus.Success;
+            return NtStatus.Success;
         }
 
         public NtStatus FindStreams(string fileName, out IList<FileInformation> streams, DokanFileInfo info)
@@ -261,6 +257,12 @@ namespace HACGUI.Services
                 totalNumberOfBytes = Fs.GetTotalSpaceSize("/");
                 totalNumberOfFreeBytes = freeBytesAvailable;
             } catch(NotImplementedException)
+            {
+                freeBytesAvailable = 0;
+                totalNumberOfBytes = 0;
+                totalNumberOfFreeBytes = 0;
+            }
+            catch (NotSupportedException)
             {
                 freeBytesAvailable = 0;
                 totalNumberOfBytes = 0;

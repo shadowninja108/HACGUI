@@ -27,7 +27,8 @@ namespace HACGUI.Main.SaveManager
         public string SaveOwner => Element.Owner;
         public string Timestamp => CreateTimestamp();
         public ulong SaveID => Element.SaveId;
-        public string SaveUserId => Element.UserId;
+        public Guid SaveUserId => Element.UserId;
+        public string UserString => Element.UserString;
 
         public SaveInfoWindow(SaveElement element)
         {
@@ -65,7 +66,7 @@ namespace HACGUI.Main.SaveManager
             {
                 try
                 {
-                    FileInfo info = HACGUIKeyset.AccountsFolderInfo.GetFile($"{SaveUserId.ToLower()}.jpg");
+                    FileInfo info = HACGUIKeyset.AccountsFolderInfo.GetFile($"{SaveUserId.ToString().ToLower()}.jpg");
                     if (info.Exists) {
                         JpegBitmapDecoder decoder = new JpegBitmapDecoder(info.OpenRead(), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
                         decoder.Frames[0].Freeze();
@@ -103,7 +104,7 @@ namespace HACGUI.Main.SaveManager
             switch (type)
             {
                 case OpenType.Writable:
-                    mode = OpenMode.ReadWrite;
+                    //mode = OpenMode.ReadWrite; currently broken!
                     break;
             }
 

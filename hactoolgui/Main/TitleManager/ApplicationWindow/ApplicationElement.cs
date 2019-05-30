@@ -56,7 +56,7 @@ namespace HACGUI.Main.TitleManager
                 }
                 List<Title> titles = OrderTitlesByBest();
                 titles.Reverse();
-                return SystemTitleNames.GetName(titles.First());
+                return SystemTitleNames.GetNameFromTitle(titles.First());
             }
         }
         public ulong TitleId => FindBestTitle().Id;

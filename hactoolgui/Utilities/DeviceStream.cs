@@ -19,9 +19,14 @@ namespace NandReaderGui
         // For more information about CreateFile,
         // see the unmanaged MSDN reference library.
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern IntPtr CreateFile(string lpFileName, uint dwDesiredAccess,
-          uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition,
-          uint dwFlagsAndAttributes, IntPtr hTemplateFile);
+        public static extern IntPtr CreateFile(
+             [MarshalAs(UnmanagedType.LPTStr)] string filename,
+             [MarshalAs(UnmanagedType.U4)] FileAccess access,
+             [MarshalAs(UnmanagedType.U4)] FileShare share,
+             IntPtr securityAttributes, // optional SECURITY_ATTRIBUTES struct or IntPtr.Zero
+             [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
+             [MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
+             IntPtr templateFile);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool ReadFile(
@@ -34,15 +39,13 @@ namespace NandReaderGui
         // ref OVERLAPPED lpOverlapped        // overlapped buffer
         );
 
-        [DllImport("kernel32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool WriteFile(
-            IntPtr hFile,
-            byte[] lpBuffer,
-            uint nNumberOfBytesToWrite,
-            out uint lpNumberOfBytesWritten
-        //[In] ref System.Threading.NativeOverlapped lpOverlapped
-        );
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern bool WriteFile(
+            SafeFileHandle handle, 
+            IntPtr bytes, 
+            uint numBytesToWrite, 
+            out uint numBytesWritten, 
+            IntPtr mustBeZero);
 
         private SafeFileHandle _handleValue;
         private FileStream _fs;
@@ -61,14 +64,14 @@ namespace NandReaderGui
             }
 
             // Try to open the file.
-            IntPtr ptr = CreateFile(path, GenericRead, 0, IntPtr.Zero, OpenExisting, 0, IntPtr.Zero);
+            IntPtr ptr = CreateFile(path, FileAccess.ReadWrite, 0, IntPtr.Zero, FileMode.Open, 0, IntPtr.Zero);
 
             _handleValue = new SafeFileHandle(ptr, true);
 
             if (_handleValue.IsInvalid)
                 throw new UnauthorizedAccessException("Not enough privilages to get handle of disk.");
 
-            _fs = new FileStream(_handleValue, FileAccess.Read);
+            _fs = new FileStream(_handleValue, FileAccess.ReadWrite);
 
             // If the handle is invalid,
             // get the last Win32 error 
@@ -138,12 +141,14 @@ namespace NandReaderGui
         {
             if (CanWrite)
             {
-                var lpBuffer = new byte[count];
-                Array.Copy(buffer, offset, lpBuffer, 0, count);
-                if (!WriteFile(_handleValue.DangerousGetHandle(), lpBuffer, (uint)count, out uint bytesWitten))
+                var bufferPtr = Marshal.AllocHGlobal(count);
+                Marshal.Copy(buffer, offset, bufferPtr, count);
+                if (!WriteFile(_handleValue, bufferPtr, (uint)count, out uint bytesWritten, IntPtr.Zero))
                 {
                     Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
                 }
+
+                Marshal.FreeHGlobal(bufferPtr);
             }
             else
                 throw new NotSupportedException();

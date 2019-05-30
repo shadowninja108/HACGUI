@@ -123,70 +123,74 @@ namespace HACGUI.Main.SaveManager
 
         }
 
-        public static string GetOwner(SaveDataFileSystem save)
+        public static long GetOwner(SaveDataFileSystem save)
         {
             ulong id = save.Header.ExtraData.SaveId;
             id -= 0x8000000000000000;
             if (id == 0)
-                return "fs";
+                return 0x0100000000000000; // fs
             if (id < 0x20)
-                return "account";
+                return 0x010000000000001E; // account
             if (id == 0x20)
-                return "nfc";
+                return 0x0100000000000020; // nfc
             if (id < 0x50 || id == 0xF0)
-                return "ns";
+                return 0x010000000000001F; // ns
             if (id < 0x60)
-                return "settings";
+                return 0x0100000000000009; // settings
             if (id == 0x60)
-                return "ssl";
+                return 0x0100000000000024; // ssl
             if (id < 0x80)
-                return "nim";
+                return 0x0100000000000025; // nim
             if (id < 0x90)
-                return "friends";
+                return 0x010000000000000E; // friends
             if (id == 0xB0)
-                return "bsdsockets";
+                return 0x0100000000000012; // bsdsockets
             if (id < 0xD1)
-                return "bcat";
+                return 0x010000000000000C; // bcat
             if (id == 0xD1)
-                return "erpt";
+                return 0x010000000000002B; // erpt
             if (id < 0x100)
-                return "es";
+                return 0x0100000000000033; // es
             if (id == 0x100)
-                return "pctl";
+                return 0x010000000000002E; // pctl
             if (id == 0x110)
-                return "npns";
+                return 0x010000000000002F; // npns
             if(id == 0x122)
-                return "Unknown";
+                return -1; // unknown
             if (id < 0x140)
-                return "migration";
+                return 0x010000000000003A; // migration
             switch (id)
             {
                 case 0x140:
-                    return "capsrv";
+                    return 0x0100000000000022; // capsrv
+                case 0x150:
+                    return 0x010000000000003E; // olsc
+                case 0x180:
+                    return 0x0100000000000039; // sdb
                 case 0x1010:
-                    return "qlaunch";
+                    return 0x0100000000001000; // qlaunch
                 case 0x1020:
-                    return "swkbd";
+                    return 0x0100000000001008; // swkbd
             }
             if (id < 0x1040)
-                return "Unknown";
+                return -1; // unknown
             if (id < 0x1060)
-                return "miiEdit";
+                return 0x0100000000001009; // miiEdit
             if (id < 0x1070)
-                return "shop";
+                return 0x010000000000100B; // shop
             if (id < 0x1090)
-                return "web";
+                return 0x010000000000100A; // web
             switch (id)
             {
                 case 0x1091:
-                    return "loginShare";
+                    return 0x0100000000001010; // loginShare
                 case 0x10B0:
-                    return "playerSelect";
+                    return 0x0100000000001007; // playerSelect
                 case 0x10C0:
-                    return "myPage";
+                    return 0x0100000000001013; // myPage
             }
 
-            return "Unknown";
+            return -1;
         }
     }
 }

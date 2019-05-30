@@ -1,4 +1,7 @@
-﻿using LibHac.Fs.Save;
+﻿using HACGUI.Main.TitleManager;
+using HACGUI.Utilities;
+using LibHac.Fs.Save;
+using System;
 using System.Collections.Generic;
 
 namespace HACGUI.Main.SaveManager
@@ -17,7 +20,16 @@ namespace HACGUI.Main.SaveManager
             }
         }
 
-        public string Owner => SystemSaveNames.GetOwner(Save);
+        public string Owner
+        {
+            get
+            {
+                long titleId = SystemSaveNames.GetOwner(Save);
+                if (titleId == -1)
+                    return "Unknown";
+                return SystemTitleNames.GetName((ulong)titleId);
+            }
+        }
 
         public string DisplayName
         {
@@ -30,8 +42,27 @@ namespace HACGUI.Main.SaveManager
                     return string.Format("{0:x16}", SaveId);
             }
         }
-        public string UserId => Save.Header.ExtraData.UserId.ToString();
+        public Guid UserId => Save.Header.ExtraData.UserId;
+        public string UserString
+        {
+            get
+            {
+                string uid = UserId.ToString();
+                if (Preferences.Current.UserIds.ContainsKey(uid))
+                {
+                    string name = Preferences.Current.UserIds[uid];
+                    return string.IsNullOrEmpty(name) ? "None" : name;
+                }
+                else if (UserId.Equals(Guid.Empty))
+                    return "None";
+                else
+                    return uid;
+            }
+        }
+
         public long Size => Save.Header.ExtraData.DataSize;
+
+        public SaveDataType Type => Save.Header.ExtraData.Type;
 
         public SaveElement(KeyValuePair<string, SaveDataFileSystem> kv)
         {

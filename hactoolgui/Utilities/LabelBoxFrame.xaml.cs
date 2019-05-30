@@ -77,6 +77,7 @@ namespace HACGUI.Utilities
             Text = text;
             Ratio1 = ratio1;
             Ratio2 = ratio2;
+            SetValue(Ratio1Property, ratio1);
             SetValue(Ratio2Property, ratio2);
 
             Loaded += (_, __) => Setup();

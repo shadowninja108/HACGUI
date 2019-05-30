@@ -13,11 +13,12 @@ namespace HACGUI.Utilities
     {
         public static Preferences Current = new Preferences();
 
-        private FileIniDataParser parser;
+        private readonly FileIniDataParser parser;
         public IniData data;
 
         public KeyDataCollectionAccessor General => new KeyDataCollectionAccessor(data["General"]);
         public KeyDataCollectionAccessor SdIdentifiers => new KeyDataCollectionAccessor(data["SdIdentifiers"]);
+        public KeyDataCollectionAccessor UserIds => new KeyDataCollectionAccessor(data["UserIds"]);
 
         public string DefaultConsoleName {
             get
@@ -63,6 +64,11 @@ namespace HACGUI.Utilities
                 {
                     Internal[i] = value;
                 }
+            }
+
+            public bool ContainsKey(string i)
+            {
+                return Internal.ContainsKey(i);
             }
         }
 

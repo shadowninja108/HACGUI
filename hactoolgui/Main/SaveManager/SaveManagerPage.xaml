@@ -18,7 +18,8 @@
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Name/ID" DisplayMemberBinding="{Binding DisplayName}"/>
-                    <GridViewColumn Header="User ID" DisplayMemberBinding="{Binding UserId}"/>
+                    <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Path=Type}"/>
+                    <GridViewColumn Header="User ID" DisplayMemberBinding="{Binding UserString}"/>
                     <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Path=Size, Converter={StaticResource fileSizeConverter}}"/>
                 </GridView>
             </ListView.View>

@@ -4,13 +4,26 @@ namespace HACGUI.Main.TitleManager
 {
     public class SystemTitleNames
     {
-        public static string GetName(Title title)
+        public static string GetNameFromTitle(Title title)
         {
             ulong id = title.Id;
             if (title.MainNca == null)
                 return "Unknown";
-            id -= 0x0100000000000000;
-            switch (id)
+            if (id == 0x0100000000000031)
+            {
+                if (title.MainNca.Nca.Header.KeyAreaKeyIndex == 0)
+                    return "arp"; // 1.0.0
+                else
+                    return "glue"; // 2.0.0 +
+            }
+
+            return GetName(id);
+        }
+
+        public static string GetName(ulong titleId)
+        {
+            titleId -= 0x0100000000000000;
+            switch (titleId)
             {
                 // System Modules
                 case 0x0:
@@ -110,11 +123,7 @@ namespace HACGUI.Main.TitleManager
                     return "npns";
                 case 0x30:
                     return "eupld";
-                case 0x31:
-                    if (title.MainNca.Nca.Header.KeyAreaKeyIndex == 0)
-                        return "arp"; // 1.0.0
-                    else
-                        return "glue"; // 2.0.0 +
+                
                 case 0x32:
                     return "eclct";
                 case 0x33:
@@ -145,7 +154,7 @@ namespace HACGUI.Main.TitleManager
                     return "dt";
                 case 0x40:
                     return "nd";
-                
+
                 // System Data Archives
                 case 0x800:
                     return "CertStore";
@@ -287,7 +296,7 @@ namespace HACGUI.Main.TitleManager
                 default:
                     return "Unknown";
 
-                //TODO: type out rest of this shit
+                    //TODO: type out rest of this shit
             }
         }
     }

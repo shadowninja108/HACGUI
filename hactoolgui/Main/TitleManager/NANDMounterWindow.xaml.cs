@@ -59,7 +59,7 @@ namespace HACGUI.Main.TitleManager
                     return;
             }
 
-            MountService.Mount(new MountableFileSystem(partition, $"NAND ({partitionName})", formatName, OpenMode.ReadWrite));
+            MountService.Mount(new MountableFileSystem(partition, $"NAND ({partitionName})", formatName, OpenMode.Read));
         }
     }
 }

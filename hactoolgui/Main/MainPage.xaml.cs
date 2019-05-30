@@ -105,7 +105,7 @@ namespace HACGUI.Main
             {
                 IList<IStorage> storages = new List<IStorage>();
                 foreach (FileInfo file in files)
-                    storages.Add(file.OpenRead().AsStorage()); // Change to Open when write support is added
+                    storages.Add(file.Open(FileMode.Open).AsStorage().AsReadOnly()); // Change to Open when write support is added
                 IStorage NANDSource = new ConcatenationStorage(storages, true);
 
                 if (!NANDService.InsertNAND(NANDSource, false))
