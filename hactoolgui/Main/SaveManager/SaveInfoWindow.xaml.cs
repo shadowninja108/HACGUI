@@ -51,8 +51,8 @@ namespace HACGUI.Main.SaveManager
 
             MountTypesComboBox.Items.Add(OpenType.ReadOnly);
             MountTypesComboBox.SelectedIndex = 0;
-            if (IsWritable(element.Save))
-                MountTypesComboBox.Items.Add(OpenType.Writable);
+            //if (IsWritable(element.Save))
+            //    MountTypesComboBox.Items.Add(OpenType.Writable);
 
             Task<ImageSource> task = GetIconAync();
             ProfileIcon.Source = ApplicationElement.UnknownIcon;

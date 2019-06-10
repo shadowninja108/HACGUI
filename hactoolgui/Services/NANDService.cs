@@ -46,7 +46,7 @@ namespace HACGUI.Services
 
             // Create event handlers to detect when a device is added or removed
             CreateWatcher = new ManagementEventWatcher();
-            WqlEventQuery createQuery = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
+            WqlEventQuery createQuery = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_DiskDrive'");
             CreateWatcher.EventArrived += new EventArrivedEventHandler((s, e) =>
             {
                 if (NAND == null) // ignore if we already found the Switch
@@ -55,7 +55,7 @@ namespace HACGUI.Services
             CreateWatcher.Query = createQuery;
 
             DeleteWatcher = new ManagementEventWatcher();
-            WqlEventQuery deleteQuery = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'");
+            WqlEventQuery deleteQuery = new WqlEventQuery("SELECT * FROM __InstanceDeletionEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_DiskDrive'");
             DeleteWatcher.EventArrived += new EventArrivedEventHandler((s, e) =>
             {
                 if (NAND != null) // ignore if we haven't found a Switch yet

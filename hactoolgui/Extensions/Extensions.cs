@@ -246,12 +246,13 @@ namespace HACGUI.Extensions
             return null;
         }
 
-        public static FileInfo RequestSaveFileFromUser(string ext, string filter, string title = null)
+        public static FileInfo RequestSaveFileFromUser(string ext, string filter, string title = null, string fileName = null)
         {
             System.Windows.Forms.SaveFileDialog dlg = new System.Windows.Forms.SaveFileDialog
             {
                 DefaultExt = ext,
-                Filter = filter
+                Filter = filter,
+                FileName = fileName ?? ""
             };
 
             if (title != null)

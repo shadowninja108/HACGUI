@@ -128,7 +128,8 @@ namespace HACGUI.Services
             {
                 if (OpenedFiles.ContainsKey(fileName))
                 {
-                    OpenedFiles[fileName].Dispose();
+                    if(Mode == OpenMode.ReadWrite)
+                        OpenedFiles[fileName].Dispose();
                     OpenedFiles.Remove(fileName);
                 }
             }
