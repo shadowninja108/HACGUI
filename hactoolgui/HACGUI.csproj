@@ -169,7 +169,9 @@
       <DependentUpon>NANDMounterWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Services\InjectService.cs" />
+    <Compile Include="Utilities\DesignMode.cs" />
     <Compile Include="Utilities\libusbK.cs" />
+    <Compile Include="Utilities\OrganizableGridView.cs" />
     <Compile Include="Utilities\PseudoFileSystem.cs" />
     <Compile Include="Utilities\PseudoRootDirectory.cs" />
     <Compile Include="Utilities\LabelBoxFrame.xaml.cs">

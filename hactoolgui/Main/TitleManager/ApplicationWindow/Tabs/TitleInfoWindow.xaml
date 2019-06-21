@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HACGUI.Main.TitleManager.ApplicationWindow.Tabs"
         xmlns:Converters="clr-namespace:HACGUI.Extensions"
+        xmlns:utilities="clr-namespace:HACGUI.Utilities"
         mc:Ignorable="d"
         Title="TitleInfoWindow" Width="450" Height="240">
     <Window.Resources>
@@ -24,7 +25,7 @@
                     </ContextMenu>
                 </ListView.ContextMenu>
                 <ListView.View>
-                    <GridView>
+                    <utilities:OrganizableGridView>
                         <GridViewColumn>
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
@@ -32,10 +33,22 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}"/>
-                        <GridViewColumn Header="File Name" DisplayMemberBinding="{Binding FileName}"/>
-                        <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Path=Size, Converter={StaticResource fileSizeConverter}}"/>
-                    </GridView>
+                        <GridViewColumn DisplayMemberBinding="{Binding Type}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Tag="Type">Type</GridViewColumnHeader>
+                            </GridViewColumn.Header>
+                        </GridViewColumn>
+                        <GridViewColumn DisplayMemberBinding="{Binding FileName}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Tag="FileName">File Name</GridViewColumnHeader>
+                            </GridViewColumn.Header>
+                        </GridViewColumn>
+                        <GridViewColumn DisplayMemberBinding="{Binding Path=Size, Converter={StaticResource fileSizeConverter}}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Tag="Size">Size</GridViewColumnHeader>
+                            </GridViewColumn.Header>
+                        </GridViewColumn>
+                    </utilities:OrganizableGridView>
                 </ListView.View>
             </ListView>
         </DockPanel>

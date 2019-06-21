@@ -6,6 +6,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:System="clr-namespace:System;assembly=mscorlib"
+    xmlns:utilities="clr-namespace:HACGUI.Utilities"
     mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <System:String x:Key="Title">HACGUI: Saves</System:String>
@@ -16,12 +17,33 @@
     <Grid>
         <ListView Name="ListView" MouseDoubleClick="SaveDoubleClicked">
             <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Name/ID" DisplayMemberBinding="{Binding DisplayName}"/>
-                    <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Path=Type}"/>
-                    <GridViewColumn Header="User ID" DisplayMemberBinding="{Binding UserString}"/>
-                    <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Path=Size, Converter={StaticResource fileSizeConverter}}"/>
-                </GridView>
+                <utilities:OrganizableGridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Owner}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Tag="Owner">Owner</GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding DisplayName}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Tag="DisplayName">Name/ID</GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Type}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Tag="Type">Type</GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding UserString}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Tag="UserString">User ID</GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Size, Converter={StaticResource fileSizeConverter}}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Tag="Size">Size</GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                </utilities:OrganizableGridView>
             </ListView.View>
         </ListView>
     </Grid>

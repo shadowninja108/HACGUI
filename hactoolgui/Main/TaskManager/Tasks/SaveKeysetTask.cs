@@ -27,14 +27,17 @@ namespace HACGUI.Main.TaskManager.Tasks
                 extraKeys.WriteString(HACGUIKeyset.PrintCommonWithoutFriendlyKeys(HACGUIKeyset.Keyset));
                 Stream consoleKeys = HACGUIKeyset.ConsoleKeysFileInfo.Create();
                 consoleKeys.WriteString(ExternalKeys.PrintUniqueKeys(HACGUIKeyset.Keyset));
-                Stream specificConsoleKeys = HACGUIKeyset.GetConsoleKeysFileInfoByName(ConsoleName).Create();
-                specificConsoleKeys.WriteString(ExternalKeys.PrintUniqueKeys(HACGUIKeyset.Keyset));
+                if (ConsoleName != null)
+                {
+                    Stream specificConsoleKeys = HACGUIKeyset.GetConsoleKeysFileInfoByName(ConsoleName).Create();
+                    specificConsoleKeys.WriteString(ExternalKeys.PrintUniqueKeys(HACGUIKeyset.Keyset));
+                    specificConsoleKeys.Close();
+                }
                 Stream titleKeys = HACGUIKeyset.TitleKeysFileInfo.Create();
                 titleKeys.WriteString(ExternalKeys.PrintTitleKeys(HACGUIKeyset.Keyset));
                 prodKeys.Close();
                 extraKeys.Close();
                 consoleKeys.Close();
-                specificConsoleKeys.Close();
                 titleKeys.Close();
             });
         }

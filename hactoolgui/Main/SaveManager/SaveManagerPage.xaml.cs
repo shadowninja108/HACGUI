@@ -27,39 +27,35 @@ namespace HACGUI.Main.SaveManager
             DeviceService.Start();
 
             GridView grid = ListView.View as GridView;
-            if (titleId == 0) // Context is SaveManager
-            {
-                // System saves have an owner which is useful information, so it's worth displaying
-                grid.Columns.Insert(0, new GridViewColumn()
-                {
-                    DisplayMemberBinding = new Binding("Owner"),
-                    Header = "Owner",
-                    Width = double.NaN
-                });
-            }
-            else // Context is ApplicationWindow
+            if (titleId != 0) // Context is SaveManager
             {
                 // The title ID is already known, so it's pointless showing the user
-                GridViewColumn column = grid.Columns.Where((c) => c.Header as string == "Name/ID").FirstOrDefault();
-                if (column != null)
-                    grid.Columns.Remove(column);
-                else
-                {
-                    ; // for breakpoint (this should never happen)
-                }
+                RemoveColumn(grid, "Name/ID");
+                RemoveColumn(grid, "Owner");
             }
 
             Refresh();
         }
 
+        private static void RemoveColumn(GridView view, string title)
+        {
+            IEnumerable<GridViewColumn> noHeaders = view.Columns.Where(c => c.Header as string == title);
+            IEnumerable<GridViewColumn> withHeaders = view.Columns.Where(c => (c.Header as GridViewColumnHeader)?.Content as string == title);
+
+            List<GridViewColumn> toRemove = noHeaders.Concat(withHeaders).ToList(); // copy to list so that I don't iterate over what i'm modifying
+            foreach (GridViewColumn col in toRemove)
+                view.Columns.Remove(col);
+        }
+
         private void SaveDoubleClicked(object sender, MouseButtonEventArgs e)
         {
-            SaveElement element = ListView.SelectedItem as SaveElement;
-            SaveInfoWindow window = new SaveInfoWindow(element)
-            {
-                Owner = Window.GetWindow(this)
-            };
-            window.ShowDialog();
+            if(ListView.SelectedItem is SaveElement element){
+                SaveInfoWindow window = new SaveInfoWindow(element)
+                {
+                    Owner = Window.GetWindow(this)
+                };
+                window.ShowDialog();
+            }
         }
 
         private void RefreshSavesView(Dictionary<ulong, LibHac.Application> apps, Dictionary<ulong, LibHac.Title> titles, Dictionary<string, SaveDataFileSystem> saves)

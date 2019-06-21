@@ -6,7 +6,8 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:HACGUI.Main.TitleManager"
         xmlns:System="clr-namespace:System;assembly=mscorlib"
-        mc:Ignorable="d" 
+    xmlns:utilities="clr-namespace:HACGUI.Utilities"
+    mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="MainTitleManagerPage">
 
@@ -23,7 +24,7 @@
             <Grid>
                 <ListView Name="ListView" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MouseDoubleClick="ApplicationDoubleClicked">
                     <ListView.View>
-                        <GridView>
+                        <utilities:OrganizableGridView>
                             <GridViewColumn Header="Icon" Width="100">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
@@ -31,18 +32,28 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="Name">
+                            <GridViewColumn>
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Name">Name</GridViewColumnHeader>
+                                </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock TextWrapping="Wrap" Text="{Binding Name}"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                                <GridViewColumn Header="Title ID" DisplayMemberBinding="{Binding Path=TitleId, StringFormat={}{0:x16}}"/>
+                            <GridViewColumn DisplayMemberBinding="{Binding Path=TitleId, StringFormat={}{0:x16}}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="TitleId">Title ID</GridViewColumnHeader>
+                                </GridViewColumn.Header>                            </GridViewColumn>
                             <GridViewColumn Header="Version" DisplayMemberBinding="{Binding FriendlyVersion}" Width="55"/>
                             <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Path=TypesAsString}"/>
-                            <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Path=Size, Converter={StaticResource fileSizeConverter}}"/>
-                        </GridView>
+                            <GridViewColumn  DisplayMemberBinding="{Binding Path=Size, Converter={StaticResource fileSizeConverter}}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Size">Size</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                        </utilities:OrganizableGridView>
                     </ListView.View>
                 </ListView>
             </Grid>
