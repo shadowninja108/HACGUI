@@ -7,10 +7,12 @@ namespace HACGUI.Main.TitleManager
         public static string GetNameFromTitle(Title title)
         {
             ulong id = title.Id;
-            if (title.MainNca == null)
-                return "Unknown";
+            
             if (id == 0x0100000000000031)
             {
+                if (title.MainNca == null)
+                    return "Unknown";
+
                 if (title.MainNca.Nca.Header.KeyAreaKeyIndex == 0)
                     return "arp"; // 1.0.0
                 else

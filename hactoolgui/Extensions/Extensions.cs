@@ -14,19 +14,39 @@ using System.Windows.Controls;
 using LibHac.Fs.NcaUtils;
 using LibHac.Fs.Save;
 using LibHac.Fs;
+using System.Linq;
+using System.Reflection;
 
 namespace HACGUI.Extensions
 {
     public static class Extensions
     {
-        public static T FindParent<T>(DependencyObject dependencyObject) where T : DependencyObject
+        private static readonly PropertyInfo InheritanceContextProp = typeof(DependencyObject).GetProperty("InheritanceContext", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        public static T FindParent<T>(this DependencyObject dependencyObject) where T : DependencyObject
         {
-            var parent = VisualTreeHelper.GetParent(dependencyObject);
+            DependencyObject parent = LogicalTreeHelper.GetParent(dependencyObject);
+
+            if (parent == null)
+            {
+                if (dependencyObject is FrameworkElement)
+                {
+                    parent = VisualTreeHelper.GetParent(dependencyObject);
+                }
+                if (parent == null && dependencyObject is ContentElement)
+                {
+                    parent = ContentOperations.GetParent((ContentElement)dependencyObject);
+                }
+                if (parent == null)
+                {
+                    parent = InheritanceContextProp.GetValue(dependencyObject, null) as DependencyObject;
+                }
+            }
 
             if (parent == null) return null;
 
             var parentT = parent as T;
-            return parentT ?? FindParent<T>(parent);
+            return parentT ?? parent.FindParent<T>();
         }
 
         public static FileInfo GetFile(this DirectoryInfo obj, string filename)

@@ -26,12 +26,12 @@ namespace HACGUI.Extensions
 
         public NavigationWindow FindNavigationWindow()
         {
-            return Extensions.FindParent<NavigationWindow>(this);
+            return this.FindParent<NavigationWindow>();
         }
 
         public RootWindow FindRootWindow()
         {
-            return Extensions.FindParent<RootWindow>(this);
+            return this.FindParent<RootWindow>();
         }
     }
 }
