@@ -74,6 +74,28 @@ namespace HACGUI.Main
                     Dispatcher.Invoke(() => nandRefresh(false));
                 };
 
+                SDService.OnSDPluggedIn += (drive) =>
+                {
+                    DirectoryInfo root = drive.RootDirectory;
+                    DirectoryInfo switchDir = root.GetDirectory("switch");
+                    if (switchDir.Exists)
+                    {
+                        FileInfo prodKeysInfo = switchDir.GetFile("prod.keys");
+                        if (prodKeysInfo.Exists)
+                        {
+                            try
+                            {
+                                ExternalKeys.ReadKeyFile(HACGUIKeyset.Keyset, prodKeysInfo.FullName);
+                                new SaveKeysetTask(null).CreateTask().RunSynchronously();
+                            }
+                            catch (Exception e)
+                            {
+                                MessageBox.Show($"An error occured when attempting to import keys from SD card. It could be corrupted.\nError: {e.Message}");
+                            }
+                        }
+                    }
+                };
+
                 // init this first as other pages may request tasks on init
                 TaskManagerView = new TaskManagerPage();
                 TaskManagerFrame.Content = TaskManagerView;
@@ -173,7 +195,7 @@ namespace HACGUI.Main
             if (files == null)
                 return;
 
-            TaskManagerPage.Current.Queue.Submit(new RunTask("Process imported game data...", new Task(() =>
+            TaskManagerPage.Current.Queue.Submit(new RunTask("Processing imported game data...", new Task(() =>
             {
                 IEnumerable<FileInfo> ncas = files.Where((f) =>
                 {
