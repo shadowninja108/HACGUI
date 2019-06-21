@@ -11,11 +11,11 @@ namespace HACGUI.Services
 {
     public class MountService
     {
-        private static char[] DriveLetters = "CDEFGHIJKLMNOPQRSTUVWXYZ".ToArray();
+        private static readonly char[] DriveLetters = "CDEFGHIJKLMNOPQRSTUVWXYZ".ToArray();
 
         public static readonly string PathSeperator = "\\";
         
-        private static Dictionary<MountableFileSystem, Tuple<Thread, char>> Mounted = new Dictionary<MountableFileSystem, Tuple<Thread, char>>();
+        private static readonly Dictionary<MountableFileSystem, Tuple<Thread, char>> Mounted = new Dictionary<MountableFileSystem, Tuple<Thread, char>>();
 
         static MountService()
         {

@@ -66,7 +66,7 @@ namespace HACGUI.FirstStart
                     });
                 };
 
-                RootWindow.Current.Submit(new System.Threading.Tasks.Task(() => SDService.Start()));
+                RootWindow.Current.Submit(new Task(() => SDService.Start()));
             };
         }
 

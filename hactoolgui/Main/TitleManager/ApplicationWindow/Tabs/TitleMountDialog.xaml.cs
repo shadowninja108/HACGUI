@@ -19,7 +19,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
     /// </summary>
     public partial class TitleMountDialog : Window
     {
-        private Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>> Indexed;
+        private readonly Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>> Indexed;
         private readonly SwitchFsNca MainNca;
 
         public TitleMountDialog(Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>> indexed, SwitchFsNca mainNca)

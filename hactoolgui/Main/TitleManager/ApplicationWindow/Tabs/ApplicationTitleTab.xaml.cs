@@ -126,8 +126,9 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
             {
                 if (title.Metadata.Type == TitleType.Patch)
                 {
-                    if(main != null)
-                        title.MainNca.BaseNca = main.MainNca.Nca;
+                    if (main != null)
+                        foreach (SwitchFsNca n in title.Ncas)
+                            n.BaseNca = main.MainNca.Nca;
                     updates.Add(title.MainNca);
                 }
                 else if (title != main)

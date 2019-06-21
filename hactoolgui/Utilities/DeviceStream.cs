@@ -143,7 +143,7 @@ namespace NandReaderGui
             {
                 var bufferPtr = Marshal.AllocHGlobal(count);
                 Marshal.Copy(buffer, offset, bufferPtr, count);
-                if (!WriteFile(_handleValue, bufferPtr, (uint)count, out uint bytesWritten, IntPtr.Zero))
+                if (!WriteFile(_handleValue, bufferPtr, (uint)count, out _, IntPtr.Zero))
                 {
                     Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
                 }

@@ -34,10 +34,10 @@ namespace HACGUI
 
         public static event EventHandler CurrentThemeChanged;
 
-        private string[] LightThemeDictPaths = new string[] {   };
-        private string[] DarkThemeDictPaths = new string[] {  };
+        private readonly string[] LightThemeDictPaths = new string[] {   };
+        private readonly string[] DarkThemeDictPaths = new string[] {  };
 
-        private List<ResourceDictionary> LightThemeDicts, DarkThemeDicts;
+        private readonly List<ResourceDictionary> LightThemeDicts, DarkThemeDicts;
 
         public static RootWindow Current;
 
@@ -175,6 +175,7 @@ namespace HACGUI
 
                     ((Grid)page.Content).Children.Add(moonButton);
                     */
+
                     if (CanGoBack && page.GetType() != typeof(DerivingPage) && page.GetType() != typeof(FinishPage)) // No button needed if there's nothing to go back to
                         page.Loaded += (a, _4) => // Content won't exist until the page has loaded, so set up the code to run when it has
                         {

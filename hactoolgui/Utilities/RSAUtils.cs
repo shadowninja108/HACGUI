@@ -51,7 +51,7 @@ namespace CertNX
                 N = E;
                 E = Val - Q * E;
             }
-            if (T < 0) T = T + Mod;
+            if (T < 0) T += Mod;
             return T;
         }
 

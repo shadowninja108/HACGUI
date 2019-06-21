@@ -8,12 +8,13 @@ using System.IO;
 using HACGUI.Utilities;
 using static HACGUI.Extensions.Extensions;
 using LibHac.Fs;
+using System.Windows.Forms;
 
 namespace HACGUI.Main.TaskManager.Tasks
 {
     public class DecryptTicketsTask : ProgressTask
     {
-        private string ConsoleName;
+        private readonly string ConsoleName;
 
         public DecryptTicketsTask(string consoleName) : base("Decrypting new tickets...")
         {
