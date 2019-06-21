@@ -13,7 +13,7 @@ namespace HACGUI.Services
         public static event SDChangedEventHandler OnSDPluggedIn, OnSDRemoved;
         public static DriveInfo CurrentDrive;
 
-        private static ManagementEventWatcher Watcher;
+        private static readonly ManagementEventWatcher Watcher;
         private static bool Started = false;
 
         private static readonly Func<DirectoryInfo, bool> DefaultValidator = 
@@ -44,7 +44,7 @@ namespace HACGUI.Services
                     if (Validator(actedDriveInfo))
                     {
                         CurrentDrive = actedDrive; // set current drive so the event handler *could* access it directly, but why tho
-                        OnSDPluggedIn(actedDrive);
+                        OnSDPluggedIn?.Invoke(actedDrive);
                     }
                 }
                 else if (CurrentDrive != null) // if a drive hasn't been found to begin with, no need to check what was removed
@@ -52,7 +52,7 @@ namespace HACGUI.Services
                     DirectoryInfo currentDrive = new DirectoryInfo(CurrentDrive.Name);
                     if (currentDrive.Name == actedDrive.Name) // was the removed drive the one we found?
                     {
-                        OnSDRemoved(CurrentDrive); // Allow the handler read the current drive before we clear it
+                        OnSDRemoved?.Invoke(CurrentDrive); // Allow the handler read the current drive before we clear it
                         CurrentDrive = null;
                     }
                 }

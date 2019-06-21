@@ -72,7 +72,7 @@ namespace HACGUI.Services
                             }
                         }
                         if (!found)
-                            OnNANDRemoved();
+                            OnNANDRemoved?.Invoke();
                     }
                 }
             });
@@ -125,7 +125,7 @@ namespace HACGUI.Services
                         return false;
                 NAND = new Nand(input.AsStream(FileAccess.Read), HACGUIKeyset.Keyset, FileAccess.Read);
                 NANDSource = input;
-                OnNANDPluggedIn();
+                OnNANDPluggedIn?.Invoke();
                 return true;
             }
             else
