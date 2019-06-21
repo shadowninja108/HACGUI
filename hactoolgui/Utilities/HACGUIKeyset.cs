@@ -222,7 +222,7 @@ namespace HACGUI.Utilities
 
                             if (!GetClientCertificateByName(consoleName).Exists)
                                 return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a client certificate.");
-
+                                
                             if (!GetConsoleKeysFileInfoByName(consoleName).Exists)
                                 return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a {ConsoleKeysFileName} file.");
 
@@ -269,6 +269,7 @@ namespace HACGUI.Utilities
             "bis_key_source_00",
             "bis_key_source_01",
             "bis_key_source_02",
+            "bis_key_source_03",
             "eticket_rsa_kek",
             "ssl_rsa_kek",
             "retail_specific_aes_key_source",
