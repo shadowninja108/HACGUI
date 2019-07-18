@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace HACGUI.Services
 {
@@ -39,6 +40,10 @@ namespace HACGUI.Services
                     Unmount(fs);
                 thread.Start();
                 Mounted[fs] = new Tuple<Thread, char>(thread, drive);
+            }
+            else
+            {
+                MessageBox.Show("Dokan driver seems to be missing. Install the driver and try again.");
             }
         }
 
@@ -139,9 +144,9 @@ namespace HACGUI.Services
         {
             foreach (string fileName in new List<string>(OpenedFiles.Keys))
                 CloseFile(fileName);
-
-            lock(IOLock)
-                Fs.Commit();
+            if(Mode == OpenMode.ReadWrite)
+                lock(IOLock)
+                    Fs.Commit();
         }
 
         public NtStatus CreateFile(string fileName, DokanNet.FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, DokanFileInfo info)
@@ -255,20 +260,20 @@ namespace HACGUI.Services
             try
             {
                 freeBytesAvailable = Fs.GetFreeSpaceSize("/");
+            }
+            catch (Exception)
+            {
+                freeBytesAvailable = 0;
+            }
+            try
+            {
                 totalNumberOfBytes = Fs.GetTotalSpaceSize("/");
-                totalNumberOfFreeBytes = freeBytesAvailable;
-            } catch(NotImplementedException)
-            {
-                freeBytesAvailable = 0;
-                totalNumberOfBytes = 0;
-                totalNumberOfFreeBytes = 0;
             }
-            catch (NotSupportedException)
+            catch (Exception)
             {
-                freeBytesAvailable = 0;
                 totalNumberOfBytes = 0;
-                totalNumberOfFreeBytes = 0;
             }
+            totalNumberOfFreeBytes = freeBytesAvailable;
             return NtStatus.Success;
         }
 
@@ -397,13 +402,13 @@ namespace HACGUI.Services
             lock (IOLock)
             {
                 FileStorage storage = OpenFile(fileName);
-                long size = storage.GetSize() - offset;
-                if (size < 0)
+                long size = storage.GetSize() - offset; // distance to EOF
+                if (size < 0) // can't write out side the file dummy
                 {
                     bytesWritten = 0;
                     return NtStatus.Unsuccessful;
                 }
-                size = Math.Min(size, buffer.Length);
+                size = Math.Min(size, buffer.Length); // prevent buffer from writing past EOF
 
                 storage.Write(buffer, Math.Min(offset, storage.GetSize() - size), (int)size, 0);
                 bytesWritten = (int)size; // TODO accuracy
