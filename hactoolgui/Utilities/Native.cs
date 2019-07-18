@@ -41,12 +41,14 @@ namespace HACGUI.Utilities
 
         public static string GetLoggedInUser()
         {
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT UserName FROM Win32_ComputerSystem");
+            ManagementScope scope = new ManagementScope($"\\\\{Environment.MachineName}\\root\\cimv2");
+            ObjectQuery query = new ObjectQuery("SELECT * FROM Win32_ComputerSystem");
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, query);
             IEnumerable<ComputerSystemInfo> infos = searcher.Get().Cast<ManagementObject>()
                 .Select(i => new ComputerSystemInfo(i));
-            string user = infos.FirstOrDefault()?.UserName;
-            if (user == null)
-                return "";
+            string user = infos.FirstOrDefault(x => x.UserName != null)?.UserName;
+            if (user == null) // can occur over a remote desktop connection
+                user = Environment.UserName; // will be innaccurate when user is running as admin from an unprivileged user
             return user.Substring(user.IndexOf("\\")+1);
         }
 
@@ -148,7 +150,7 @@ namespace HACGUI.Utilities
                 proc.Start();
                 Task.Run(() =>
                 {
-                    if(wait)
+                    if (wait)
                         proc.WaitForExit();
                     callback();
                 });
