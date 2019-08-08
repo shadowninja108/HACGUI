@@ -126,8 +126,8 @@
     </Reference>
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Management" />
-    <Reference Include="System.Memory, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Memory.4.5.2\lib\netstandard1.1\System.Memory.dll</HintPath>
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.3\lib\netstandard1.1\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -162,6 +162,10 @@
     </Compile>
     <Compile Include="Main\SaveManager\SystemSaveNames.cs" />
     <Compile Include="Main\TaskManager\Tasks\CopyAccountDataTask.cs" />
+    <Compile Include="Main\TaskManager\Tasks\ExtractFileSystemTask.cs" />
+    <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\Extractors\ExtractPartition.xaml.cs">
+      <DependentUpon>ExtractPartition.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Main\TitleManager\ApplicationWindow\Tabs\TitleMountDialog.xaml.cs">
       <DependentUpon>TitleMountDialog.xaml</DependentUpon>
     </Compile>
@@ -335,6 +339,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\Extractors\ExtractPartition.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Main\TitleManager\ApplicationWindow\Tabs\Extracts\Extractors\ExtractAsNCAs.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -490,7 +498,7 @@
     </Resource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libhac\src\LibHac.Nand\LibHac.Nand.csproj">
+    <ProjectReference Include="..\LibHac.Nand\src\LibHac.Nand\LibHac.Nand.csproj">
       <Project>{2a1596d4-71dc-4e47-a15c-5a72567c40c3}</Project>
       <Name>LibHac.Nand</Name>
     </ProjectReference>

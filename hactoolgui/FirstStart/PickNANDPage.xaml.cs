@@ -247,7 +247,7 @@ namespace HACGUI.FirstStart
                  // mainly a check if the NCA can be decrypted
                 ulong titleId = nca.Header.TitleId;
 
-                if (!new ulong[] { // check if title ID is one that needs to be process before opening it
+                if (!new ulong[] { // check if title ID is one that needs to be processed before opening it
                     0x0100000000000033, // es
                     0x0100000000000024, // ssl
                 }.Contains(titleId))
@@ -341,12 +341,12 @@ namespace HACGUI.FirstStart
             IStorage nsAppmanStorage = system.OpenFile("save\\8000000000000043", OpenMode.Read).AsStorage();
             SaveDataFileSystem nsAppmanSave = new SaveDataFileSystem(HACGUIKeyset.Keyset, nsAppmanStorage, IntegrityCheckLevel.ErrorOnInvalid, false);
             IStorage privateStorage = nsAppmanSave.OpenFile("/private", OpenMode.Read).AsStorage();
-            byte[] sdIdenitifyer = new byte[0x10];
+            byte[] sdIdenitifer = new byte[0x10];
             byte[] sdSeed = new byte[0x10];
-            privateStorage.Read(sdIdenitifyer, 0); // stored on SD and NAND, used to uniquely idenitfy the SD/NAND
+            privateStorage.Read(sdIdenitifer, 0); // stored on SD and NAND, used to uniquely idenitfy the SD/NAND
             privateStorage.Read(sdSeed, 0x10);
             HACGUIKeyset.Keyset.SetSdSeed(sdSeed);
-            Preferences.Current.SdIdentifiers[sdIdenitifyer.ToHexString()] = sdSeed.ToHexString();
+            Preferences.Current.SdIdentifiers[sdIdenitifer.ToHexString()] = sdSeed.ToHexString();
 
             NANDService.Stop();
 

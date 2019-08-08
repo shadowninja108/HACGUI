@@ -62,6 +62,7 @@ namespace HACGUI.Main.TaskManager
                             stask.Wait();
                         }
                         catch (Exception) { }
+                    task.InformEnd();
                 }
                 else
                     Thread.Sleep(200);

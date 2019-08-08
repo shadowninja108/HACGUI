@@ -1,4 +1,6 @@
-﻿using LibHac;
+﻿using HACGUI.Extensions;
+using LibHac;
+using LibHac.Fs.NcaUtils;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,7 +23,8 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             Extractors = new Dictionary<string, IExtractorWindow>
             {
                 { "Extract as NCAs" , new ExtractAsNCAs(selected)},
-                { "Repack as NSP" , new RepackAsNSPWindow(selected)}
+                { "Extract partitions", new ExtractPartition(selected) },
+                { "Repack as NSP" , new RepackAsNSPWindow(selected) },
             };
 
             SelectedTitles = selected;

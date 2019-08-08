@@ -20,13 +20,11 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
     public partial class TitleMountDialog : Window
     {
         private readonly Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>> Indexed;
-        private readonly SwitchFsNca MainNca;
 
-        public TitleMountDialog(Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>> indexed, SwitchFsNca mainNca)
+        public TitleMountDialog(Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>> indexed)
         {
             InitializeComponent();
             Indexed = indexed;
-            MainNca = mainNca;
 
             bool hasPatch = false;
             foreach (Tuple<SwitchFsNca, int> t in Indexed.Values.SelectMany(i => i))
@@ -48,6 +46,9 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
 
         private void MountClicked(object sender, RoutedEventArgs e)
         {
+            if (ComboBox.SelectedItem == null)
+                return;
+
             MountType mountType = (MountType) ComboBox.SelectedItem;
             NcaFormatType sectionType = NcaFormatType.Romfs;
             switch (mountType)
@@ -68,9 +69,6 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
                     SwitchFsNca nca = t.Item1;
                     NcaFsHeader section = t.Item1.Nca.Header.GetFsHeader(t.Item2);
                     int index = t.Item2;
-
-                    if (section.IsPatchSection())
-                        MainNca.BaseNca = nca.Nca;
 
                     filesystems.Add(nca.OpenFileSystem(index, IntegrityCheckLevel.ErrorOnInvalid));
                 }

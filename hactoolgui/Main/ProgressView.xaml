@@ -12,7 +12,7 @@
         <DockPanel LastChildFill="True">
             <Label DockPanel.Dock="Top" FontSize="20" Name="Status" Height="40"/>
             <ProgressBar Height="40" DockPanel.Dock="Bottom" Name="ProgressBar"/>
-            <TextBox Name="Log"/>
+            <TextBox Name="Log" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" />
         </DockPanel>
     </Grid>
 </Page>

@@ -22,7 +22,7 @@ namespace HACGUI.Utilities
 
         public OrganizableGridView() : base()
         {
-            if (DesignMode.IsInDesignMode) return;
+            if (DesignMode.IsInDesignMode(this)) return;
 
             ColumnQueue = new Queue<GridViewColumn>();
             Dispatcher.BeginInvoke(new Action(() => 

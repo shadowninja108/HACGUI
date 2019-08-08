@@ -213,6 +213,7 @@ namespace HACGUI.Utilities
                         if (!RootConsoleFolderInfo.GetDirectories().Any()) // Check if the console directory is empty
                             return new Tuple<bool, string>(false, $"No consoles registered.");
 
+                        int consoles = 0;
                         foreach (DirectoryInfo consoleDir in RootConsoleFolderInfo.GetDirectories())
                         {
                             string consoleName = consoleDir.Name;
@@ -229,9 +230,13 @@ namespace HACGUI.Utilities
                             if(!GetTicketsDirectory(consoleName).Exists)
                                 return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a {TicketFolderName} folder.");
 
+                            consoles++;
                             /*if (!GetAccountsDirectory(consoleName).Exists)
                                 return new Tuple<bool, string>(false, $"Console \"{consoleName}\" does not have a {AccountsFolderName} folder.");*/
                         }
+
+                        if (consoles == 0)
+                            return new Tuple<bool, string>(false, "No valid consoles found.");
                     }
                     else
                         return new Tuple<bool, string>(false, "Console directory does not exist.");

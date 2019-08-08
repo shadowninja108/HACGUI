@@ -12,7 +12,6 @@ namespace HACGUI.Utilities
 {
     public class Native
     {
-
         public static bool IsAdministrator =>
             new WindowsPrincipal(WindowsIdentity.GetCurrent())
             .IsInRole(WindowsBuiltInRole.Administrator);
@@ -48,7 +47,7 @@ namespace HACGUI.Utilities
                 .Select(i => new ComputerSystemInfo(i));
             string user = infos.FirstOrDefault(x => x.UserName != null)?.UserName;
             if (user == null) // can occur over a remote desktop connection
-                user = Environment.UserName; // will be innaccurate when user is running as admin from an unprivileged user
+                user = Environment.UserName; // will be innaccurate when user is running as admin from an unprivileged user and over RDP
             return user.Substring(user.IndexOf("\\")+1);
         }
 
@@ -148,12 +147,15 @@ namespace HACGUI.Utilities
             try
             {
                 proc.Start();
-                Task.Run(() =>
+                Task task = Task.Run(() =>
                 {
-                    if (wait)
+                    if(wait)
                         proc.WaitForExit();
                     callback();
                 });
+
+                if (wait)
+                    task.Wait();
             }
             catch (System.ComponentModel.Win32Exception)
             {

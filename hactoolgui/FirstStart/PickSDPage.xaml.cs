@@ -24,6 +24,8 @@ namespace HACGUI.FirstStart
     {
         private FileInfo KeysetFile;
 
+        private bool MountSDLock, MountSDEnabled;
+
         public PickSDPage()
         {
             InitializeComponent();
@@ -34,7 +36,8 @@ namespace HACGUI.FirstStart
                 SDService.OnSDPluggedIn += (drive) =>
                 {
                     KeysetFile = drive.RootDirectory.GetDirectory("switch").GetFile("prod.keys");
-                    Dispatcher.Invoke(() => NextButton.IsEnabled = true); // update on UI thread
+                    if(CopyKeyset())
+                        Dispatcher.Invoke(() => NextButton.IsEnabled = true); // update on UI thread
 
                 };
                 SDService.OnSDRemoved += (drive) =>
@@ -45,7 +48,8 @@ namespace HACGUI.FirstStart
                 };
 
                 SendLockpickButton.IsEnabled = InjectService.LibusbKInstalled;
-                MountSDButton.IsEnabled = InjectService.LibusbKInstalled;
+                MountSDEnabled = InjectService.LibusbKInstalled;
+                Dispatcher.Invoke(() => UpdateSDButton());
 
                 InjectService.DeviceInserted += () =>
                 {
@@ -53,7 +57,8 @@ namespace HACGUI.FirstStart
                         Dispatcher.Invoke(() => 
                         {
                             SendLockpickButton.IsEnabled = true;
-                            MountSDButton.IsEnabled = true;
+                            MountSDEnabled = true;
+                            UpdateSDButton();
                         });
                 };
 
@@ -62,8 +67,22 @@ namespace HACGUI.FirstStart
                     Dispatcher.Invoke(() =>
                     {
                         SendLockpickButton.IsEnabled = false;
-                        MountSDButton.IsEnabled = false;
+                        MountSDEnabled = false;
+                        UpdateSDButton();
                     });
+                };
+
+                InjectService.ErrorOccurred += () => 
+                {
+                    MessageBox.Show("An error occurred while trying to send the memloader ini data...");
+                    MountSDLock = false;
+                    Dispatcher.Invoke(() => UpdateSDButton());
+                };
+
+                InjectService.IniInjectFinished += () => 
+                {
+                    MountSDLock = false;
+                    Dispatcher.Invoke(() => UpdateSDButton());
                 };
 
                 RootWindow.Current.Submit(new Task(() => SDService.Start()));
@@ -81,8 +100,6 @@ namespace HACGUI.FirstStart
             root.Navigate(new DerivingPage((page) => 
             {
                 // setup key derivation task and execute it asynchronously on the next page
-                CopyKeyset();
-
                 HACGUIKeyset.Keyset.DeriveKeys();
 
                 PageExtension next = null;
@@ -109,7 +126,8 @@ namespace HACGUI.FirstStart
             if(info != null && info.Exists)
             {
                 KeysetFile = info;
-                Dispatcher.Invoke(() => NextButton.IsEnabled = true);
+                if (CopyKeyset())
+                    Dispatcher.Invoke(() => NextButton.IsEnabled = true);
             }
         }
 
@@ -121,16 +139,24 @@ namespace HACGUI.FirstStart
             e.Handled = true;
         }
 
-        public void CopyKeyset()
+        public bool CopyKeyset()
         {
             ExternalKeys.ReadKeyFile(HACGUIKeyset.Keyset, KeysetFile.FullName);
             HACGUIKeyset.Keyset.DeriveKeys(); // derive from keyblobs
+
+            if (HACGUIKeyset.Keyset.HeaderKey.IsEmpty())
+            {
+                MessageBox.Show("It seems that you are missing some keys...\nLockpick_RCM requires that Atmosphere's sept be on the SD card to derive every key.\nPlease add it and try again.");
+                return false;
+            }
+            else
+                return true;
         }
 
         private bool IsSDCard(DirectoryInfo info)
         {
             DirectoryInfo switchFolder = info.GetDirectory("switch");
-            return switchFolder.Exists ? switchFolder.GetFile("prod.keys").Exists : false;
+            return switchFolder.GetFile("prod.keys").Exists;
         }
 
         private void SendLockpickButtonClicked(object sender, RoutedEventArgs e)
@@ -149,15 +175,35 @@ namespace HACGUI.FirstStart
 
                     using (Stream dest = HACGUIKeyset.TempLockpickPayloadFileInfo.OpenWrite())
                         await src.CopyToAsync(dest); // stream payload to file
+
+                    while (!HACGUIKeyset.TempLockpickPayloadFileInfo.CanOpen()) ; // prevent race condition?
                 }).Wait();
             }
-                    
+
             InjectService.SendPayload(HACGUIKeyset.TempLockpickPayloadFileInfo);
+        }
+
+        private void UpdateSDButton()
+        {
+            if (!MountSDLock)
+            {
+                MountSDButton.IsEnabled = MountSDEnabled;
+                MountSDButton.ToolTip = null;
+            }
+            else
+            {
+                MountSDButton.IsEnabled = false;
+                MountSDButton.ToolTip = "Waiting on memloader responding... (select USB comms if there is an option)";
+            }
         }
 
         private void MountSDButtonClicked(object sender, RoutedEventArgs e)
         {
             InjectService.SendPayload(HACGUIKeyset.MemloaderPayloadFileInfo);
+
+            MountSDLock = true;
+            Dispatcher.Invoke(() => UpdateSDButton());
+
             InjectService.SendIni(HACGUIKeyset.MemloaderSampleFolderInfo.GetFile("ums_sd.ini"));
         }
     }

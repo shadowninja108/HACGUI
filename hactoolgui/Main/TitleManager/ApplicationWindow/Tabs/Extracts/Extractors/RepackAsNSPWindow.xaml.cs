@@ -61,7 +61,6 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 
             foreach (SwitchFsNca nca in SelectedNcas)
                 builder.AddFile(nca.Filename, nca.Nca.BaseStorage.AsFile(OpenMode.Read));
-            
 
             NavigationWindow window = new NavigationWindow
             {

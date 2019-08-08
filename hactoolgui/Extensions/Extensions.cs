@@ -14,7 +14,6 @@ using System.Windows.Controls;
 using LibHac.Fs.NcaUtils;
 using LibHac.Fs.Save;
 using LibHac.Fs;
-using System.Linq;
 using System.Reflection;
 
 namespace HACGUI.Extensions
@@ -91,6 +90,19 @@ namespace HACGUI.Extensions
             return infos;
         }
 
+        public static bool CanOpen(this FileInfo info)
+        {
+            try
+            {
+                using (info.OpenRead())
+                {
+                    return true;
+                }
+            } catch
+            {
+                return false;
+            }
+        }
         public static void CopyToNew(this Stream source, Stream destination, long length = long.MaxValue)
         {
             long beginning = source.Position;
@@ -188,12 +200,64 @@ namespace HACGUI.Extensions
             {
                 case TitleType.AddOnContent:
                 case TitleType.Patch:
-                    string TitleID = $"{title.Id:x16}";
-                    byte M = Convert.ToByte(TitleID.Substring(12, 1), 16);
-                    TitleID = $"{TitleID.ToLower().Substring(0, 12)}{M - M % 2:x}000";
-                    return Convert.ToUInt64(TitleID, 16);
+                    return GetBaseTitleID(title.Id);
             }
             return title.Id;
+        }
+
+        public static ulong GetBaseTitleID(this ulong titleId)
+        {
+            string TitleID = $"{titleId:x16}";
+            byte M = Convert.ToByte(TitleID.Substring(12, 1), 16);
+            TitleID = $"{TitleID.ToLower().Substring(0, 12)}{M - M % 2:x}000";
+            return Convert.ToUInt64(TitleID, 16);
+        }
+
+        public static ulong GetRightsId(this Nca nca)
+        {
+            byte[] tidArr = nca.Header.RightsId.ToArray();
+            Array.Reverse(tidArr);
+            ulong tidl = BitConverter.ToUInt64(tidArr, 0);
+            ulong tidu = BitConverter.ToUInt64(tidArr, 0x8);
+            return tidu | tidl;
+        }
+
+        public static void MatchupBaseNca(this IEnumerable<SwitchFsNca> ncas)
+        {
+            Dictionary<ulong, Dictionary<ContentType, SwitchFsNca>> mainNcas = new Dictionary<ulong, Dictionary<ContentType, SwitchFsNca>>();
+            foreach (SwitchFsNca nca in ncas)
+            {
+                int patchSections = 0;
+                for (int i = 0; i < 4; i++)
+                {
+                    if (!nca.Nca.Header.IsSectionEnabled(i)) continue;
+                    NcaFsHeader section = nca.Nca.Header.GetFsHeader(i);
+                    if (section.IsPatchSection())
+                        patchSections++;
+                }
+
+                ulong tid = nca.Nca.GetRightsId();
+                ulong baseTid = tid.GetBaseTitleID();
+                if (tid == baseTid && tid != 0)
+                {
+                    if (!mainNcas.ContainsKey(baseTid))
+                        mainNcas[baseTid] = new Dictionary<ContentType, SwitchFsNca>();
+                    mainNcas[baseTid][nca.Nca.Header.ContentType] = nca;
+                }
+            }
+
+            foreach (SwitchFsNca nca in ncas)
+            {
+                ulong tid = nca.Nca.GetRightsId();
+                if (mainNcas.ContainsKey(tid)) continue;
+
+                if (mainNcas.ContainsKey(tid.GetBaseTitleID()))
+                {
+                    Dictionary<ContentType, SwitchFsNca> d = mainNcas[tid.GetBaseTitleID()];
+                    if(d.ContainsKey(nca.Nca.Header.ContentType))
+                        nca.BaseNca = d[nca.Nca.Header.ContentType].Nca;
+                }
+            }
         }
 
         public static byte[] ToByteArray(this string hex)

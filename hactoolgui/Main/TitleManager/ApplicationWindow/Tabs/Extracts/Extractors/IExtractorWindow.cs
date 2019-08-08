@@ -4,9 +4,15 @@ using System.Windows.Controls;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 {
-    public abstract partial class IExtractorWindow : UserControl
+    public abstract class IExtractorWindow : UserControl
     {
         protected List<SwitchFsNca> SelectedNcas;
+
+        public IExtractorWindow()
+        {
+            if (!DesignMode.IsInDesignMode(this))
+                throw new System.Exception();
+        }
 
         public IExtractorWindow(List<SwitchFsNca> selected)
         {

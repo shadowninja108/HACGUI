@@ -17,6 +17,7 @@ namespace HACGUI.Main
         private List<ProgressTask> Loggers;
 
         public long Value { get; private set; }
+        private int CompletedLogs = 0;
 
         public ProgressView(List<ProgressTask> loggers)
         {
@@ -52,8 +53,18 @@ namespace HACGUI.Main
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
+                        int caret = Log.CaretIndex;
+                        int textLength = Log.Text.Length;
+
                         Status.Content = m;
                         Log.Text += m;
+
+                        if (caret == textLength)
+                        {
+                            Log.ScrollToEnd();
+                            Log.CaretIndex = textLength;
+                        } else
+                            Log.CaretIndex = caret;
                     }));
 
                 };
@@ -61,6 +72,15 @@ namespace HACGUI.Main
 
                 logger.ProgressChanged += handler;
                 logger.TotalChanged += handler;
+                logger.Ended += () => 
+                {
+                    CompletedLogs++;
+                    if (CompletedLogs >= Loggers.Count)
+                    {
+                        Window w = Parent as Window;
+                        w.Dispatcher.Invoke(() => w.Close());
+                    }
+                };
             }
         }
 
@@ -78,7 +98,7 @@ namespace HACGUI.Main
                     if (logger.Indeterminate)
                     {
                         ProgressBar.IsIndeterminate = true;
-                        break;
+                        return;
                     }
                 }
 
@@ -87,9 +107,6 @@ namespace HACGUI.Main
                 else
                     ProgressBar.Value = 1;
                 ProgressBar.Maximum = 1;
-
-                if (value >= total)
-                    (Parent as Window).Close();
             }));
 
         }

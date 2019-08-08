@@ -1,4 +1,5 @@
-﻿using HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors;
+﻿using HACGUI.Extensions;
+using HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors;
 using LibHac;
 using LibHac.Fs.NcaUtils;
 using System;
@@ -21,6 +22,9 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
         {
             InitializeComponent();
 
+            if (DesignMode.IsInDesignMode(this))
+                return;
+
             foreach(Title title in Element.OrderTitlesByBest())
             {
                 TitleElement info = new TitleElement
@@ -29,6 +33,8 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
                 };
                 ListView.Items.Add(info);
             }
+
+            ListView.Items.OfType<TitleElement>().SelectMany(x => x.Title.Ncas).MatchupBaseNca();
         }
 
         private void ExtractClicked(object sender, RoutedEventArgs e)
@@ -38,6 +44,8 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
                 if (info.Selected)
                     foreach (NcaElement nca in info.Ncas)
                         selected.Add(nca.Nca);
+
+            selected.MatchupBaseNca();
 
             Window window = new ExtractPickerWindow(selected)
             {
@@ -79,6 +87,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
 
         private void MountClicked(object sender, RoutedEventArgs e)
         {
+
             List<Title> selected = new List<Title>();
             foreach (TitleElement info in ListView.Items)
                 if (info.Selected)
@@ -88,7 +97,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
 
             Title baseTitle = orderedTitles.FirstOrDefault(t => t.Metadata.Type == TitleType.Application);
 
-            if (baseTitle == null && orderedTitles.Count == 1)
+            if (baseTitle == null && orderedTitles.Count > 0)
                 baseTitle = orderedTitles.First();
 
             if (!IsMountable(baseTitle, selected))
@@ -100,8 +109,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
             Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>> indexed = new Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>>();
             foreach (Title title in selected)
             {
-                SwitchFsNca nca = title.MainNca;
-                if (nca.Nca.Header.ContentType != ContentType.Meta)
+                foreach(SwitchFsNca nca in title.Ncas)
                     for (int i = 0; i < 4; i++)
                     {
                         if (!nca.Nca.Header.IsSectionEnabled(i)) continue;
@@ -110,7 +118,8 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
                         indexed[section.FormatType].Add(new Tuple<SwitchFsNca, int>(nca, i));
                     }
             }
-            Window window = new TitleMountDialog(indexed, baseTitle.MainNca)
+
+            Window window = new TitleMountDialog(indexed)
             {
                 Owner = Window.GetWindow(this)
             };
@@ -126,9 +135,6 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
             {
                 if (title.Metadata.Type == TitleType.Patch)
                 {
-                    if (main != null)
-                        foreach (SwitchFsNca n in title.Ncas)
-                            n.BaseNca = main.MainNca.Nca;
                     updates.Add(title.MainNca);
                 }
                 else if (title != main)

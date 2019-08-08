@@ -133,8 +133,6 @@ namespace HACGUI.Services
             {
                 if (OpenedFiles.ContainsKey(fileName))
                 {
-                    if(Mode == OpenMode.ReadWrite)
-                        OpenedFiles[fileName].Dispose();
                     OpenedFiles.Remove(fileName);
                 }
             }
@@ -279,6 +277,7 @@ namespace HACGUI.Services
 
         public NtStatus GetFileInformation(string fileName, out FileInformation fileInfo, DokanFileInfo info)
         {
+            fileName = FilterPath(fileName);
             if (GetDirectory(fileName, OpenDirectoryMode.All) != null)
                 fileInfo = CreateInfo(GetDirectory(fileName, OpenDirectoryMode.All), fileName);
             else if (GetFile(fileName) != null)
@@ -434,6 +433,8 @@ namespace HACGUI.Services
             path = PathTools.Normalize(path);
             if (path.StartsWith("/"))
                 path = path.Substring(1);
+            if (string.IsNullOrWhiteSpace(path))
+                path = "/";
             return path;
         }
 

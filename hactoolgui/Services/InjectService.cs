@@ -62,23 +62,19 @@ namespace HACGUI.Services
         private static bool Started = false;
         private static int Writes;
         private static readonly object WaitForReadyLock = new object();
+        private static Task IniTask;
+        public static bool WaitingForIniInject => IniTask != null;
 
-        public static event Action DeviceInserted, DeviceRemoved;
+        public static event Action DeviceInserted, DeviceRemoved, IniInjectFinished, ErrorOccurred;
 
         static InjectService()
         {
-            if (HACGUIKeyset.TempLockpickPayloadFileInfo.Exists)
-                HACGUIKeyset.TempLockpickPayloadFileInfo.Delete();
-
-
             // Create event handlers to detect when a device is added or removed
             CreateWatcher = new ManagementEventWatcher();
             WqlEventQuery createQuery = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'");
             CreateWatcher.EventArrived += new EventArrivedEventHandler((s, e) =>
             {
                 Refresh();
-                if (WMIDeviceInfo != null)
-                    DeviceInserted?.Invoke();
             });
             CreateWatcher.Query = createQuery;
 
@@ -96,12 +92,6 @@ namespace HACGUI.Services
             DeviceInserted += () =>
             {
                 StatusService.RCMStatus = StatusService.Status.OK;
-                if (!LibusbKInstalled)
-                {
-                    MessageBoxResult result = MessageBox.Show("You have plugged in your console, but it lacks the libusbK driver. Want to install it? (You cannot inject anything until this is done)", "", MessageBoxButton.YesNo);
-                    if(result == MessageBoxResult.Yes)
-                        InstallDriver();
-                }
             };
 
             DeviceRemoved += () =>
@@ -114,6 +104,9 @@ namespace HACGUI.Services
         {
             if (Started)
                 throw new Exception("Inject service is already started!");
+
+            if (HACGUIKeyset.TempLockpickPayloadFileInfo.Exists)
+                HACGUIKeyset.TempLockpickPayloadFileInfo.Delete();
 
             Refresh();
             if (WMIDeviceInfo != null)
@@ -194,68 +187,73 @@ namespace HACGUI.Services
 
         public static void SendIni(FileInfo info)
         {
-            Task.Run(() =>
-            {
-                bool attemptInject()
+            if (!WaitingForIniInject)
+                IniTask = Task.Run(() =>
                 {
-                    Device.AbortPipe(1);
-                    Device.AbortPipe(0x81);
-
-                    DirectoryInfo root = info.Directory;
-
-                    MemloaderIniData iniData = new MemloaderIniData(info);
-
-                    Task<bool> task;
-
-                    foreach (LoadData currData in iniData.LoadData)
+                    bool attemptInject()
                     {
-                        task = DeviceWrapper.WriteAsync("RECV".ToBytes(), 2000);
-                        task.Wait();
-                        if (!task.Result)
-                            return false;
+                        Device.AbortPipe(1);
+                        Device.AbortPipe(0x81);
 
-                        FileInfo file = root.GetFile(currData.SourceFile);
-                        IEnumerable<byte> data = File.ReadAllBytes(file.FullName);
-                        int skip = (int)currData.Skip;
-                        int dataLength = data.Count() - skip;
-                        if (currData.Count > 0)
-                            dataLength = Math.Min(dataLength, (int)currData.Count);
+                        DirectoryInfo root = info.Directory;
 
-                        IEnumerable<byte> address = currData.Dest.ToBytes(4).Reverse();
-                        IEnumerable<byte> size = dataLength.ToBytes(4).Reverse();
-                        byte[] bytesToSend = address.Concat(size).ToArray();
+                        MemloaderIniData iniData = new MemloaderIniData(info);
 
-                        task = DeviceWrapper.WriteAsync(bytesToSend, 2000);
-                        task.Wait();
-                        if (!task.Result)
-                            return false;
+                        Task<bool> task;
 
-                        task = DeviceWrapper.WriteAsync(data.Skip(skip).Take(dataLength).ToArray(), 2000);
-                        task.Wait();
-                        if (!task.Result)
-                            return false;
-                    }
+                        foreach (LoadData currData in iniData.LoadData)
+                        {
+                            task = DeviceWrapper.WriteAsync("RECV".ToBytes(), 2000);
+                            task.Wait();
+                            if (!task.Result)
+                                return false;
 
-                    foreach (BootData currData in iniData.BootData)
-                    {
-                        Device.WritePipe(1, "BOOT".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
-                        if (lengthTransfered != 4)
-                            return false;
+                            FileInfo file = root.GetFile(currData.SourceFile);
+                            IEnumerable<byte> data = File.ReadAllBytes(file.FullName);
+                            int skip = (int)currData.Skip;
+                            int dataLength = data.Count() - skip;
+                            if (currData.Count > 0)
+                                dataLength = Math.Min(dataLength, (int)currData.Count);
 
-                        IEnumerable<byte> pc = currData.PC.ToBytes(4).Reverse();
-                        task = DeviceWrapper.WriteAsync(pc.ToArray(), 2000);
-                        task.Wait();
-                        if (!task.Result)
-                            return false;
-                    }
-                    return true;
-                };
+                            IEnumerable<byte> address = currData.Dest.ToBytes(4).Reverse();
+                            IEnumerable<byte> size = dataLength.ToBytes(4).Reverse();
+                            byte[] bytesToSend = address.Concat(size).ToArray();
 
-                WaitForReady();
-                while (!attemptInject())
+                            task = DeviceWrapper.WriteAsync(bytesToSend, 2000);
+                            task.Wait();
+                            if (!task.Result)
+                                return false;
+
+                            task = DeviceWrapper.WriteAsync(data.Skip(skip).Take(dataLength).ToArray(), 2000);
+                            task.Wait();
+                            if (!task.Result)
+                                return false;
+                        }
+
+                        foreach (BootData currData in iniData.BootData)
+                        {
+                            Device.WritePipe(1, "BOOT".ToBytes(), 4, out int lengthTransfered, IntPtr.Zero);
+                            if (lengthTransfered != 4)
+                                return false;
+
+                            IEnumerable<byte> pc = currData.PC.ToBytes(4).Reverse();
+                            task = DeviceWrapper.WriteAsync(pc.ToArray(), 2000);
+                            task.Wait();
+                            if (!task.Result)
+                                return false;
+                        }
+                        return true;
+                    };
+
                     WaitForReady();
-                ;
-            });
+                    while (!attemptInject())
+                        WaitForReady();
+                })
+                .ContinueWith(t => {
+                    IniTask = null; // task is complete, discard
+                    IniInjectFinished?.Invoke();
+                }) 
+                .ContinueWith(t => ErrorOccurred?.Invoke(), TaskContinuationOptions.OnlyOnFaulted); // catch exceptions and inform delegate
         }
 
         public struct LoadData
@@ -412,6 +410,13 @@ namespace HACGUI.Services
 
         public static void Refresh()
         {
+            Scan();
+            if (WMIDeviceInfo != null)
+                DeviceInserted?.Invoke();
+        }
+
+        public static void Scan()
+        {
             WMIDeviceInfo = null;
             Device = null;
             DeviceWrapper = null;
@@ -419,13 +424,25 @@ namespace HACGUI.Services
                 if (info.DeviceID.StartsWith($"USB\\VID_{VID}&PID_{PID}"))
                 {
                     WMIDeviceInfo = info;
-                    var patternMatch = new KLST_PATTERN_MATCH { ClassGUID = WMIDeviceInfo.ClassGuid };
-                    var deviceList = new LstK(0, ref patternMatch);
-                    deviceList.MoveNext(out KLST_DEVINFO_HANDLE deviceInfo);
 
-                    Device = new UsbK(deviceInfo);
-                    Device.SetAltInterface(0, false, 0);
-                    DeviceWrapper = new UsbKWrapper(Device);
+                    if (!LibusbKInstalled)
+                    {
+                        MessageBoxResult result = MessageBox.Show("You have plugged in your console, but it lacks the libusbK driver. Want to install it? (You cannot inject anything until this is done)", "", MessageBoxButton.YesNo);
+                        if (result == MessageBoxResult.Yes)
+                            InstallDriver();
+                        WMIDeviceInfo = CreateUsbControllerDeviceInfos(GetUsbDevices()).First(x => x.DeviceID == WMIDeviceInfo.DeviceID); // we need to refresh the info
+                    }
+
+                    if (LibusbKInstalled)
+                    {
+                        var patternMatch = new KLST_PATTERN_MATCH { ClassGUID = WMIDeviceInfo.ClassGuid };
+                        var deviceList = new LstK(0, ref patternMatch);
+                        deviceList.MoveNext(out KLST_DEVINFO_HANDLE deviceInfo);
+
+                        Device = new UsbK(deviceInfo);
+                        Device.SetAltInterface(0, false, 0);
+                        DeviceWrapper = new UsbKWrapper(Device);
+                    }
                     break;
                 }
         }

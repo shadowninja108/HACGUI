@@ -2,3 +2,6 @@
 	path = LibHac
 	url = https://github.com/Thealexbarney/LibHac
 	branch = master
+[submodule "LibHac.Nand"]
+	path = LibHac.Nand
+	url = https://github.com/Thealexbarney/LibHac.Nand

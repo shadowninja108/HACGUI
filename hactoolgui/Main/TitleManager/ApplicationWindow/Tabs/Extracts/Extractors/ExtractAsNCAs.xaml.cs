@@ -82,7 +82,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                 {
                     destinationNcaFile.SetSize(source.GetSize());
                 })));
-                tasks.Add(new CopyTask($"Copying {nca.Filename}...", source, new FileStorage(destinationNcaFile)));
+                tasks.Add(new CopyTask($"Copying {nca.Filename}...", source, new FileStorage(destinationNcaFile), false));
             }
             ProgressView view = new ProgressView(tasks);
             NavigationWindow window = new NavigationWindow

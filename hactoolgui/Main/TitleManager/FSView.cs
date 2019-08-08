@@ -1,13 +1,10 @@
-﻿using HACGUI.Extensions;
-using HACGUI.Main.TaskManager;
+﻿using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
-using HACGUI.Utilities;
 using LibHac;
 using LibHac.Fs.Save;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace HACGUI.Main.TitleManager

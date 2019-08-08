@@ -20,7 +20,7 @@
             <Label DockPanel.Dock="Top" Content="Instructions" HorizontalAlignment="Center" Height="60" VerticalAlignment="Top" Width="200" FontSize="36" Margin="0,30,0,0"/>
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,0,0,50" Height="40">
                 <Button Content="Send Lockpick" Margin="60,0,40,0"  Name="SendLockpickButton" Click="SendLockpickButtonClicked" VerticalAlignment="Stretch" Width="100" IsEnabled="False"/>
-                <Button Content="Mount SD" Name="MountSDButton" Margin="0,0,200,0" Click="MountSDButtonClicked"  VerticalAlignment="Stretch" Width="100" IsEnabled="False"/>
+                <Button Content="Mount SD" Name="MountSDButton" Margin="0,0,200,0" Click="MountSDButtonClicked"  VerticalAlignment="Stretch" Width="100" IsEnabled="False" ToolTipService.ShowOnDisabled="True"/>
                 <Button Content="..." Width="40" Margin="0,0,20,0" VerticalAlignment="Stretch" Click="ManualPickerButtonClick"/>
                 <Button DockPanel.Dock="Bottom" Content="Next" Name="NextButton" Click="NextButtonClick" VerticalAlignment="Stretch" Width="140" IsEnabled="False"/>
             </StackPanel>

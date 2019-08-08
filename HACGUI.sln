@@ -1,13 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.539
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29020.237
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HACGUI", "hactoolgui\HACGUI.csproj", "{9FF2A61A-C664-40B9-9909-45B4030D9B5E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibHac", "libhac\src\LibHac\LibHac.csproj", "{76F22732-E7A2-4031-8784-5BF939815D39}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibHac.Nand", "libhac\src\LibHac.Nand\LibHac.Nand.csproj", "{2A1596D4-71DC-4E47-A15C-5A72567C40C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibHac.Nand", "LibHac.Nand\src\LibHac.Nand\LibHac.Nand.csproj", "{2A1596D4-71DC-4E47-A15C-5A72567C40C3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{76F22732-E7A2-4031-8784-5BF939815D39} = {76F22732-E7A2-4031-8784-5BF939815D39}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

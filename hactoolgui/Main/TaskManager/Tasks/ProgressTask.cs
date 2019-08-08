@@ -12,6 +12,7 @@ namespace HACGUI.Main.TaskManager.Tasks
         public event LongValueChangedEvent ProgressChanged;
         public event LongValueChangedEvent TotalChanged;
         public event VoidEvent Started;
+        public event VoidEvent Ended;
 
         public string Title { get; internal set; }
         public string Log { get; internal set; } = "";
@@ -62,6 +63,11 @@ namespace HACGUI.Main.TaskManager.Tasks
         {
             HasStarted = true;
             Started?.Invoke();
+        }
+
+        public void InformEnd()
+        {
+            Ended?.Invoke();
         }
     }
 }

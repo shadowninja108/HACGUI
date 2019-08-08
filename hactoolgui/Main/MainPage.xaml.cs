@@ -34,6 +34,16 @@ namespace HACGUI.Main
         public MainPage()
         {
             InitializeComponent();
+
+            byte[] bufft = new byte[0x40];
+            Span<byte> test = new Span<byte>();
+            test.Fill(0xFF);
+            MemoryStorage storage = new MemoryStorage(bufft);
+            PatchStorage patch = new PatchStorage(storage);
+            patch.Write(new byte[] { 0x1, 0x2, 0x3 }, 0);
+            patch.Read(new byte[3], 0);
+            //patch.Read(new byte[3], 1);
+
             Loaded += (_, __) =>
             {
                 void rcmRefresh(bool b)

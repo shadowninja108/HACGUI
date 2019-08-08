@@ -7,11 +7,15 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
     /// </summary>
     public partial class ApplicationSaveTab : UserControl
     {
-        private ApplicationElement Element => ApplicationWindow.Current.Element;
+        private ApplicationElement Element => ApplicationWindow.Current?.Element;
 
         public ApplicationSaveTab()
         {
             InitializeComponent();
+
+            if (DesignMode.IsInDesignMode(this))
+                return;
+
             Content = new SaveManager.SaveManagerPage(Element.BaseTitleId);
         }
     }

@@ -8,12 +8,14 @@ namespace HACGUI.Main.TaskManager.Tasks
     {
         private readonly IStorage Source, Destination;
         private readonly string Message;
+        private readonly bool DisposeSource;
 
-        public CopyTask(string message, IStorage source, IStorage destination) : base(message)
+        public CopyTask(string message, IStorage source, IStorage destination, bool disposeSource = true) : base(message)
         {
             Source = source;
             Destination = destination;
             Message = message;
+            DisposeSource = disposeSource;
         }
 
         public override Task CreateTask()
@@ -22,7 +24,8 @@ namespace HACGUI.Main.TaskManager.Tasks
             {
                 LogMessage(Message);
                 Source.CopyTo(Destination, this);
-                Source.Dispose();
+                if(DisposeSource)
+                    Source.Dispose();
                 Destination.Dispose();
             });
         }
