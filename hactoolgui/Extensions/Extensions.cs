@@ -236,7 +236,9 @@ namespace HACGUI.Extensions
                         patchSections++;
                 }
 
-                ulong tid = nca.Nca.GetRightsId();
+                ulong tid = nca.Nca.Header.TitleId;
+                if(nca.Nca.Header.HasRightsId)
+                    tid = nca.Nca.GetRightsId();
                 ulong baseTid = tid.GetBaseTitleID();
                 if (tid == baseTid && tid != 0)
                 {
@@ -248,7 +250,10 @@ namespace HACGUI.Extensions
 
             foreach (SwitchFsNca nca in ncas)
             {
-                ulong tid = nca.Nca.GetRightsId();
+                ulong tid = nca.Nca.Header.TitleId;
+                if (nca.Nca.Header.HasRightsId)
+                    tid = nca.Nca.GetRightsId();
+
                 if (mainNcas.ContainsKey(tid)) continue;
 
                 if (mainNcas.ContainsKey(tid.GetBaseTitleID()))
