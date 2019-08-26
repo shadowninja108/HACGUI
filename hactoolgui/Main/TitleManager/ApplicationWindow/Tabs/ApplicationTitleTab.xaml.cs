@@ -45,8 +45,6 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
                     foreach (NcaElement nca in info.Ncas)
                         selected.Add(nca.Nca);
 
-            selected.MatchupBaseNca();
-
             Window window = new ExtractPickerWindow(selected)
             {
                 Owner = Window.GetWindow(this)

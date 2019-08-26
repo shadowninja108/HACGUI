@@ -222,46 +222,71 @@ namespace HACGUI.Extensions
             return tidu | tidl;
         }
 
+        public static PseudoFileSystem MakeFs(this IEnumerable<SwitchFsNca> ncas)
+        {
+            PseudoFileSystem ncaFs = new PseudoFileSystem();
+            foreach (SwitchFsNca nca in ncas)
+            {
+                string s = nca.Filename;
+                while (s.EndsWith(".nca"))
+                    s = s.Substring(0, s.IndexOf(".nca"));
+                ncaFs.Add($"/{s}.nca", nca.Nca.BaseStorage);
+            }
+            return ncaFs;
+        }
+
+        public static PseudoFileSystem MakeFs(this IEnumerable<FileInfo> files)
+        {
+            PseudoFileSystem fs = new PseudoFileSystem();
+            foreach (FileInfo file in files)
+            {
+                LocalFileSystem localfs = new LocalFileSystem(file.Directory.FullName);
+
+                // clean up filename so it only ends with .nca, then map to actual name
+                string s = file.Name;
+                while (s.EndsWith(".nca"))
+                    s = s.Substring(0, s.IndexOf(".nca"));
+                fs.Add($"/{s}.nca", $"/{file.Name}", localfs);
+            }
+            return fs;
+        }
+
         public static void MatchupBaseNca(this IEnumerable<SwitchFsNca> ncas)
         {
             Dictionary<ulong, Dictionary<ContentType, SwitchFsNca>> mainNcas = new Dictionary<ulong, Dictionary<ContentType, SwitchFsNca>>();
-            foreach (SwitchFsNca nca in ncas)
+            PseudoFileSystem ps = ncas.MakeFs();
+            SwitchFs fs = SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, ps);
+            foreach (KeyValuePair<ulong, LibHac.Application> kv in fs.Applications)
             {
-                int patchSections = 0;
-                for (int i = 0; i < 4; i++)
-                {
-                    if (!nca.Nca.Header.IsSectionEnabled(i)) continue;
-                    NcaFsHeader section = nca.Nca.Header.GetFsHeader(i);
-                    if (section.IsPatchSection())
-                        patchSections++;
-                }
+                ulong tid = kv.Key;
+                LibHac.Application app = kv.Value;
 
-                ulong tid = nca.Nca.Header.TitleId;
-                if(nca.Nca.Header.HasRightsId)
-                    tid = nca.Nca.GetRightsId();
-                ulong baseTid = tid.GetBaseTitleID();
-                if (tid == baseTid && tid != 0)
-                {
-                    if (!mainNcas.ContainsKey(baseTid))
-                        mainNcas[baseTid] = new Dictionary<ContentType, SwitchFsNca>();
-                    mainNcas[baseTid][nca.Nca.Header.ContentType] = nca;
-                }
-            }
+                if(app.Patch != null)
+                    foreach (SwitchFsNca nca in app.Patch.Ncas)
+                    {
+                        ContentType type = nca.Nca.Header.ContentType;
+                        SwitchFsNca baseNca = app.Main.Ncas.Where(n => n.Nca.Header.ContentType == type).FirstOrDefault();
+                        if (baseNca != null)
+                        {
+                            bool hasPatch = false;
+                            for(int i = 0; i < 4; i++)
+                            {
+                                Nca n = nca.Nca;
+                                if (n.CanOpenSection(i))
+                                {
+                                    NcaFsHeader section = n.Header.GetFsHeader(i);
+                                    if(section.IsPatchSection())
+                                    {
+                                        hasPatch = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if(hasPatch)
+                                ncas.Where(n => n.Filename == nca.Filename.Replace("/", "")).First().BaseNca = baseNca.Nca; // set original NCA, not new parsed one
+                        }
+                    }
 
-            foreach (SwitchFsNca nca in ncas)
-            {
-                ulong tid = nca.Nca.Header.TitleId;
-                if (nca.Nca.Header.HasRightsId)
-                    tid = nca.Nca.GetRightsId();
-
-                if (mainNcas.ContainsKey(tid)) continue;
-
-                if (mainNcas.ContainsKey(tid.GetBaseTitleID()))
-                {
-                    Dictionary<ContentType, SwitchFsNca> d = mainNcas[tid.GetBaseTitleID()];
-                    if(d.ContainsKey(nca.Nca.Header.ContentType))
-                        nca.BaseNca = d[nca.Nca.Header.ContentType].Nca;
-                }
             }
         }
 

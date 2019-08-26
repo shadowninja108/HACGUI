@@ -94,7 +94,6 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 
                 Dispatcher.InvokeAsync(() => 
                 {
-
                     ProgressView view = new ProgressView(new List<ProgressTask>() { task });
                     NavigationWindow window = new NavigationWindow
                     {

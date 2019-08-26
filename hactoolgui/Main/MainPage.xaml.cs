@@ -3,22 +3,21 @@ using HACGUI.Main.SaveManager;
 using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager;
-using HACGUI.Utilities;
 using HACGUI.Services;
-using static HACGUI.Extensions.Extensions;
+using HACGUI.Utilities;
 using LibHac;
 using LibHac.Fs;
+using LibHac.Fs.NcaUtils;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Security.Principal;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Linq;
-using System.ComponentModel;
-using LibHac.Fs.NcaUtils;
+using static HACGUI.Extensions.Extensions;
 
 namespace HACGUI.Main
 {
@@ -183,7 +182,7 @@ namespace HACGUI.Main
             }
         }
 
-        private void ImportGameDataClicked(object sender, RoutedEventArgs e)
+        private void ImportGameDataClicked(object sender, RoutedEventArgs arg)
         {
             string filter = @"
                 Any game data (*.xci,*.nca,*.nsp)|*.xci;*.nca;*.nsp|
@@ -236,20 +235,8 @@ namespace HACGUI.Main
                 });
 
                 List<SwitchFs> switchFilesystems = new List<SwitchFs>();
-
-                PseudoFileSystem ncaFs = new PseudoFileSystem();
-                foreach (FileInfo file in ncas)
-                {
-                    LocalFileSystem fs = new LocalFileSystem(file.Directory.FullName);
-
-                    // clean up filename so it only ends with .nca, then map to actual name
-                    string s = file.Name;
-                    while (s.EndsWith(".nca"))
-                        s = s.Substring(0, s.IndexOf(".nca"));
-                    ncaFs.Add($"/{s}.nca", $"/{file.Name}", fs);
-                }
                 if (ncas.Any())
-                    switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, ncaFs));
+                    switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, ncas.MakeFs()));
 
                 foreach (FileInfo file in xcis)
                 {
@@ -257,11 +244,29 @@ namespace HACGUI.Main
                     switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, xci.OpenPartition(XciPartitionType.Secure)));
                 }
 
+                bool foundTicket = true;
                 foreach (FileInfo file in nsp)
                 {
                     PartitionFileSystem fs = new PartitionFileSystem(new LocalFile(file.FullName, OpenMode.Read).AsStorage());
+                    foreach(DirectoryEntry d in fs.EnumerateEntries().Where(e => e.Type == DirectoryEntryType.File && e.Name.EndsWith(".tik")))
+                    {
+                        using (IFile tikFile = fs.OpenFile(d.FullPath, OpenMode.Read)) {
+                            Ticket t = new Ticket(new BinaryReader(tikFile.AsStream()));
+                            try
+                            {
+                                HACGUIKeyset.Keyset.TitleKeys[t.RightsId] = t.GetTitleKey(HACGUIKeyset.Keyset);
+                                foundTicket = true;
+                            } catch(Exception e)
+                            {
+                                MessageBox.Show("Failed to import .tik file included in NSP.");
+                            }
+                        }
+                    }
                     switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, fs));
                 }
+
+                if(foundTicket)
+                    TaskManagerPage.Current.Queue.Submit(new SaveKeysetTask(Preferences.Current.DefaultConsoleName));
 
                 foreach (SwitchFs fs in switchFilesystems)
                     DeviceService.FsView.LoadFileSystemAsync("Opening imported data...", () => fs, FSView.TitleSource.Imported, false);

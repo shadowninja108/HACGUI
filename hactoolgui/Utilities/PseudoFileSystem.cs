@@ -7,24 +7,22 @@ namespace HACGUI.Utilities
     public class PseudoFileSystem : IAttributeFileSystem
     {
         public Dictionary<string, Tuple<string, IAttributeFileSystem>> FileDict;
+        public Dictionary<string, IStorage> StorageDict;
 
         public PseudoFileSystem()
         {
             FileDict = new Dictionary<string, Tuple<string, IAttributeFileSystem>>();
+            StorageDict = new Dictionary<string, IStorage>();
         }
 
         public void Add(string path, string internalPath, IAttributeFileSystem fs)
         {
             FileDict[path] = new Tuple<string, IAttributeFileSystem>(internalPath, fs);
-            /*PathParser parser = new PathParser(Encoding.ASCII.GetBytes(path));
-            while (!parser.IsFinished())
-            {
-                if (parser.TryGetNext(out ReadOnlySpan<byte> pb))
-                {
-                    string p = new string(Encoding.ASCII.GetChars(pb.ToArray()));
-                    ;
-                }
-            }*/
+        }
+
+        public void Add(string path, IStorage storage)
+        {
+            StorageDict[path] = storage;
         }
 
         public void CleanDirectoryRecursively(string path)
@@ -69,12 +67,21 @@ namespace HACGUI.Utilities
                 if (p.StartsWith(path) && !FileDict.ContainsKey(path))
                     return true;
             }
+            foreach (string p in StorageDict.Keys)
+            {
+                if (p.StartsWith(path) && !StorageDict.ContainsKey(path))
+                    return true;
+            }
             return false;
         }
 
         public bool FileExists(string path)
         {
-            return FileDict.ContainsKey(path);
+            if (FileDict.ContainsKey(path))
+                return true;
+            if (StorageDict.ContainsKey(path))
+                return true;
+            return false;
         }
 
         public DirectoryEntryType GetEntryType(string path)
@@ -89,8 +96,16 @@ namespace HACGUI.Utilities
 
         public long GetFileSize(string path)
         {
-            Tuple<string, IAttributeFileSystem> t = FileDict[path];
-            return t.Item2.GetFileSize(t.Item1);
+            if (FileDict.ContainsKey(path))
+            {
+                Tuple<string, IAttributeFileSystem> t = FileDict[path];
+                return t.Item2.GetFileSize(t.Item1);
+            }
+            if (StorageDict.ContainsKey(path))
+            {
+                return StorageDict[path].GetSize();
+            }
+            return -1;
         }
 
         public FileTimeStampRaw GetFileTimeStampRaw(string path)
@@ -118,8 +133,16 @@ namespace HACGUI.Utilities
 
         public IFile OpenFile(string path, OpenMode mode)
         {
-            Tuple<string, IAttributeFileSystem> t = FileDict[path];
-            return t.Item2.OpenFile(t.Item1, mode);
+            if (FileDict.ContainsKey(path))
+            {
+                Tuple<string, IAttributeFileSystem> t = FileDict[path];
+                return t.Item2.OpenFile(t.Item1, mode);
+            }
+            if (StorageDict.ContainsKey(path))
+            {
+                return StorageDict[path].AsFile(mode);
+            }
+            return null;
         }
 
         public void QueryEntry(Span<byte> outBuffer, ReadOnlySpan<byte> inBuffer, string path, QueryId queryId)

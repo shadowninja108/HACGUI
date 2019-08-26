@@ -149,6 +149,9 @@ namespace HACGUI.Services
 
         public NtStatus CreateFile(string fileName, DokanNet.FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, DokanFileInfo info)
         {
+            if (mode == FileMode.OpenOrCreate || mode == FileMode.CreateNew || mode == FileMode.Create && Mode == OpenMode.Read)
+                return DokanResult.AccessDenied;
+
             try
             {
                 fileName = FilterPath(fileName);
@@ -161,7 +164,10 @@ namespace HACGUI.Services
                         return DokanResult.NotADirectory;
                     else if (Fs.DirectoryExists(fileName))
                         return DokanResult.Success;
-                    Fs.CreateDirectory(fileName);
+                    if (mode == FileMode.OpenOrCreate || mode == FileMode.CreateNew || mode == FileMode.Create)
+                        Fs.CreateDirectory(fileName);
+                    else if (mode == FileMode.Open)
+                        return DokanResult.FileNotFound;
                 }
                 else
                 {

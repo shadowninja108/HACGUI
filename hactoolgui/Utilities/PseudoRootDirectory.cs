@@ -33,6 +33,15 @@ namespace HACGUI.Utilities
                 string name = kv.Key.Substring(split);
                 yield return new DirectoryEntry(name, fullPath, DirectoryEntryType.File, fs.GetFileSize(kv.Value.Item1));
             }
+
+            foreach(KeyValuePair<string, IStorage> kv in (ParentFileSystem as PseudoFileSystem).StorageDict)
+            {
+                string fullPath = kv.Key;
+                int split = fullPath.LastIndexOf('/');
+                string path = fullPath.Substring(0, split);
+                string name = kv.Key.Substring(split);
+                yield return new DirectoryEntry(name, fullPath, DirectoryEntryType.File, kv.Value.GetSize());
+            }
         }
     }
 }
