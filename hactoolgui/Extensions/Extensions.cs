@@ -261,7 +261,7 @@ namespace HACGUI.Extensions
                 ulong tid = kv.Key;
                 LibHac.Application app = kv.Value;
 
-                if(app.Patch != null)
+                if(app.Patch != null && app.Main != null)
                     foreach (SwitchFsNca nca in app.Patch.Ncas)
                     {
                         ContentType type = nca.Nca.Header.ContentType;
