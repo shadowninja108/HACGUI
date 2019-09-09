@@ -253,7 +253,6 @@ namespace HACGUI.Extensions
 
         public static void MatchupBaseNca(this IEnumerable<SwitchFsNca> ncas)
         {
-            Dictionary<ulong, Dictionary<ContentType, SwitchFsNca>> mainNcas = new Dictionary<ulong, Dictionary<ContentType, SwitchFsNca>>();
             PseudoFileSystem ps = ncas.MakeFs();
             SwitchFs fs = SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, ps);
             foreach (KeyValuePair<ulong, LibHac.Application> kv in fs.Applications)
