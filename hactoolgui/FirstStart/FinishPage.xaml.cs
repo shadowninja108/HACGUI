@@ -21,9 +21,9 @@ namespace HACGUI.FirstStart
                 TextArea.Text += "--------------------------------------------------------------\n";
                 TextArea.Text += HACGUIKeyset.PrintCommonWithoutFriendlyKeys(HACGUIKeyset.Keyset);
                 TextArea.Text += "--------------------------------------------------------------\n";
-                TextArea.Text += ExternalKeys.PrintUniqueKeys(HACGUIKeyset.Keyset);
+                TextArea.Text += ExternalKeyReader.PrintUniqueKeys(HACGUIKeyset.Keyset);
                 TextArea.Text += "--------------------------------------------------------------\n";
-                TextArea.Text += ExternalKeys.PrintTitleKeys(HACGUIKeyset.Keyset);
+                TextArea.Text += ExternalKeyReader.PrintTitleKeys(HACGUIKeyset.Keyset);
             };
             HACGUIKeyset.SetConsoleDirectoryAsIncomplete(PickConsolePage.ConsoleName, false);
         }

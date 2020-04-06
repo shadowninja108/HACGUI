@@ -2,6 +2,7 @@
 using HACGUI.Services;
 using HACGUI.Utilities;
 using LibHac;
+using LibHac.FsService;
 using Octokit;
 using System;
 using System.Collections.Generic;
@@ -35,8 +36,8 @@ namespace HACGUI.FirstStart
                 SDService.Validator = IsSDCard;
                 SDService.OnSDPluggedIn += (drive) =>
                 {
-                    KeysetFile = drive.RootDirectory.GetDirectory("switch").GetFile("prod.keys");
-                    if(CopyKeyset())
+                    KeysetFile = SDService.SDRoot.GetDirectory("switch").GetFile("prod.keys");
+                    if (CopyKeyset())
                         Dispatcher.Invoke(() => NextButton.IsEnabled = true); // update on UI thread
 
                 };
@@ -53,8 +54,8 @@ namespace HACGUI.FirstStart
 
                 InjectService.DeviceInserted += () =>
                 {
-                    if(InjectService.LibusbKInstalled)
-                        Dispatcher.Invoke(() => 
+                    if (InjectService.LibusbKInstalled)
+                        Dispatcher.Invoke(() =>
                         {
                             SendLockpickButton.IsEnabled = true;
                             MountSDEnabled = true;
@@ -72,14 +73,14 @@ namespace HACGUI.FirstStart
                     });
                 };
 
-                InjectService.ErrorOccurred += () => 
+                InjectService.ErrorOccurred += () =>
                 {
                     MessageBox.Show("An error occurred while trying to send the memloader ini data...");
                     MountSDLock = false;
                     Dispatcher.Invoke(() => UpdateSDButton());
                 };
 
-                InjectService.IniInjectFinished += () => 
+                InjectService.IniInjectFinished += () =>
                 {
                     MountSDLock = false;
                     Dispatcher.Invoke(() => UpdateSDButton());
@@ -97,7 +98,7 @@ namespace HACGUI.FirstStart
             SDService.ResetHandlers();
             SDService.Stop();
 
-            root.Navigate(new DerivingPage((page) => 
+            root.Navigate(new DerivingPage((page) =>
             {
                 // setup key derivation task and execute it asynchronously on the next page
                 HACGUIKeyset.Keyset.DeriveKeys();
@@ -123,7 +124,7 @@ namespace HACGUI.FirstStart
         private void ManualPickerButtonClick(object sender, RoutedEventArgs e)
         {
             FileInfo info = RequestOpenFileFromUser(".keys", "Production keys file (.keys)|*.keys", "Pick a prod.keys file (most recent as possible)...", "prod.keys");
-            if(info != null && info.Exists)
+            if (info != null && info.Exists)
             {
                 KeysetFile = info;
                 if (CopyKeyset())
@@ -141,7 +142,7 @@ namespace HACGUI.FirstStart
 
         public bool CopyKeyset()
         {
-            ExternalKeys.ReadKeyFile(HACGUIKeyset.Keyset, KeysetFile.FullName);
+            ExternalKeyReader.ReadKeyFile(HACGUIKeyset.Keyset, KeysetFile.FullName);
             HACGUIKeyset.Keyset.DeriveKeys(); // derive from keyblobs
 
             if (HACGUIKeyset.Keyset.HeaderKey.IsEmpty())

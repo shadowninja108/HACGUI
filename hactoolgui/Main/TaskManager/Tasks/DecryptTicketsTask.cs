@@ -1,14 +1,15 @@
 ﻿using HACGUI.Services;
 using LibHac;
 using LibHac.Nand;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
 using HACGUI.Utilities;
-using static HACGUI.Extensions.Extensions;
 using LibHac.Fs;
-using System.Windows.Forms;
+using LibHac.Spl;
+using LibHac.FsSystem;
+using static HACGUI.Extensions.Extensions;
+using LibHac.Common;
 
 namespace HACGUI.Main.TaskManager.Tasks
 {
@@ -30,7 +31,7 @@ namespace HACGUI.Main.TaskManager.Tasks
                 using (Stream stream = NANDService.NAND.OpenProdInfo())
                 {
                     Calibration cal0 = new Calibration(stream);
-                    HACGUIKeyset.Keyset.EticketExtKeyRsa = Crypto.DecryptRsaKey(cal0.EticketExtKeyRsa, HACGUIKeyset.Keyset.EticketRsaKek);
+                    HACGUIKeyset.Keyset.EticketExtKeyRsa = CryptoOld.DecryptRsaKey(cal0.EticketExtKeyRsa, HACGUIKeyset.Keyset.EticketRsaKek);
                 }
 
                 List<Ticket> tickets = new List<Ticket>();
@@ -40,23 +41,24 @@ namespace HACGUI.Main.TaskManager.Tasks
 
                 if (system.FileExists(e1FileName))
                 {
-                    IFile e1File = system.OpenFile(e1FileName, OpenMode.Read);
+                    system.OpenFile(out IFile e1File, e1FileName.ToU8Span(), OpenMode.Read);
                     IStorage e1Storage = new FileStorage(e1File);
                     tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e1Storage, ConsoleName));
                 }
 
                 if (system.FileExists(e2FileName))
                 {
-                    IFile e2File = system.OpenFile(e2FileName, OpenMode.Read);
+                    system.OpenFile(out IFile e2File, e2FileName.ToU8Span(), OpenMode.Read);
                     IStorage e2Storage = new FileStorage(e2File);
                     tickets.AddRange(DumpTickets(HACGUIKeyset.Keyset, e2Storage, ConsoleName));
                 }
 
                 foreach (Ticket ticket in tickets)
-                {
-                    HACGUIKeyset.Keyset.TitleKeys[ticket.RightsId] = new byte[0x10];
-                    Array.Copy(ticket.GetTitleKey(HACGUIKeyset.Keyset), HACGUIKeyset.Keyset.TitleKeys[ticket.RightsId], 0x10);
-                }
+                    HACGUIKeyset.Keyset.ExternalKeySet.Add(
+                        new RightsId(ticket.RightsId), 
+                        new AccessKey(ticket.GetTitleKey(HACGUIKeyset.Keyset))
+                    );
+                
             });
         }
     }

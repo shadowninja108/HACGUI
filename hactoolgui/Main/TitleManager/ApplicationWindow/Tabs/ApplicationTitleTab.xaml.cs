@@ -1,7 +1,8 @@
 ﻿using HACGUI.Extensions;
 using HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors;
 using LibHac;
-using LibHac.Fs.NcaUtils;
+using LibHac.FsSystem.NcaUtils;
+using LibHac.Ncm;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,7 +94,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
 
             List<Title> orderedTitles = Element.OrderTitlesByBest();
 
-            Title baseTitle = orderedTitles.FirstOrDefault(t => t.Metadata.Type == TitleType.Application);
+            Title baseTitle = orderedTitles.FirstOrDefault(t => t.Metadata.Type == ContentMetaType.Application);
 
             if (baseTitle == null && orderedTitles.Count > 0)
                 baseTitle = orderedTitles.First();
@@ -131,7 +132,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
             
             foreach (Title title in titles)
             {
-                if (title.Metadata.Type == TitleType.Patch)
+                if (title.Metadata.Type == ContentMetaType.Patch)
                 {
                     updates.Add(title.MainNca);
                 }

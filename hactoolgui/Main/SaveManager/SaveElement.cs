@@ -1,6 +1,7 @@
 ﻿using HACGUI.Main.TitleManager;
 using HACGUI.Utilities;
-using LibHac.Fs.Save;
+using LibHac.Fs;
+using LibHac.FsSystem.Save;
 using System;
 using System.Collections.Generic;
 

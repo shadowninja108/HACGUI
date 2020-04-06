@@ -1,8 +1,5 @@
 ﻿using LibHac.Fs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using LibHac.FsSystem;
 using System.Threading.Tasks;
 
 namespace HACGUI.Main.TaskManager.Tasks
@@ -24,7 +21,11 @@ namespace HACGUI.Main.TaskManager.Tasks
         {
             return new Task(() => 
             {
-                Source.CopyFileSystem(Destination, this);
+                foreach(DirectoryEntryEx entry in Source.EnumerateEntries("*", SearchOptions.RecurseSubdirectories))
+                {
+                    if(entry.Type == DirectoryEntryType.Directory)
+                        Source.CopyDirectory(Destination, entry.FullPath, entry.FullPath, this);
+                }
             });
         }
     }

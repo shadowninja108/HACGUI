@@ -4,16 +4,24 @@ using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Services;
 using HACGUI.Utilities;
 using LibHac;
+using LibHac.Common;
+using LibHac.Crypto;
 using LibHac.Fs;
-using LibHac.Fs.NcaUtils;
-using LibHac.Fs.Save;
+using LibHac.FsSystem;
+using LibHac.FsSystem.NcaUtils;
+using LibHac.FsSystem.Save;
 using LibHac.Nand;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Pkcs;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.X509;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Windows;
 using System.Windows.Navigation;
 using static CertNX.RSAUtils;
@@ -35,7 +43,7 @@ namespace HACGUI.FirstStart
             {
                 if (Native.IsAdministrator)
                 {
-                    MemloaderDescriptionLabel.Text = "HACGUI is waiting for a Switch with memloader setup to be plugged in.";
+                    MemloaderDescriptionLabel.Text = "HACGUI is waiting for a Switch in RCM to be plugged in.";
 
                     RestartAsAdminButton.Content = "Inject for me";
                     RestartAsAdminButton.IsEnabled = InjectService.LibusbKInstalled;
@@ -122,7 +130,7 @@ namespace HACGUI.FirstStart
             // stream package2 to memory
             IStorage pkg2nand = nand.OpenPackage2(0); // 0 -> BCPKG2-1-Normal-Main
             byte[] pkg2raw = new byte[0x7FC000]; // maximum size of pkg2
-            pkg2nand.Read(pkg2raw, 0x4000);
+            pkg2nand.Read(0x4000, pkg2raw);
 
             MemoryStorage pkg2memory = new MemoryStorage(pkg2raw);
 
@@ -209,7 +217,9 @@ namespace HACGUI.FirstStart
 
                             hashes.Clear();
 
-                            hashes.Add(new HashSearchEntry(NintendoKeys.HeaderKeySourceHash, () => HACGUIKeyset.Keyset.HeaderKeySource,
+                            hashes.Add(new HashSearchEntry(
+                                NintendoKeys.HeaderKeySourceHash, 
+                                () => HACGUIKeyset.Keyset.HeaderKeySource,
                                 0x20));
 
                             using (Stream datastream = new MemoryStream(kip.DecompressSection(2)))
@@ -244,7 +254,6 @@ namespace HACGUI.FirstStart
 
             foreach (Nca nca in fs.Ncas.Values.Select(n => n.Nca))
             {
-                 // mainly a check if the NCA can be decrypted
                 ulong titleId = nca.Header.TitleId;
 
                 if (!new ulong[] { // check if title ID is one that needs to be processed before opening it
@@ -253,14 +262,16 @@ namespace HACGUI.FirstStart
                 }.Contains(titleId))
                     continue;
 
+                // mainly to check if the NCA can be decrypted
                 if (!nca.CanOpenSection(0))
                     continue;
 
-                if (nca.Header.ContentType != ContentType.Program)
+                if (nca.Header.ContentType != NcaContentType.Program)
                     continue;
 
                 IFileSystem pfs = nca.OpenFileSystem(NcaSectionType.Code, IntegrityCheckLevel.ErrorOnInvalid);
-                Nso nso = new Nso(new FileStorage(pfs.OpenFile("main", OpenMode.Read)));
+                pfs.OpenFile(out IFile nsoFile, "main".ToU8Span(), OpenMode.Read);
+                Nso nso = new Nso(new FileStorage(nsoFile));
                 NsoSection section = nso.Sections[1];
                 Stream data = new MemoryStream(section.DecompressSection());
                 byte[] key1;
@@ -283,10 +294,10 @@ namespace HACGUI.FirstStart
                         data.FindKeysViaHash(hashes, new SHA256Managed(), 0x10, data.Length);
 
                         key1 = new byte[0x10];
-                        Crypto.DecryptEcb(HACGUIKeyset.Keyset.MasterKeys[0], RsaOaepKekGenerationSource, key1, 0x10);
+                        new AesEcbDecryptor(HACGUIKeyset.Keyset.MasterKeys[0]).Transform(RsaOaepKekGenerationSource, key1);
                         key2 = new byte[0x10];
-                        Crypto.DecryptEcb(key1, EticketRsaKekekSource, key2, 0x10);
-                        Crypto.DecryptEcb(key2, EticketRsaKekSource, HACGUIKeyset.Keyset.EticketRsaKek, 0x10);
+                        new AesEcbDecryptor(key1).Transform(EticketRsaKekekSource, key2);
+                        new AesEcbDecryptor(key2).Transform(EticketRsaKekSource, HACGUIKeyset.Keyset.EticketRsaKek);
                         break;
                     case 0x0100000000000024: // ssl
                         hashes.Clear();
@@ -304,16 +315,16 @@ namespace HACGUI.FirstStart
                         data.FindKeysViaHash(hashes, new SHA256Managed(), 0x10, data.Length);
 
                         key1 = new byte[0x10];
-                        Crypto.DecryptEcb(HACGUIKeyset.Keyset.MasterKeys[0], RsaPrivateKekGenerationSource, key1, 0x10);
+                        new AesEcbDecryptor(HACGUIKeyset.Keyset.MasterKeys[0]).Transform(RsaPrivateKekGenerationSource, key1);
                         key2 = new byte[0x10];
-                        Crypto.DecryptEcb(key1, SslAesKeyX, key2, 0x10);
-                        Crypto.DecryptEcb(key2, SslRsaKeyY, HACGUIKeyset.Keyset.SslRsaKek, 0x10);
+                        new AesEcbDecryptor(key1).Transform(SslAesKeyX, key2);
+                        new AesEcbDecryptor(key2).Transform(SslRsaKeyY, HACGUIKeyset.Keyset.SslRsaKek);
                         break;
                 }
             }
 
             // save PRODINFO to file, then derive eticket_ext_key_rsa
-            if(!AttemptDumpCert(nand: nand))
+            if(!TryDumpCert(nand: nand))
             {
                 MessageBox.Show($"Failed to parse decrypted certificate. If you are using Incognito, select your PRODINFO backup now.");
                 Dispatcher.Invoke(() => // dispatcher is required, otherwise a deadlock occurs. probably some threading issue
@@ -323,7 +334,7 @@ namespace HACGUI.FirstStart
                         FileInfo info = RequestOpenFileFromUser(".bin", "PRODINFO backup (.bin)|*.bin", "Select a valid PRODINFO backup...", "PRODINFO.bin");
                         if (info != null)
                         {
-                            if (AttemptDumpCert(info))
+                            if (TryDumpCert(info))
                                 break;
                         }
                         else
@@ -338,13 +349,22 @@ namespace HACGUI.FirstStart
             new DecryptTicketsTask(PickConsolePage.ConsoleName).CreateTask().RunSynchronously();
 
             FatFileSystemProvider system = NANDService.NAND.OpenSystemPartition();
-            IStorage nsAppmanStorage = system.OpenFile("save\\8000000000000043", OpenMode.Read).AsStorage();
+            system.OpenFile(out IFile nsAppmanFile, "save\\8000000000000043".ToU8Span(), OpenMode.Read);
+            IStorage nsAppmanStorage = nsAppmanFile.AsStorage();
             SaveDataFileSystem nsAppmanSave = new SaveDataFileSystem(HACGUIKeyset.Keyset, nsAppmanStorage, IntegrityCheckLevel.ErrorOnInvalid, false);
-            IStorage privateStorage = nsAppmanSave.OpenFile("/private", OpenMode.Read).AsStorage();
+            nsAppmanSave.OpenFile(out IFile privateFile, "/private".ToU8Span(), OpenMode.Read);
+
             byte[] sdIdenitifer = new byte[0x10];
             byte[] sdSeed = new byte[0x10];
-            privateStorage.Read(sdIdenitifer, 0); // stored on SD and NAND, used to uniquely idenitfy the SD/NAND
-            privateStorage.Read(sdSeed, 0x10);
+
+            using (nsAppmanFile)
+            using (nsAppmanSave)
+            using (privateFile)
+            {
+                IStorage privateStorage = privateFile.AsStorage();
+                privateStorage.Read(0, sdIdenitifer); // stored on SD and NAND, used to uniquely idenitfy the SD/NAND
+                privateStorage.Read(0x10, sdSeed);
+            }
             HACGUIKeyset.Keyset.SetSdSeed(sdSeed);
             Preferences.Current.SdIdentifiers[sdIdenitifer.ToHexString()] = sdSeed.ToHexString();
 
@@ -362,7 +382,7 @@ namespace HACGUI.FirstStart
             Preferences.Current.Write();
         }
 
-        public bool AttemptDumpCert(FileInfo prodinfo = null, Nand nand = null)
+        private static bool TryDumpCert(FileInfo prodinfo = null, Nand nand = null)
         {
             try
             {
@@ -395,17 +415,23 @@ namespace HACGUI.FirstStart
                 }
 
                 byte[] counter = cal0.SslExtKey.Take(0x10).ToArray();
-                byte[] key = cal0.SslExtKey.Skip(0x10).ToArray(); // bit strange structure but it works
+                byte[] privModulus = cal0.SslExtKey.Skip(0x10).ToArray(); // bit strange structure but it works
 
-                new Aes128CtrTransform(HACGUIKeyset.Keyset.SslRsaKek, counter).TransformBlock(key); // decrypt private key
+                new Aes128CtrTransform(HACGUIKeyset.Keyset.SslRsaKek, counter).TransformBlock(privModulus); // decrypt private modulus
 
-                X509Certificate2 certificate = new X509Certificate2();
-                certificate.Import(certBytes);
-                certificate.ImportPrivateKey(key);
+                X509Certificate certificate = new X509CertificateParser().ReadCertificate(certBytes);
+                AsymmetricKeyParameter privKey = certificate.RecoverPrivateParameter(privModulus);
 
-                byte[] pfx = certificate.Export(X509ContentType.Pkcs12, "switch");
+                var store = new Pkcs12Store();
+                X509CertificateEntry certEntry = new X509CertificateEntry(certificate);
+                store.SetCertificateEntry(certificate.SubjectDN.ToString(), certEntry);
+
+                AsymmetricKeyEntry privKeyEntry = new AsymmetricKeyEntry(privKey);
+                store.SetKeyEntry(certificate.SubjectDN.ToString() + "_key", privKeyEntry, new X509CertificateEntry[] { certEntry });
+
                 using (Stream pfxStream = HACGUIKeyset.GetClientCertificateByName(PickConsolePage.ConsoleName).Create())
-                    pfxStream.Write(pfx, 0, pfx.Length);
+                    store.Save(pfxStream, "switch".ToCharArray(), new SecureRandom());
+
                 return true;
             }
             catch

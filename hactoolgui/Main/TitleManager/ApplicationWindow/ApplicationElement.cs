@@ -3,13 +3,15 @@ using HACGUI.Main.TaskManager;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager.ApplicationWindow.Tabs;
 using LibHac;
+using LibHac.Common;
 using LibHac.Fs;
-using LibHac.Fs.NcaUtils;
+using LibHac.FsSystem;
+using LibHac.FsSystem.NcaUtils;
+using LibHac.Ncm;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -21,7 +23,7 @@ namespace HACGUI.Main.TitleManager
     {
         public static readonly ImageSource UnknownIcon = new BitmapImage(new Uri("pack://application:,,,/Resources/Img/UnknownTitle.jpg", UriKind.RelativeOrAbsolute));
 
-        static readonly List<TitleType> Priority = new List<TitleType>() { TitleType.Application, TitleType.Patch, TitleType.AddOnContent };
+        static readonly List<ContentMetaType> Priority = new List<ContentMetaType>() { ContentMetaType.Application, ContentMetaType.Patch, ContentMetaType.AddOnContent };
 
         static ApplicationElement()
         {
@@ -49,8 +51,8 @@ namespace HACGUI.Main.TitleManager
                 {
                     switch (title.Metadata.Type)
                     {
-                        case TitleType.Patch:
-                        case TitleType.Application:
+                        case ContentMetaType.Patch:
+                        case ContentMetaType.Application:
                             return title.Name;
                     }
                 }
@@ -69,7 +71,7 @@ namespace HACGUI.Main.TitleManager
                 list.Reverse();
                 foreach (Title title in list)
                 {
-                    if (title.Metadata.Type != TitleType.AddOnContent)
+                    if (title.Metadata.Type != ContentMetaType.AddOnContent)
                     {
                         if (title.Control != null)
                             return title.Control.DisplayVersion;
@@ -88,20 +90,20 @@ namespace HACGUI.Main.TitleManager
                 list.Reverse();
                 foreach (Title title in list)
                 {
-                    if (title.Metadata.Type != TitleType.AddOnContent)
+                    if (title.Metadata.Type != ContentMetaType.AddOnContent)
                         return title.Version;
                 }
                 return new TitleVersion(0);
             }
         }
-        public List<TitleType> Types
+        public List<ContentMetaType> Types
         {
             get
             {
-                HashSet<TitleType> set = new HashSet<TitleType>(); // ensure that there are no duplicates
+                HashSet<ContentMetaType> set = new HashSet<ContentMetaType>(); // ensure that there are no duplicates
                 foreach (Title title in OrderTitlesByBest())
                     set.Add(title.Metadata.Type);
-                List<TitleType> list = new List<TitleType>();
+                List<ContentMetaType> list = new List<ContentMetaType>();
                 list.AddRange(set);
                 return list;
             }
@@ -113,9 +115,9 @@ namespace HACGUI.Main.TitleManager
             get
             {
                 List<Title> titles = OrderTitlesByBest();
-                Title title = titles.LastOrDefault((x) => x.Metadata.Type == TitleType.Patch);
+                Title title = titles.LastOrDefault((x) => x.Metadata.Type == ContentMetaType.Patch);
                 if (title == null)
-                    title = titles.FirstOrDefault((x) => x.Metadata.Type == TitleType.Application);
+                    title = titles.FirstOrDefault((x) => x.Metadata.Type == ContentMetaType.Application);
                 if (title == null || title.Control == null)
                     return "";
                 else
@@ -153,7 +155,7 @@ namespace HACGUI.Main.TitleManager
 
         public Title FindBestTitle()
         {
-            foreach(TitleType type in Priority)
+            foreach(ContentMetaType type in Priority)
             {
                 Title title = Titles.FirstOrDefault(x => x?.Metadata.Type == type);
                 if (title != null)
@@ -165,7 +167,7 @@ namespace HACGUI.Main.TitleManager
         public List<Title> OrderTitlesByBest()
         {
             List<Title> list = new List<Title>();
-            foreach (TitleType type in Priority) // first find the types that need to be in a specifc order
+            foreach (ContentMetaType type in Priority) // first find the types that need to be in a specifc order
             {
                 Title title = Titles.FirstOrDefault(x => x?.Metadata.Type == type);
                 if (title != null)
@@ -195,14 +197,15 @@ namespace HACGUI.Main.TitleManager
             if (title.ControlNca != null)
             {
                 IFileSystem controlFS = title.ControlNca.OpenFileSystem(NcaSectionType.Data, IntegrityCheckLevel.ErrorOnInvalid);
-                DirectoryEntry file = controlFS.EnumerateEntries("icon_*.dat").FirstOrDefault();
+                DirectoryEntryEx file = controlFS.EnumerateEntries("/", "icon_*.dat").FirstOrDefault();
 
                 if (file != null)
                     return new Task<ImageSource>(() =>
                     {
                         try
                         {
-                            JpegBitmapDecoder decoder = new JpegBitmapDecoder(controlFS.OpenFile(file.FullPath, OpenMode.Read).AsStream(), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+                            controlFS.OpenFile(out IFile jpegFile, file.FullPath.ToU8Span(), OpenMode.Read);
+                            JpegBitmapDecoder decoder = new JpegBitmapDecoder(jpegFile.AsStream(), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
                             decoder.Frames[0].Freeze();
                             return decoder.Frames[0];
                         } catch(Exception)

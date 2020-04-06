@@ -1,5 +1,5 @@
 ﻿using LibHac;
-using LibHac.Fs.NcaUtils;
+using LibHac.FsSystem.NcaUtils;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
 {
@@ -8,8 +8,16 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
         public SwitchFsNca Nca;
 
         public string FileName => Nca.Filename;
-        public long Size => Nca.Nca.BaseStorage.GetSize();
-        public ContentType Type => Nca.Nca.Header.ContentType;
+        public long Size
+        {
+            get
+            {
+                Nca.Nca.BaseStorage.GetSize(out long size);
+                return size;
+            }
+        }
+
+        public NcaContentType Type => Nca.Nca.Header.ContentType;
         public bool Selected { get; set; }
 
     }

@@ -1,18 +1,15 @@
-﻿using HACGUI.Extensions;
-using HACGUI.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Navigation;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TaskManager;
-using static HACGUI.Extensions.Extensions;
 using LibHac;
 using LibHac.Fs;
-using LibHac.Fs.NcaUtils;
+using LibHac.FsSystem.NcaUtils;
+using LibHac.FsSystem;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 {
@@ -29,7 +26,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
             Indexed = new Dictionary<NcaFormatType, List<Tuple<SwitchFsNca, int>>>();
             foreach (SwitchFsNca nca in selected)
             {
-                if (nca.Nca.Header.ContentType != ContentType.Meta)
+                if (nca.Nca.Header.ContentType != NcaContentType.Meta)
                 {
                     for (int i = 0; i < 4; i++)
                     {
@@ -49,14 +46,13 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 
         private void BrowseClicked(object sender, RoutedEventArgs e)
         {
-            CommonOpenFileDialog dlg = new CommonOpenFileDialog
+            using (CommonOpenFileDialog dlg = new CommonOpenFileDialog())
             {
-                IsFolderPicker = true
-            };
-
-            if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                Path.Text = dlg.FileName;
+                dlg.IsFolderPicker = true;
+                if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+                {
+                    Path.Text = dlg.FileName;
+                }
             }
         }
 

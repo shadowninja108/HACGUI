@@ -156,6 +156,8 @@ namespace HACGUI.Main.TitleManager
                     return "dt";
                 case 0x40:
                     return "nd";
+                case 0x41:
+                    return "ngct";
 
                 // System Data Archives
                 case 0x800:
@@ -298,7 +300,7 @@ namespace HACGUI.Main.TitleManager
                 default:
                     return "Unknown";
 
-                    //TODO: type out rest of this shit
+                //TODO: type out rest of this shit
             }
         }
     }

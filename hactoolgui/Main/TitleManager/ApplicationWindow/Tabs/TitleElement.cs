@@ -1,4 +1,5 @@
 ﻿using LibHac;
+using LibHac.Ncm;
 using System.Collections.Generic;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
@@ -7,7 +8,7 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
     {
         public Title Title;
 
-        public TitleType Type => Title.Metadata.Type;
+        public ContentMetaType Type => Title.Metadata.Type;
         public ulong TitleId => Title.Id;
         public long Size => Title.GetSize();
         public bool Selected { get; set; }

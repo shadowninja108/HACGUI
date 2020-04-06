@@ -15,7 +15,7 @@
         <DockPanel>
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                 <Button Click="ExtractClicked">Extract</Button>
-                <!--<Button>Mount</Button>-->
+                <Button Click="MountClicked">Mount</Button>
             </StackPanel>
 
             <ListView Name="ListView">

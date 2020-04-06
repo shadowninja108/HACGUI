@@ -19,11 +19,11 @@ namespace HACGUI.Services
     // Payload injecting based on TegraSharp (aka copied and pasted)
     // https://github.com/simontime/TegraSharp
 
-    public class InjectService
+    public static class InjectService
     {
         public static UsbDeviceInfo WMIDeviceInfo;
         public static UsbK Device;
-        public static UsbKWrapper DeviceWrapper;
+        private static UsbKWrapper DeviceWrapper;
 
         private static readonly byte[] Intermezzo =
 {
@@ -54,8 +54,8 @@ namespace HACGUI.Services
 
         public static bool LibusbKInstalled => WMIDeviceInfo?.Service != null;
 
-        private static readonly string VID = "0955";
-        private static readonly string PID = "7321";
+        private const string VID = "0955";
+        private const string PID = "7321";
 
         private static readonly ManagementEventWatcher CreateWatcher, DeleteWatcher;
 
@@ -252,7 +252,7 @@ namespace HACGUI.Services
                 .ContinueWith(t => {
                     IniTask = null; // task is complete, discard
                     IniInjectFinished?.Invoke();
-                }) 
+                })
                 .ContinueWith(t => ErrorOccurred?.Invoke(), TaskContinuationOptions.OnlyOnFaulted); // catch exceptions and inform delegate
         }
 
@@ -260,7 +260,7 @@ namespace HACGUI.Services
         {
             public string
                 SourceFile;
-            public ulong 
+            public ulong
                 Skip,
                 Count,
                 Dest;
@@ -271,7 +271,7 @@ namespace HACGUI.Services
             public ulong PC;
         }
 
-        public class MemloaderIniData
+        class MemloaderIniData
         {
             public List<LoadData> LoadData = new List<LoadData>();
             public List<BootData> BootData = new List<BootData>();
@@ -322,7 +322,7 @@ namespace HACGUI.Services
             }
         }
 
-        public class UsbKWrapper
+        class UsbKWrapper
         {
             private readonly UsbK Device;
             public UsbKWrapper(UsbK device)
@@ -338,13 +338,13 @@ namespace HACGUI.Services
                     Task<byte[]> readTask = new Task<byte[]>(() => Read());
                     readTask.Start();
 
-                    Task runTimeout = Task.Run(async () => 
+                    Task runTimeout = Task.Run(async () =>
                     {
                         await Task.Delay(timeout);
 
                         while (!readTask.IsCompleted)
                             Device.AbortPipe(0x81);
-                        
+
                     });
 
                     return await readTask;
@@ -385,7 +385,7 @@ namespace HACGUI.Services
                     {
                         await Task.Delay(timeout);
 
-                        while(!writeTask.IsCompleted)
+                        while (!writeTask.IsCompleted)
                             Device.AbortPipe(1);
                     });
 
@@ -420,7 +420,7 @@ namespace HACGUI.Services
             WMIDeviceInfo = null;
             Device = null;
             DeviceWrapper = null;
-            foreach (UsbDeviceInfo info in CreateUsbControllerDeviceInfos(GetUsbDevices()))
+            foreach (UsbDeviceInfo info in AllUsbDevices)
                 if (info.DeviceID.StartsWith($"USB\\VID_{VID}&PID_{PID}"))
                 {
                     WMIDeviceInfo = info;
@@ -430,7 +430,7 @@ namespace HACGUI.Services
                         MessageBoxResult result = MessageBox.Show("You have plugged in your console, but it lacks the libusbK driver. Want to install it? (You cannot inject anything until this is done)", "", MessageBoxButton.YesNo);
                         if (result == MessageBoxResult.Yes)
                             InstallDriver();
-                        WMIDeviceInfo = CreateUsbControllerDeviceInfos(GetUsbDevices()).First(x => x.DeviceID == WMIDeviceInfo.DeviceID); // we need to refresh the info
+                        WMIDeviceInfo = AllUsbDevices.First(x => x.DeviceID == WMIDeviceInfo.DeviceID); // we need to refresh the info
                     }
 
                     if (LibusbKInstalled)

@@ -4,7 +4,7 @@ namespace HACGUI.Utilities
 {
     // https://gist.github.com/roblabla/d8358ab058bbe3b00614740dcba4f208
     // hashes came from here
-    public class NintendoKeys
+    public static class NintendoKeys
     {
         public static readonly byte[]
             // All taken from key_derivation.c in biskeydump (so if sharing these keys are illegal, inform raj too lol)

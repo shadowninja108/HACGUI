@@ -12,6 +12,7 @@ using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager;
 using HACGUI.Services;
 using HACGUI.Utilities;
+using LibHac.Common;
 using LibHac.Fs;
 
 namespace HACGUI.Main.SaveManager
@@ -104,7 +105,7 @@ namespace HACGUI.Main.SaveManager
             switch (type)
             {
                 case OpenType.Writable:
-                    //mode = OpenMode.ReadWrite; currently broken!
+                    //mode = OpenMode.ReadWrite;
                     break;
             }
 
@@ -116,30 +117,42 @@ namespace HACGUI.Main.SaveManager
             // ok so FUCK nintendo
             // their filesystem interface doesn't define RW privileges
             // so I have to guess lol
+            IFile temp = null;
             try
             {
-                save.CreateDirectory("/tmp");
-                save.RenameDirectory("/tmp", "/temp");
-                save.DeleteDirectory("/temp");
-                save.CreateFile("/tmp.bin", 0, CreateFileOptions.None);
-                IFile temp = save.OpenFile("/tmp.bin", OpenMode.ReadWrite);
-                temp.SetSize(0x4);
+                save.CreateDirectory("/tmp".ToU8Span()).ThrowIfFailure();
+                save.RenameDirectory("/tmp".ToU8Span(), "/temp".ToU8Span()).ThrowIfFailure();
+                save.DeleteDirectory("/temp".ToU8Span()).ThrowIfFailure();
+                save.CreateFile("/tmp.bin".ToU8Span(), 0, CreateFileOptions.None).ThrowIfFailure();
+                save.OpenFile(out temp, "/tmp.bin".ToU8Span(), OpenMode.ReadWrite).ThrowIfFailure();
+                temp.SetSize(0x4).ThrowIfFailure();
                 byte[] testBytes = new byte[] { 0xBA, 0xDF, 0x00, 0xD };
-                temp.Write(testBytes, 0);
+                temp.Write(0, testBytes, WriteOption.None).ThrowIfFailure();
                 byte[] buff = new byte[4];
-                temp.Read(buff, 0);
-                save.RenameFile("/tmp.bin", "/temp.bin");
-                save.DeleteFile("/temp.bin");
+                temp.Read(out long _, 0, buff, ReadOption.None).ThrowIfFailure();
+                save.RenameFile("/tmp.bin".ToU8Span(), "/temp.bin".ToU8Span()).ThrowIfFailure();
+                save.DeleteFile("/temp.bin".ToU8Span()).ThrowIfFailure();
+                temp.Dispose();
                 if (!buff.SequenceEqual(testBytes))
                     return false;
                 return true;
-            } catch(NotImplementedException)
+            }
+            catch (LibHac.LibHacException)
+            {
+                return false;
+            }
+            catch (NotImplementedException)
             {
                 return false;
             }
             catch (NotSupportedException)
             {
                 return false;
+            } 
+            finally
+            {
+                if(temp != null)
+                    temp.Dispose();
             }
         }
 

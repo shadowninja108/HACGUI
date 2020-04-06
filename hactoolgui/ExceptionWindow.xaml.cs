@@ -37,10 +37,10 @@ namespace HACGUI
                                 writer.Write(HACGUIKeyset.PrintCommonWithoutFriendlyKeys(HACGUIKeyset.Keyset));
                             ZipArchiveEntry consoleEntry = archive.CreateEntry("console.keys");
                             using (StreamWriter writer = new StreamWriter(consoleEntry.Open()))
-                                writer.Write(ExternalKeys.PrintUniqueKeys(HACGUIKeyset.Keyset));
+                                writer.Write(ExternalKeyReader.PrintUniqueKeys(HACGUIKeyset.Keyset));
                             ZipArchiveEntry titleEntry = archive.CreateEntry("title.keys");
                             using (StreamWriter writer = new StreamWriter(titleEntry.Open()))
-                                writer.Write(ExternalKeys.PrintTitleKeys(HACGUIKeyset.Keyset));
+                                writer.Write(ExternalKeyReader.PrintTitleKeys(HACGUIKeyset.Keyset));
                             ZipArchiveEntry exceptionEntry = archive.CreateEntry("exception.txt");
                             using (StreamWriter writer = new StreamWriter(exceptionEntry.Open()))
                                 writer.Write(e.ToString());

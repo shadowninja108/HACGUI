@@ -1,8 +1,10 @@
 ﻿using HACGUI.Services;
 using HACGUI.Utilities;
 using LibHac;
+using LibHac.Common;
 using LibHac.Fs;
-using LibHac.Fs.Save;
+using LibHac.FsSystem;
+using LibHac.FsSystem.Save;
 using LibHac.Nand;
 using System;
 using System.Collections.Generic;
@@ -30,21 +32,24 @@ namespace HACGUI.Main.TaskManager.Tasks
                 string accountSaveFileName = "/save/8000000000000010";
                 if (system.FileExists(accountSaveFileName))
                 {
-                    IFile accountSaveFile = system.OpenFile(accountSaveFileName, OpenMode.Read);
+                    system.OpenFile(out IFile accountSaveFile, accountSaveFileName.ToU8Span(), OpenMode.Read);
                     SaveDataFileSystem accountSaveFilesystem = new SaveDataFileSystem(HACGUIKeyset.Keyset, accountSaveFile.AsStorage(), IntegrityCheckLevel.ErrorOnInvalid, false);
 
                     HACGUIKeyset.AccountsFolderInfo.Create(); // make sure folder exists
 
-                    IDirectory avatorsDirectory = accountSaveFilesystem.OpenDirectory("/su/avators/", OpenDirectoryMode.Files);
+                    accountSaveFilesystem.OpenDirectory(out IDirectory avatorsDirectory, "/su/avators/".ToU8Span(), OpenDirectoryMode.File);
 
-                    IEnumerable<DirectoryEntry> files = avatorsDirectory.Read();
+                    DirectoryEntry[] files = new DirectoryEntry[0x100];
 
-                    DirectoryEntry profileEntry = files.FirstOrDefault(e => e.Name == "profiles.dat");
-                    if(profileEntry != null)
+                    avatorsDirectory.Read(out long entriesLength, files.AsSpan());
+
+                    if(accountSaveFilesystem.FileExists("/su/avators/profiles.dat"))
                     {
-                        if(profileEntry.Size == 0x650)
+                        DirectoryEntry profileEntry = files.First(e => StringUtils.Utf8ZToString(e.Name) == "profiles.dat");
+
+                        if (profileEntry.Size == 0x650)
                         {
-                            IFile profileFile = accountSaveFilesystem.OpenFile(profileEntry.FullPath, OpenMode.Read);
+                            accountSaveFilesystem.OpenFile(out IFile profileFile, "/su/avators/profiles.dat".ToU8Span(), OpenMode.Read);
                             Stream profileData = profileFile.AsStream();
                             profileData.Position += 0x10; // skip header
                             for(int i = 0; i < 8; i++)
@@ -74,12 +79,14 @@ namespace HACGUI.Main.TaskManager.Tasks
                         }
                     }
 
-                    foreach (DirectoryEntry entry in files.Where(e => e.Name != "profiles.dat"))
+                    foreach (DirectoryEntry entry in files.Where(e => StringUtils.Utf8ZToString(e.Name) != "profiles.dat" && e.Type == DirectoryEntryType.File))
                     {
-                        FileInfo localFile = HACGUIKeyset.AccountsFolderInfo.GetFile(entry.Name);
-                        IFile saveFile = accountSaveFilesystem.OpenFile(entry.FullPath, OpenMode.Read);
-                        using (Stream localStream = localFile.Open(FileMode.Create))
-                            saveFile.AsStorage().CopyToStream(localStream, saveFile.GetSize());
+                        FileInfo localFile = HACGUIKeyset.AccountsFolderInfo.GetFile(StringUtils.Utf8ZToString(entry.Name));
+                        accountSaveFilesystem.OpenFile(out IFile saveFile, ("/su/avators/" + StringUtils.Utf8ZToString(entry.Name)).ToU8Span(), OpenMode.Read);
+                        using (Stream localStream = localFile.Open(FileMode.Create)) {
+                            saveFile.GetSize(out long size);
+                            saveFile.AsStorage().CopyToStream(localStream, size);
+                        }
                     }
                 }
             });

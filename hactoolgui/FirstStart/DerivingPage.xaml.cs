@@ -24,7 +24,7 @@ namespace HACGUI.FirstStart
                     Dispatcher.Invoke(() => // move to UI thread
                     {
                         next.Loaded += (___, ____) => // wait until the next page has fully loaded (so that it becomes a child of NavigationWindow)
-                            next.FindNavigationWindow().RemoveBackEntry(); // remove DerivingPage from backstack so that the user can't see it
+                            next.FindNavigationWindow().RemoveBackEntry(); // remove DerivingPage from backstack so that the user can't navigate to the deriving page
                     });
                 }));
         }

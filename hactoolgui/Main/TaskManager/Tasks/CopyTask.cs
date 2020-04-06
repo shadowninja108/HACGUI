@@ -1,4 +1,5 @@
 ﻿using LibHac.Fs;
+using LibHac.FsSystem;
 using System;
 using System.Threading.Tasks;
 

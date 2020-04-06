@@ -1,6 +1,5 @@
 ﻿using HACGUI.Extensions;
 using HACGUI.Utilities;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -12,7 +11,8 @@ using HACGUI.Main.TaskManager;
 using LibHac;
 using LibHac.Fs;
 using System.Linq;
-using LibHac.Fs.NcaUtils;
+using LibHac.FsSystem.NcaUtils;
+using LibHac.FsSystem;
 
 namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
 {
@@ -64,7 +64,8 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                                 destinationTikFileInfo.CreateAndClose();
                                 LocalFile sourceTikFile = new LocalFile(sourceTikFileInfo.FullName, OpenMode.Read);
                                 LocalFile destinationTikFile = new LocalFile(destinationTikFileInfo.FullName, OpenMode.Write);
-                                destinationTikFile.SetSize(sourceTikFile.GetSize());
+                                sourceTikFile.GetSize(out long size);
+                                destinationTikFile.SetSize(size);
                                 tasks.Add(new CopyTask($"Copying {ticketFileName}...", new FileStorage(sourceTikFile), new FileStorage(destinationTikFile)));
                             }
                         }
@@ -80,7 +81,8 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs.Extracts.Extractors
                 IStorage source = nca.Nca.BaseStorage;
                 tasks.Add(new RunTask($"Allocating space for {nca.Filename}...", new Task(() => 
                 {
-                    destinationNcaFile.SetSize(source.GetSize());
+                    source.GetSize(out long size);
+                    destinationNcaFile.SetSize(size);
                 })));
                 tasks.Add(new CopyTask($"Copying {nca.Filename}...", source, new FileStorage(destinationNcaFile), false));
             }

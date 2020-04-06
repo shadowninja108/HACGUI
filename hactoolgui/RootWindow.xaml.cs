@@ -7,15 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Threading;
-using static HACGUI.Utilities.Native;
 
 namespace HACGUI
 {
@@ -252,12 +249,6 @@ namespace HACGUI
                     new ExceptionWindow(e).Show();
                     Close(); // make sure everything has ended
                 });
-        }
-
-        public void HandleDispatcherException(object sender, DispatcherUnhandledExceptionEventArgs args)
-        {
-            args.Handled = true; // program won't crash
-            HandleException(args.Exception);
         }
 
         public enum Theme

@@ -1,16 +1,19 @@
 ﻿using DokanNet;
+using LibHac.Common;
 using LibHac.Fs;
+using LibHac.FsSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
+using System.Text.RegularExpressions;
 using System.Threading;
-using System.Windows.Forms;
+using System.Windows;
 
 namespace HACGUI.Services
 {
-    public class MountService
+    public static class MountService
     {
         private static readonly char[] DriveLetters = "CDEFGHIJKLMNOPQRSTUVWXYZ".ToArray();
 
@@ -106,7 +109,7 @@ namespace HACGUI.Services
             Mode = mode;
         }
 
-        public void Cleanup(string fileName, DokanFileInfo info)
+        public void Cleanup(string fileName, IDokanFileInfo info)
         {
             fileName = FilterPath(fileName);
             if(!info.IsDirectory)
@@ -114,25 +117,26 @@ namespace HACGUI.Services
             if (info.DeleteOnClose)
             {
                 if (info.IsDirectory)
-                    Fs.DeleteDirectory(fileName);
+                    Fs.DeleteDirectory(fileName.ToU8Span());
                 else
-                    Fs.DeleteFile(fileName);
+                    Fs.DeleteFile(fileName.ToU8Span());
             }
         }
 
-        public void CloseFile(string fileName, DokanFileInfo info)
+        public void CloseFile(string fileName, IDokanFileInfo info)
         {
-            IFile file = GetFile(fileName);
-            if (file != null)
-                CloseFile(fileName);
+            fileName = FilterPath(fileName);
+            CloseFile(fileName);
         }
 
         public void CloseFile(string fileName)
         {
+            fileName = FilterPath(fileName);
             lock (IOLock)
             {
                 if (OpenedFiles.ContainsKey(fileName))
                 {
+                    OpenedFiles[fileName].Dispose();
                     OpenedFiles.Remove(fileName);
                 }
             }
@@ -147,7 +151,7 @@ namespace HACGUI.Services
                     Fs.Commit();
         }
 
-        public NtStatus CreateFile(string fileName, DokanNet.FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, DokanFileInfo info)
+        public NtStatus CreateFile(string fileName, DokanNet.FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, IDokanFileInfo info)
         {
             if (mode == FileMode.OpenOrCreate || mode == FileMode.CreateNew || mode == FileMode.Create && Mode == OpenMode.Read)
                 return DokanResult.AccessDenied;
@@ -155,7 +159,16 @@ namespace HACGUI.Services
             try
             {
                 fileName = FilterPath(fileName);
-                bool isDirectory = Fs.DirectoryExists(fileName);
+                bool isDirectory;
+                try
+                {
+                    Fs.GetEntryType(out DirectoryEntryType type, fileName.ToU8Span());
+                    isDirectory = type == DirectoryEntryType.Directory;
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return DokanResult.FileNotFound;
+                }
 
                 if (info.IsDirectory || isDirectory)
                 {
@@ -165,13 +178,16 @@ namespace HACGUI.Services
                     else if (Fs.DirectoryExists(fileName))
                         return DokanResult.Success;
                     if (mode == FileMode.OpenOrCreate || mode == FileMode.CreateNew || mode == FileMode.Create)
-                        Fs.CreateDirectory(fileName);
+                        lock (IOLock)
+                            Fs.CreateDirectory(fileName.ToU8Span());
                     else if (mode == FileMode.Open)
                         return DokanResult.FileNotFound;
                 }
                 else
                 {
                     bool exists = Fs.FileExists(fileName);
+
+                    attributes = CreateInfo(fileName).Attributes;
 
                     if (mode == FileMode.Open && exists)
                         return DokanResult.Success; 
@@ -184,7 +200,7 @@ namespace HACGUI.Services
                             if (exists)
                                 return DokanResult.AlreadyExists;
                             lock(IOLock)
-                                Fs.CreateFile(fileName, 0, CreateFileOptions.None);
+                                Fs.CreateFile(fileName.ToU8Span(), 0, CreateFileOptions.None);
                             if (Fs.FileExists(fileName))
                                 return NtStatus.Success;
                             break;
@@ -202,8 +218,10 @@ namespace HACGUI.Services
             }
         }
 
-        public NtStatus DeleteDirectory(string fileName, DokanFileInfo info)
+        public NtStatus DeleteDirectory(string fileName, IDokanFileInfo info)
         {
+            fileName = FilterPath(fileName);
+
             if (Fs.DirectoryExists(fileName))
                 return NtStatus.Success;
             else
@@ -216,30 +234,43 @@ namespace HACGUI.Services
             }
         }
 
-        public NtStatus DeleteFile(string fileName, DokanFileInfo info)
+        public NtStatus DeleteFile(string fileName, IDokanFileInfo info)
         {
+            fileName = FilterPath(fileName);
+
             if (Fs.FileExists(fileName))
                 return NtStatus.Success;
             else
                 return NtStatus.ObjectNameNotFound;
         }
 
-        public NtStatus FindFiles(string fileName, out IList<FileInformation> files, DokanFileInfo info)
+        public NtStatus FindFiles(string fileName, out IList<FileInformation> files, IDokanFileInfo info)
         {
             return FindFilesWithPattern(fileName, "*", out files, info);
         }
 
-        public NtStatus FindFilesWithPattern(string fileName, string searchPattern, out IList<FileInformation> files, DokanFileInfo info)
+        public NtStatus FindFilesWithPattern(string fileName, string searchPattern, out IList<FileInformation> files, IDokanFileInfo info)
         {
             IDirectory directory = GetDirectory(fileName, OpenDirectoryMode.All);
+            searchPattern = WildcardToRegex(searchPattern);
 
             files = new List<FileInformation>();
-            if (searchPattern.EndsWith("\"*")) // thanks windows
-                searchPattern = searchPattern.Replace("\"*", "*");
+            //if (searchPattern.EndsWith("\"*")) // thanks windows
+           //     searchPattern = searchPattern.Replace("\"*", "*");
             try
             {
-                foreach (DirectoryEntry entry in directory.EnumerateEntries(searchPattern, SearchOptions.Default))
-                    files.Add(CreateInfo(entry, ToWindows(entry.FullPath)));
+                directory.GetEntryCount(out long entryCount);
+                DirectoryEntry[] entries = new DirectoryEntry[entryCount];
+
+                directory.Read(out entryCount, entries);
+                for (int i = 0; i < entryCount; i++)
+                {
+                    string name = StringUtils.Utf8ZToString(entries[i].Name);
+                    if (Regex.IsMatch(name, searchPattern)) {
+                        DirectoryEntryEx entry = new DirectoryEntryEx(name, FilterPath(fileName) + "/" + name, entries[i].Type, entries[i].Size);
+                        files.Add(CreateInfo(entry, FilterPath(entry.FullPath)));
+                    }
+                }
             } catch(Exception e)
             {
                 Console.WriteLine("Exception raised when iterating through directory:\n" + e.Message + "\n" + e.StackTrace);
@@ -247,44 +278,34 @@ namespace HACGUI.Services
             return NtStatus.Success;
         }
 
-        public NtStatus FindStreams(string fileName, out IList<FileInformation> streams, DokanFileInfo info)
+        public NtStatus FindStreams(string fileName, out IList<FileInformation> streams, IDokanFileInfo info)
         {
             streams = null;
             return NtStatus.NotImplemented; // not needed
         }
 
-        public NtStatus FlushFileBuffers(string fileName, DokanFileInfo info)
+        public NtStatus FlushFileBuffers(string fileName, IDokanFileInfo info)
         {
             CloseAllFiles();
             return NtStatus.Success;
         }
 
-        public NtStatus GetDiskFreeSpace(out long freeBytesAvailable, out long totalNumberOfBytes, out long totalNumberOfFreeBytes, DokanFileInfo info)
+        public NtStatus GetDiskFreeSpace(out long freeBytesAvailable, out long totalNumberOfBytes, out long totalNumberOfFreeBytes, IDokanFileInfo info)
         {
-            try
-            {
-                freeBytesAvailable = Fs.GetFreeSpaceSize("/");
-            }
-            catch (Exception)
-            {
-                freeBytesAvailable = 0;
-            }
-            try
-            {
-                totalNumberOfBytes = Fs.GetTotalSpaceSize("/");
-            }
-            catch (Exception)
-            {
-                totalNumberOfBytes = 0;
-            }
+            Fs.GetFreeSpaceSize(out freeBytesAvailable, "/".ToU8Span());
+
+            Fs.GetTotalSpaceSize(out totalNumberOfBytes, "/".ToU8Span());
+
             totalNumberOfFreeBytes = freeBytesAvailable;
             return NtStatus.Success;
         }
 
-        public NtStatus GetFileInformation(string fileName, out FileInformation fileInfo, DokanFileInfo info)
+        public NtStatus GetFileInformation(string fileName, out FileInformation fileInfo, IDokanFileInfo info)
         {
             fileName = FilterPath(fileName);
-            if (GetDirectory(fileName, OpenDirectoryMode.All) != null)
+
+            IDirectory dir = GetDirectory(fileName, OpenDirectoryMode.All);
+            if (dir != null)
                 fileInfo = CreateInfo(GetDirectory(fileName, OpenDirectoryMode.All), fileName);
             else if (GetFile(fileName) != null)
                 fileInfo = CreateInfo(fileName);
@@ -296,13 +317,13 @@ namespace HACGUI.Services
             return NtStatus.Success;
         }
 
-        public NtStatus GetFileSecurity(string fileName, out FileSystemSecurity security, AccessControlSections sections, DokanFileInfo info)
+        public NtStatus GetFileSecurity(string fileName, out FileSystemSecurity security, AccessControlSections sections, IDokanFileInfo info)
         {
             security = null;
             return NtStatus.NotImplemented;
         }
 
-        public NtStatus GetVolumeInformation(out string volumeLabel, out FileSystemFeatures features, out string fileSystemName, out uint maximumComponentLength, DokanFileInfo info)
+        public NtStatus GetVolumeInformation(out string volumeLabel, out FileSystemFeatures features, out string fileSystemName, out uint maximumComponentLength, IDokanFileInfo info)
         {
             volumeLabel = Name;
             features = 0;
@@ -311,23 +332,23 @@ namespace HACGUI.Services
             return NtStatus.Success;
         }
 
-        public NtStatus LockFile(string fileName, long offset, long length, DokanFileInfo info)
+        public NtStatus LockFile(string fileName, long offset, long length, IDokanFileInfo info)
         {
             return NtStatus.NotImplemented;
         }
 
-        public NtStatus Mounted(DokanFileInfo info)
+        public NtStatus Mounted(IDokanFileInfo info)
         {
             return NtStatus.Success;
         }
 
-        public NtStatus MoveFile(string oldName, string newName, bool replace, DokanFileInfo info)
+        public NtStatus MoveFile(string oldName, string newName, bool replace, IDokanFileInfo info)
         {
             try
             {
                 if (replace && Fs.FileExists(newName))
-                    Fs.DeleteFile(newName);
-                Fs.RenameFile(oldName, newName);
+                    Fs.DeleteFile(newName.ToU8Span());
+                Fs.RenameFile(oldName.ToU8Span(), newName.ToU8Span());
                 return NtStatus.Success;
             }
             catch (NotImplementedException)
@@ -336,99 +357,114 @@ namespace HACGUI.Services
             }
         }
 
-        public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, DokanFileInfo info)
+        public NtStatus ReadFile(string fileName, byte[] buffer, out int bytesRead, long offset, IDokanFileInfo info)
         {
+            fileName = FilterPath(fileName);
+
             lock (IOLock)
             {
-                FileStorage storage = OpenFile(fileName);
-                long size = storage.GetSize() - offset;
-                if (size < 0)
+                FileStorage storage = GetFile(fileName);
+                storage.GetSize(out long size);
+                long distance = size - offset;
+                if (distance < 0)
                 {
                     bytesRead = 0;
                     return NtStatus.Unsuccessful;
                 }
-                size = Math.Min(size, buffer.Length);
+                distance = Math.Min(distance, buffer.Length);
 
-                storage.Read(buffer, Math.Min(offset, storage.GetSize() - size), (int)size, 0);
-                bytesRead = (int)size; // TODO accuracy
+                storage.Read(Math.Min(offset, size - distance), buffer, (int)distance, 0);
+                bytesRead = (int)distance; // TODO accuracy
                 return NtStatus.Success;
             }
         }
 
-        public NtStatus SetAllocationSize(string fileName, long length, DokanFileInfo info)
+        public NtStatus SetAllocationSize(string fileName, long length, IDokanFileInfo info)
         {
-            try
+            fileName = FilterPath(fileName);
+
+            lock (IOLock)
             {
-                IStorage storage = OpenFile(fileName);
-                storage.SetSize(length);
-                return NtStatus.Success;
-            }
-            catch (NotImplementedException)
-            {
-                return NtStatus.NotImplemented;
+                try
+                {
+                    IStorage storage = GetFile(fileName);
+                    storage.SetSize(length);
+                    CloseFile(fileName);
+                    return NtStatus.Success;
+                }
+                catch (NotImplementedException)
+                {
+                    return NtStatus.NotImplemented;
+                }
             }
         }
-
-        public NtStatus SetEndOfFile(string fileName, long length, DokanFileInfo info)
+        public NtStatus SetEndOfFile(string fileName, long length, IDokanFileInfo info)
         {
-            lock(IOLock)
-                Fs.OpenFile(FilterPath(fileName), Mode).SetSize(length);
+            fileName = FilterPath(fileName);
+
+            lock (IOLock)
+                GetFile(fileName).SetSize(length);
+            CloseFile(fileName);
+
             return NtStatus.Success;
         }
 
-        public NtStatus SetFileAttributes(string fileName, FileAttributes attributes, DokanFileInfo info)
+        public NtStatus SetFileAttributes(string fileName, FileAttributes attributes, IDokanFileInfo info)
         {
             return NtStatus.NotImplemented;
         }
 
-        public NtStatus SetFileSecurity(string fileName, FileSystemSecurity security, AccessControlSections sections, DokanFileInfo info)
+        public NtStatus SetFileSecurity(string fileName, FileSystemSecurity security, AccessControlSections sections, IDokanFileInfo info)
         {
             return NtStatus.NotImplemented;
         }
 
-        public NtStatus SetFileTime(string fileName, DateTime? creationTime, DateTime? lastAccessTime, DateTime? lastWriteTime, DokanFileInfo info)
+        public NtStatus SetFileTime(string fileName, DateTime? creationTime, DateTime? lastAccessTime, DateTime? lastWriteTime, IDokanFileInfo info)
         {
             return NtStatus.NotImplemented;
         }
 
-        public NtStatus UnlockFile(string fileName, long offset, long length, DokanFileInfo info)
+        public NtStatus UnlockFile(string fileName, long offset, long length, IDokanFileInfo info)
         {
             return NtStatus.NotImplemented;
         }
 
-        public NtStatus Unmounted(DokanFileInfo info)
+        public NtStatus Unmounted(IDokanFileInfo info)
         {
             CloseAllFiles();
             return NtStatus.Success;
         }
 
-        public NtStatus WriteFile(string fileName, byte[] buffer, out int bytesWritten, long offset, DokanFileInfo info)
+        public NtStatus WriteFile(string fileName, byte[] buffer, out int bytesWritten, long offset, IDokanFileInfo info)
         {
+            fileName = FilterPath(fileName);
             lock (IOLock)
             {
-                FileStorage storage = OpenFile(fileName);
-                long size = storage.GetSize() - offset; // distance to EOF
-                if (size < 0) // can't write out side the file dummy
+                FileStorage storage = GetFile(fileName);
+                storage.GetSize(out long size);
+
+                long distance = size - offset; // distance to EOF
+                if (distance < 0) // can't write out side the file dummy
                 {
                     bytesWritten = 0;
                     return NtStatus.Unsuccessful;
                 }
-                size = Math.Min(size, buffer.Length); // prevent buffer from writing past EOF
+                distance = Math.Min(distance, buffer.Length); // prevent buffer from writing past EOF
 
-                storage.Write(buffer, Math.Min(offset, storage.GetSize() - size), (int)size, 0);
-                bytesWritten = (int)size; // TODO accuracy
+                storage.Write(Math.Min(offset, size - distance), buffer, (int)distance, 0);
+                bytesWritten = (int)distance; // TODO accuracy
                 return NtStatus.Success;
             }
         }
 
-        private FileInformation CreateInfo(DirectoryEntry entry, string path)
+        private FileInformation CreateInfo(DirectoryEntryEx entry, string path)
         {
             switch (entry.Type)
             {
                 case DirectoryEntryType.File:
                     return CreateInfo(path);
                 case DirectoryEntryType.Directory:
-                    return CreateInfo(Fs.OpenDirectory(entry.FullPath, OpenDirectoryMode.All), path);
+                    return CreateInfo(GetDirectory(path, OpenDirectoryMode.All), path);
             }
             return new FileInformation();
         }
@@ -437,8 +473,6 @@ namespace HACGUI.Services
         {
             path =  path.Replace("\\", "/");
             path = PathTools.Normalize(path);
-            if (path.StartsWith("/"))
-                path = path.Substring(1);
             if (string.IsNullOrWhiteSpace(path))
                 path = "/";
             return path;
@@ -459,14 +493,20 @@ namespace HACGUI.Services
 
         private FileInformation CreateInfo(string path)
         {
-            FileStorage storage = OpenFile(path);
+            path = FilterPath(path);
+
+            FileStorage storage = GetFile(path);
             if (storage != null) {
-                return new FileInformation
+                FileInformation f =  new FileInformation
                 {
                     FileName = GetFileName(path),
-                    Length = storage.GetSize(),
                     Attributes = Mode == OpenMode.Read ? FileAttributes.ReadOnly : FileAttributes.Normal
                 };
+                storage.GetSize(out long length);
+                f.Length = length;
+
+                CloseFile(path);
+                return f;
             }
             else
                 return new FileInformation();
@@ -484,42 +524,53 @@ namespace HACGUI.Services
                 return new FileInformation();
         }
 
-        public IFile GetFile(string name)
+        public IFile OpenFile(string name)
         {
+            IFile file = null;
             name = FilterPath(name);
             if(Fs.FileExists(name))
-                return Fs.OpenFile(name, Mode);
-            return null;
+                Fs.OpenFile(out file, name.ToU8Span(), Mode);
+            return file;
         }
 
         public IDirectory GetDirectory(string name, OpenDirectoryMode mode)
         {
+            IDirectory dir = null;
             name = FilterPath(name);
             if (Fs.DirectoryExists(name))
-                return Fs.OpenDirectory(name, mode);
-            return null;
+                Fs.OpenDirectory(out dir, name.ToU8Span(), mode);
+            return dir;
         }
 
-        public FileStorage OpenFile(string path)
+        public FileStorage GetFile(string path)
         {
-            IFile key = GetFile(path);
-
-            if (key == null)
-                return null;
-
-            if (OpenedFiles.ContainsKey(path))
-                return OpenedFiles[path];
-
-            try
+            lock (IOLock)
             {
-                FileStorage storage = new FileStorage(key);
-                OpenedFiles[path] = storage;
-                return storage;
+                if (OpenedFiles.ContainsKey(path))
+                    return OpenedFiles[path];
+
+                IFile key = OpenFile(path);
+
+                if (key == null)
+                    return null;
+
+                try
+                {
+                    FileStorage storage = new FileStorage(key);
+                    OpenedFiles[path] = storage;
+                    return storage;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return null;
+                }
             }
-            catch (UnauthorizedAccessException)
-            {
-                return null;
-            }
+        }
+        public static string WildcardToRegex(string pattern)
+        {
+            return "^" + Regex.Escape(pattern).
+            Replace("\\*", ".*").
+            Replace("\\?", ".") + "$";
         }
     }
 }

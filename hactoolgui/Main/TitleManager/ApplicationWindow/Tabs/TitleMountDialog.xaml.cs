@@ -4,7 +4,8 @@ using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Services;
 using LibHac;
 using LibHac.Fs;
-using LibHac.Fs.NcaUtils;
+using LibHac.FsSystem;
+using LibHac.FsSystem.NcaUtils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,6 +70,25 @@ namespace HACGUI.Main.TitleManager.ApplicationWindow.Tabs
                     SwitchFsNca nca = t.Item1;
                     NcaFsHeader section = t.Item1.Nca.Header.GetFsHeader(t.Item2);
                     int index = t.Item2;
+
+                    /*IStorage inStorage = nca.OpenStorage(index, IntegrityCheckLevel.ErrorOnInvalid);
+                    IFile outFile = new LocalFile("./tmp.bin", OpenMode.Write | OpenMode.AllowAppend);
+                    IStorage outStorage = outFile.AsStorage();
+                    inStorage.GetSize(out long size);
+                    long buffLen = 0x10000;
+                    for (int i = 0; i < (int)Math.Min(Math.Ceiling((double)size / buffLen), 5); i++)
+                    {
+                        long off = i * buffLen;
+                        long left = size - off;
+                        long toRead = Math.Min(buffLen, left);
+
+                        byte[] buff = new byte[toRead];
+
+                        inStorage.Read(off, buff);
+                        outStorage.Write(off, buff);
+                    }
+                    //inStorage.Dispose();
+                    outFile.Dispose();*/
 
                     filesystems.Add(nca.OpenFileSystem(index, IntegrityCheckLevel.ErrorOnInvalid));
                 }

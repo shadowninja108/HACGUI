@@ -1,20 +1,26 @@
-﻿using LibHac;
+﻿
+
+using HACGUI.Utilities;
+using LibHac;
+using LibHac.Common;
+using LibHac.Fs;
+using LibHac.FsSystem;
+using LibHac.FsSystem.NcaUtils;
+using LibHac.FsSystem.Save;
+using LibHac.Ncm;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
-using System.Windows.Media;
-using HACGUI.Utilities;
 using System.Windows.Controls;
-using LibHac.Fs.NcaUtils;
-using LibHac.Fs.Save;
-using LibHac.Fs;
-using System.Reflection;
+using System.Windows.Media;
 
 namespace HACGUI.Extensions
 {
@@ -198,8 +204,8 @@ namespace HACGUI.Extensions
         {
             switch (title.Metadata.Type)
             {
-                case TitleType.AddOnContent:
-                case TitleType.Patch:
+                case ContentMetaType.AddOnContent:
+                case ContentMetaType.Patch:
                     return GetBaseTitleID(title.Id);
             }
             return title.Id;
@@ -263,7 +269,7 @@ namespace HACGUI.Extensions
                 if(app.Patch != null && app.Main != null)
                     foreach (SwitchFsNca nca in app.Patch.Ncas)
                     {
-                        ContentType type = nca.Nca.Header.ContentType;
+                        NcaContentType type = nca.Nca.Header.ContentType;
                         SwitchFsNca baseNca = app.Main.Ncas.Where(n => n.Nca.Header.ContentType == type).FirstOrDefault();
                         if (baseNca != null)
                         {
@@ -321,7 +327,7 @@ namespace HACGUI.Extensions
 
         public static FileInfo RequestOpenFileFromUser(string ext, string filter, string title = null, string fileName = null)
         {
-            System.Windows.Forms.OpenFileDialog dlg = new System.Windows.Forms.OpenFileDialog
+            OpenFileDialog dlg = new OpenFileDialog
             {
                 DefaultExt = ext,
                 Filter = filter
@@ -331,14 +337,14 @@ namespace HACGUI.Extensions
                 dlg.Title = title;
             dlg.FileName = fileName ?? "";
 
-            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (dlg.ShowDialog() == true)
                 return new FileInfo(dlg.FileName);
             return null;
         }
 
         public static FileInfo[] RequestOpenFilesFromUser(string ext, string filter, string title = null, string fileName = null)
         {
-            System.Windows.Forms.OpenFileDialog dlg = new System.Windows.Forms.OpenFileDialog
+            OpenFileDialog dlg = new OpenFileDialog
             {
                 DefaultExt = ext,
                 Filter = filter,
@@ -349,7 +355,7 @@ namespace HACGUI.Extensions
                 dlg.Title = title;
             dlg.FileName = fileName ?? "";
 
-            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (dlg.ShowDialog() == true)
             {
                 FileInfo[] infos = new FileInfo[dlg.FileNames.Length];
                 for (int i = 0; i < infos.Length; i++)
@@ -361,7 +367,7 @@ namespace HACGUI.Extensions
 
         public static FileInfo RequestSaveFileFromUser(string ext, string filter, string title = null, string fileName = null)
         {
-            System.Windows.Forms.SaveFileDialog dlg = new System.Windows.Forms.SaveFileDialog
+            SaveFileDialog dlg = new SaveFileDialog
             {
                 DefaultExt = ext,
                 Filter = filter,
@@ -371,7 +377,7 @@ namespace HACGUI.Extensions
             if (title != null)
                 dlg.Title = title;
 
-            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (dlg.ShowDialog() == true)
                 return new FileInfo(dlg.FileName);
             return null;
         }
@@ -406,24 +412,32 @@ namespace HACGUI.Extensions
         {
             var tickets = new List<Ticket>();
             var save = new SaveDataFileSystem(keyset, savefile, IntegrityCheckLevel.ErrorOnInvalid, false);
-            var ticketList = new BinaryReader(save.OpenFile("/ticket_list.bin", OpenMode.Read).AsStream());
-            var ticketFile = new BinaryReader(save.OpenFile("/ticket.bin", OpenMode.Read).AsStream());
-            DirectoryInfo ticketFolder = HACGUIKeyset.GetTicketsDirectory(consoleName);
-            ticketFolder.Create();
-
-            var titleId = ticketList.ReadUInt64();
-            while (titleId != ulong.MaxValue)
+            save.OpenFile(out IFile ticketListFile, "/ticket_list.bin".ToU8Span(), OpenMode.Read);
+            var ticketList = new BinaryReader(ticketListFile.AsStream());
+            save.OpenFile(out IFile ticketSave, "/ticket.bin".ToU8Span(), OpenMode.Read);
+            using(save)
+            using(ticketSave)
+            using (ticketListFile)
+            using(ticketList)
+            using (var ticketFile = new BinaryReader(ticketSave.AsStream()))
             {
-                ticketList.BaseStream.Position += 0x18;
-                var start = ticketFile.BaseStream.Position;
-                Ticket ticket = new Ticket(ticketFile);
-                Stream ticketFileStream = ticketFolder.GetFile(BitConverter.ToString(ticket.RightsId).Replace("-", "").ToLower() + ".tik").Create();
-                byte[] data = ticket.GetBytes();
-                ticketFileStream.Write(data, 0, data.Length);
-                ticketFileStream.Close();
-                tickets.Add(ticket);
-                ticketFile.BaseStream.Position = start + 0x400;
-                titleId = ticketList.ReadUInt64();
+                DirectoryInfo ticketFolder = HACGUIKeyset.GetTicketsDirectory(consoleName);
+                ticketFolder.Create();
+
+                var titleId = ticketList.ReadUInt64();
+                while (titleId != ulong.MaxValue)
+                {
+                    ticketList.BaseStream.Position += 0x18;
+                    var start = ticketFile.BaseStream.Position;
+                    Ticket ticket = new Ticket(ticketFile);
+                    Stream ticketFileStream = ticketFolder.GetFile(BitConverter.ToString(ticket.RightsId).Replace("-", "").ToLower() + ".tik").Create();
+                    byte[] data = ticket.GetBytes();
+                    ticketFileStream.Write(data, 0, data.Length);
+                    ticketFileStream.Close();
+                    tickets.Add(ticket);
+                    ticketFile.BaseStream.Position = start + 0x400;
+                    titleId = ticketList.ReadUInt64();
+                }
             }
 
             return tickets;

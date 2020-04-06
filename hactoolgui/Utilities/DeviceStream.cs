@@ -19,8 +19,8 @@ namespace NandReaderGui
         // For more information about CreateFile,
         // see the unmanaged MSDN reference library.
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern IntPtr CreateFile(
-             [MarshalAs(UnmanagedType.LPTStr)] string filename,
+        private static extern IntPtr CreateFile(
+             [MarshalAs(UnmanagedType.LPWStr)] string filename,
              [MarshalAs(UnmanagedType.U4)] FileAccess access,
              [MarshalAs(UnmanagedType.U4)] FileShare share,
              IntPtr securityAttributes, // optional SECURITY_ATTRIBUTES struct or IntPtr.Zero

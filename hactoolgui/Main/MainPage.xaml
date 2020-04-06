@@ -4,15 +4,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:System="clr-namespace:System;assembly=mscorlib"
         xmlns:ext="clr-namespace:System.Windows.Controls.Extensions"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime"
         mc:Ignorable="d"
         Title="MainPage" d:DesignHeight="450" d:DesignWidth="800">
 
     <Page.Resources>
-        <System:String x:Key="Title">HACGUI</System:String>
-        <System:Double x:Key="MinWidth">800</System:Double>
-        <System:Double x:Key="MinHeight">500</System:Double>
+        <system:String x:Key="Title">HACGUI</system:String>
+        <system:Double x:Key="MinWidth">800</system:Double>
+        <system:Double x:Key="MinHeight">500</system:Double>
     </Page.Resources>
 
     <Grid>

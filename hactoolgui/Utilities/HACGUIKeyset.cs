@@ -1,11 +1,12 @@
 ﻿using HACGUI.Extensions;
 using LibHac;
+using LibHac.FsService;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using static HACGUI.Utilities.Native;
-using static LibHac.ExternalKeys;
+using static LibHac.ExternalKeyReader;
 
 namespace HACGUI.Utilities
 {
@@ -48,7 +49,6 @@ namespace HACGUI.Utilities
             MemloaderPayloadFileName = "memloader.bin",
             MemloaderSampleFolderName = "sample",
             TempLockpickPayloadFileName = "Lockpick.bin";
-
 
         public static DirectoryInfo RootUserDirectory
         {
@@ -125,13 +125,13 @@ namespace HACGUI.Utilities
             string prodPath = ProductionKeysFileInfo.Exists ? ProductionKeysFileInfo.FullName : null;
             string titlePath = TitleKeysFileInfo.Exists ? TitleKeysFileInfo.FullName : null;
             ReadKeyFile(Keyset, prodPath, titlePath);
-            Keyset.DeriveKeys();
+            DeriveKeys();
         }
 
         public void LoadPersonal(string consoleName)
         {
             ReadKeyFile(Keyset, GetConsoleKeysFileInfoByName(consoleName).FullName);
-            Keyset.DeriveKeys();
+            DeriveKeys();
         }
 
         public void LoadAll()
@@ -283,7 +283,7 @@ namespace HACGUI.Utilities
 
         public static string PrintCommonKeys(Keyset keyset, bool hactoolFriendly)
         {
-            Dictionary<string, KeyValue> dict = new Dictionary<string, KeyValue>(CommonKeyDict);
+            Dictionary<string, KeyValue> dict = CreateCommonKeyDictionary();
             List<string> keysToBeRemoved = new List<string>();
             if (hactoolFriendly)
                 foreach (KeyValuePair<string, KeyValue> kv in dict)
@@ -296,7 +296,7 @@ namespace HACGUI.Utilities
 
         public static string PrintCommonWithoutFriendlyKeys(Keyset keyset)
         {
-            Dictionary<string, KeyValue> dict = new Dictionary<string, KeyValue>(CommonKeyDict);
+            Dictionary<string, KeyValue> dict = CreateCommonKeyDictionary();
             List<string> keysToBeRemoved = new List<string>();
             foreach (KeyValuePair<string, KeyValue> kv in dict)
                 if (!HactoolNonFriendlyKeys.Contains(kv.Key))

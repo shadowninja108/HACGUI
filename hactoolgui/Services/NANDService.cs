@@ -9,10 +9,11 @@ using System.Management;
 using HACGUI.Utilities;
 using static HACGUI.Utilities.Native;
 using System.Windows;
+using LibHac.FsSystem;
 
 namespace HACGUI.Services
 {
-    public class NANDService
+    public static class NANDService
     {
         public delegate void NANDChangedEventHandler();
 
@@ -81,16 +82,16 @@ namespace HACGUI.Services
 
         private static void Refresh()
         {
-            foreach (DiskInfo info in CreateDiskInfos(GetDisks()))
+            foreach (DiskInfo info in AllDisks)
             {
                 if (info.Model == "Linux UMS disk 0 USB Device" && info.Partitions > 1) // probably a bad way of filtering?
                 {
                     try
                     {
-                        IEnumerable<PartitionInfo> partitions = 
-                            CreatePartitionInfos(GetPartitions())
-                            .Where((p) => info.Index == p.DiskIndex)
-                            .OrderBy((p) => p.Index);
+                        IEnumerable<PartitionInfo> partitions =  
+                            AllPartitions
+                            .Where(p => info.Index == p.DiskIndex)
+                            .OrderBy(p => p.Index);
                         if (!partitions.Any())
                             continue; // obv the NAND should have *some* partitions
                         PartitionInfo lastPartition = partitions.Last();

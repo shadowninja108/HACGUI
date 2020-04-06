@@ -6,8 +6,11 @@ using HACGUI.Main.TitleManager;
 using HACGUI.Services;
 using HACGUI.Utilities;
 using LibHac;
+using LibHac.Common;
 using LibHac.Fs;
-using LibHac.Fs.NcaUtils;
+using LibHac.FsSystem;
+using LibHac.FsSystem.NcaUtils;
+using LibHac.Spl;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -74,9 +77,9 @@ namespace HACGUI.Main
                     Dispatcher.Invoke(() => nandRefresh(false));
                 };
 
-                SDService.OnSDPluggedIn += (drive) =>
+                SDService.OnSDPluggedIn += (effectiveRoot) =>
                 {
-                    DirectoryInfo root = drive.RootDirectory;
+                    DirectoryInfo root = SDService.SDRoot;
                     DirectoryInfo switchDir = root.GetDirectory("switch");
                     if (switchDir.Exists)
                     {
@@ -85,7 +88,7 @@ namespace HACGUI.Main
                         {
                             try
                             {
-                                ExternalKeys.ReadKeyFile(HACGUIKeyset.Keyset, prodKeysInfo.FullName);
+                                ExternalKeyReader.ReadKeyFile(HACGUIKeyset.Keyset, prodKeysInfo.FullName);
                                 new SaveKeysetTask(null).CreateTask().RunSynchronously();
                             }
                             catch (Exception e)
@@ -165,7 +168,7 @@ namespace HACGUI.Main
 
         private void OpenUserSwitchClicked(object sender, RoutedEventArgs e)
         {
-            Process.Start(HACGUIKeyset.UserSwitchDirectoryInfo.FullName);
+            Process.Start("explorer.exe", $"/open, {HACGUIKeyset.UserSwitchDirectoryInfo.FullName}");
         }
 
         private void DumpNANDToFileClicked(object sender, RoutedEventArgs e)
@@ -176,19 +179,26 @@ namespace HACGUI.Main
                 info.CreateAndClose();
                 LocalFile target = new LocalFile(info.FullName, OpenMode.ReadWrite);
                 IStorage targetStorage = target.AsStorage();
-                TaskManagerPage.Current.Queue.Submit(new ResizeTask($"Allocating space for {info.Name} (NAND backup)...", target, source.GetSize()));
+                source.GetSize(out long size);
+                TaskManagerPage.Current.Queue.Submit(new ResizeTask($"Allocating space for {info.Name} (NAND backup)...", target, size));
                 TaskManagerPage.Current.Queue.Submit(new CopyTask($"Copying NAND to {info.Name}...", source, targetStorage));
                 MessageBox.Show("This is a lengthy operation.\nYou can check the status of it under\nthe tasks tab.");
             }
         }
 
+        private static void TryImportTicket(FileInfo file)
+        {
+
+        }
+
         private void ImportGameDataClicked(object sender, RoutedEventArgs arg)
         {
             string filter = @"
-                Any game data (*.xci,*.nca,*.nsp)|*.xci;*.nca;*.nsp|
+                Any game data (*.xci,*.nca,*.nsp,*.tik)|*.xci;*.nca;*.nsp;*.tik|
                 NX Card Image (*.xci)|*.xci|
                 Nintendo Content Archive (*.nca)|*.nca|
-                Nintendo Installable Package (*.nsp)|*.nsp
+                Nintendo Installable Package (*.nsp)|*.nsp|
+                Ticket (*.tik)|*.tik
             ".FilterMultilineString();
             FileInfo[] files = RequestOpenFilesFromUser(".*", filter, "Select game data...");
 
@@ -197,7 +207,21 @@ namespace HACGUI.Main
 
             TaskManagerPage.Current.Queue.Submit(new RunTask("Processing imported game data...", new Task(() =>
             {
-                IEnumerable<FileInfo> ncas = files.Where((f) =>
+                IEnumerable<FileInfo> tickets = files.Where((f) =>
+                {
+                    try
+                    {
+                        using Stream s = f.OpenRead();
+                        Ticket t = new Ticket(new BinaryReader(s));
+                        t.GetTitleKey(HACGUIKeyset.Keyset);
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                });
+                IEnumerable<FileInfo> ncas = files.Except(tickets).Where((f) =>
                 {
                     try
                     {
@@ -234,6 +258,15 @@ namespace HACGUI.Main
                     }
                 });
 
+                bool foundTicket = false;
+                foreach (FileInfo tik in tickets)
+                {
+                    using Stream s = tik.OpenRead();
+                    Ticket t = new Ticket(new BinaryReader(s));
+                    HACGUIKeyset.Keyset.ExternalKeySet.Add(new RightsId(t.RightsId), new AccessKey(t.GetTitleKey(HACGUIKeyset.Keyset)));
+                    foundTicket = true;
+                }
+
                 List<SwitchFs> switchFilesystems = new List<SwitchFs>();
                 if (ncas.Any())
                     switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, ncas.MakeFs()));
@@ -244,19 +277,19 @@ namespace HACGUI.Main
                     switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, xci.OpenPartition(XciPartitionType.Secure)));
                 }
 
-                bool foundTicket = true;
                 foreach (FileInfo file in nsp)
                 {
                     PartitionFileSystem fs = new PartitionFileSystem(new LocalFile(file.FullName, OpenMode.Read).AsStorage());
-                    foreach(DirectoryEntry d in fs.EnumerateEntries().Where(e => e.Type == DirectoryEntryType.File && e.Name.EndsWith(".tik")))
+                    foreach(DirectoryEntryEx d in fs.EnumerateEntries().Where(e => e.Type == DirectoryEntryType.File && e.Name.EndsWith(".tik")))
                     {
-                        using (IFile tikFile = fs.OpenFile(d.FullPath, OpenMode.Read)) {
+                        fs.OpenFile(out IFile tikFile, d.FullPath.ToU8Span(), OpenMode.Read);
+                        using (tikFile) {
                             Ticket t = new Ticket(new BinaryReader(tikFile.AsStream()));
                             try
                             {
-                                HACGUIKeyset.Keyset.TitleKeys[t.RightsId] = t.GetTitleKey(HACGUIKeyset.Keyset);
+                                HACGUIKeyset.Keyset.ExternalKeySet.Add(new RightsId(t.RightsId), new AccessKey(t.GetTitleKey(HACGUIKeyset.Keyset)));
                                 foundTicket = true;
-                            } catch(Exception e)
+                            } catch(Exception)
                             {
                                 MessageBox.Show("Failed to import .tik file included in NSP.");
                             }
@@ -265,8 +298,11 @@ namespace HACGUI.Main
                     switchFilesystems.Add(SwitchFs.OpenNcaDirectory(HACGUIKeyset.Keyset, fs));
                 }
 
-                if(foundTicket)
+                if (foundTicket)
+                {
                     TaskManagerPage.Current.Queue.Submit(new SaveKeysetTask(Preferences.Current.DefaultConsoleName));
+                    MessageBox.Show("Ticket import done.");
+                }
 
                 foreach (SwitchFs fs in switchFilesystems)
                     DeviceService.FsView.LoadFileSystemAsync("Opening imported data...", () => fs, FSView.TitleSource.Imported, false);

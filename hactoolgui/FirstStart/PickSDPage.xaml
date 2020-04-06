@@ -5,14 +5,14 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:HACGUI.FirstStart"
-      xmlns:System="clr-namespace:System;assembly=mscorlib"
-      mc:Ignorable="d" 
+    xmlns:system="clr-namespace:System;assembly=System.Runtime"
+    mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800">
 
     <Page.Resources>
-        <System:String x:Key="Title">Instructions</System:String>
-        <System:Double x:Key="MinWidth">800</System:Double>
-        <System:Double x:Key="MinHeight">500</System:Double>
+        <system:String x:Key="Title">Instructions</system:String>
+        <system:Double x:Key="MinWidth">800</system:Double>
+        <system:Double x:Key="MinHeight">500</system:Double>
     </Page.Resources>
 
     <Grid>
@@ -24,7 +24,7 @@
                 <Button Content="..." Width="40" Margin="0,0,20,0" VerticalAlignment="Stretch" Click="ManualPickerButtonClick"/>
                 <Button DockPanel.Dock="Bottom" Content="Next" Name="NextButton" Click="NextButtonClick" VerticalAlignment="Stretch" Width="140" IsEnabled="False"/>
             </StackPanel>
-            <TextBlock Height="200" VerticalAlignment="Center" FontSize="20" HorizontalAlignment="Center" Width="730" LineHeight="40">
+            <TextBlock Height="200" VerticalAlignment="Center" FontSize="20" HorizontalAlignment="Center" Width="740" LineHeight="40">
                 <Run Text="1. Plug in your console running RCM"/>
                 <LineBreak/>
                 <Run Text="2. Click the &quot;Send Lockpick&quot; button (or can be downloaded from"/>
@@ -33,11 +33,11 @@
                 </Hyperlink>
                 <Run Text=")"/>
                 <LineBreak/>
-                <Run Text="3. Follow the onscreen instructions (rebooting to sept if necessary)"/>
+                <Run Text="3. Follow the onscreen instructions (rebooting to sept if necessary, using SYSNAND)"/>
                 <LineBreak/>
                 <Run Text="4. Reboot the console into RCM and click the &quot;Mount SD&quot; button"/>
                 <LineBreak/>
-                <Run Text="         (or plug it into your PC manually)"/>
+                <Run Text="         (or plug the SD into your PC manually)"/>
             </TextBlock>
         </DockPanel>
     </Grid>

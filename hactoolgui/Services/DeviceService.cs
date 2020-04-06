@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using HACGUI.Extensions;
 using HACGUI.Main.TaskManager;
@@ -9,13 +7,13 @@ using HACGUI.Main.TaskManager.Tasks;
 using HACGUI.Main.TitleManager;
 using HACGUI.Utilities;
 using LibHac;
-using LibHac.Fs;
-using LibHac.Fs.Save;
+using LibHac.FsSystem;
+using LibHac.FsSystem.Save;
 using static HACGUI.Main.TitleManager.FSView;
 
 namespace HACGUI.Services
 {
-    public class DeviceService
+    public static class DeviceService
     {
         public delegate void TitlesChangedEvent(Dictionary<ulong, Application> apps, Dictionary<ulong, Title> titles, Dictionary<string, SaveDataFileSystem> saves);
         public static event TitlesChangedEvent TitlesChanged;
@@ -59,9 +57,9 @@ namespace HACGUI.Services
                     Update();
                 };
 
-                SDService.OnSDPluggedIn += (drive) =>
+                SDService.OnSDPluggedIn += (_) =>
                 {
-                    FsView.LoadFileSystemAsync("Opening SD filesystem...", () => SwitchFs.OpenSdCard(HACGUIKeyset.Keyset, new LocalFileSystem(drive.RootDirectory.FullName)), TitleSource.SD, true);
+                    FsView.LoadFileSystemAsync("Opening SD filesystem...", () => SwitchFs.OpenSdCard(HACGUIKeyset.Keyset, new LocalFileSystem(SDService.SDEffectiveRoot.FullName)), TitleSource.SD, true);
 
                     StatusService.SDStatus = StatusService.Status.Progress;
                 };

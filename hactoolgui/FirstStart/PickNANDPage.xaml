@@ -5,15 +5,15 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:HACGUI"
-      xmlns:System="clr-namespace:System;assembly=mscorlib"
-      mc:Ignorable="d" 
+    xmlns:system="clr-namespace:System;assembly=System.Runtime"
+    mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800">
     <Page.Resources>
         <!-- PageExtension Attributes -->
-        <System:String x:Key="Title">Loading NAND</System:String>
-        <System:Double x:Key="MinWidth">800</System:Double>
-        <System:Double x:Key="MinHeight">450</System:Double>
-        <System:Boolean x:Key="AllowDrop">true</System:Boolean>
+        <system:String x:Key="Title">Loading NAND</system:String>
+        <system:Double x:Key="MinWidth">800</system:Double>
+        <system:Double x:Key="MinHeight">450</system:Double>
+        <system:Boolean x:Key="AllowDrop">true</system:Boolean>
     </Page.Resources>
 
     <Grid>
